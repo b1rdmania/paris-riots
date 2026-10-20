@@ -13,6 +13,7 @@
 </head>
 <body>
 <canvas id="c"></canvas>
+<script src="map.js"></script>
 <script>
 "use strict";
 // One 384x240 canvas at native pixels, scaled up nearest-neighbour.
@@ -405,51 +406,12 @@ const COST = {
   scoot: { "#": 3, "=": 1, ".": 1, T: 1, "~": 0, b: 1, P: 1 },
 };
 const DEF = { "#": 3, "=": 0, ".": 0, T: 2, "~": 0, b: 0, P: 3 };
-const TNAME = { "#": "IMMEUBLE", "=": "BOULEVARD", ".": "PLACE", T: "JARDIN", "~": "SEINE", b: "PONT" };
+const TNAME = { "#": "IMMEUBLES", "=": "BOULEVARD", ".": "PLACE", T: "JARDIN", "~": "SEINE", b: "PONT" };
 const INCOME = { hq: 1000, base: 1000, mark: 1500, shop: 1000 };
 
-// ---------- map: central Paris, west to east ----------
-const MAP = (() => {
-  const m = [...Array(MH)].map(() => Array(MW).fill("#"));
-  const rect = (x0, x1, y0, y1, c) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m[y][x] = c; };
-  rect(6, 10, 6, 6, "T"); rect(0, 1, 9, 10, "T"); rect(9, 12, 12, 12, "T"); rect(21, 22, 9, 10, "T");
-  rect(0, 23, 8, 8, "~"); rect(12, 17, 9, 10, "~"); rect(13, 16, 9, 9, "#");
-  const road = (x0, x1, y0, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m[y][x] = m[y][x] === "~" ? "b" : "="; };
-  road(6, 21, 1, 1); road(0, 7, 3, 3); road(14, 23, 3, 3); road(0, 22, 5, 5); road(0, 23, 7, 7);
-  road(0, 11, 9, 9); road(18, 23, 9, 9); road(13, 16, 9, 9); road(0, 23, 11, 11);
-  road(1, 1, 2, 7); road(3, 3, 3, 12); road(6, 6, 0, 7); road(9, 9, 0, 5); road(11, 11, 5, 12);
-  road(14, 14, 0, 12); road(18, 18, 3, 12); road(20, 20, 0, 7); road(23, 23, 3, 12);
-  rect(0, 1, 4, 6, "."); rect(5, 6, 4, 6, "."); rect(19, 21, 1, 2, "."); rect(20, 21, 6, 7, "."); rect(13, 14, 4, 5, ".");
-  return m;
-})();
-const PROPS0 = [
-  { x: 5, y: 2, kind: "hq", owner: 1, name: "PLACE BEAUVAU", art: "beauvau" },
-  { x: 22, y: 2, kind: "hq", owner: 0, name: "LYCEE VOLTAIRE", art: "lycee" },
-  { x: 13, y: 9, kind: "base", owner: 1, name: "PREFECTURE DE POLICE", art: "prefecture" },
-  { x: 4, y: 10, kind: "base", owner: 1, name: "INVALIDES", art: "invalides" },
-  { x: 19, y: 2, kind: "base", owner: 0, name: "METRO REPUBLIQUE", art: "metro" },
-  { x: 15, y: 12, kind: "base", owner: 0, name: "SORBONNE", art: "sorbonne" },
-  { x: 13, y: 4, kind: "base", owner: -1, name: "METRO CHATELET", art: "metro" },
-  { x: 0, y: 4, kind: "mark", owner: -1, name: "ARC DE TRIOMPHE", art: "arc" },
-  { x: 8, y: 0, kind: "mark", owner: -1, name: "OPERA", art: "opera" },
-  { x: 12, y: 6, kind: "mark", owner: -1, name: "LOUVRE", art: "louvre" },
-  { x: 15, y: 4, kind: "mark", owner: -1, name: "LES HALLES", art: "halles" },
-  { x: 16, y: 6, kind: "mark", owner: -1, name: "HOTEL DE VILLE", art: "hdv" },
-  { x: 16, y: 9, kind: "mark", owner: -1, name: "NOTRE-DAME", art: "nd" },
-  { x: 0, y: 10, kind: "mark", owner: -1, name: "TOUR EIFFEL", art: "eiffel" },
-  { x: 2, y: 4, kind: "shop", owner: -1, name: "FOUQUET'S", art: "shop" },
-  { x: 4, y: 4, kind: "shop", owner: -1, name: "NIKE", art: "shop" },
-  { x: 7, y: 0, kind: "shop", owner: -1, name: "GALERIES LAFAYETTE", art: "shop" },
-  { x: 10, y: 2, kind: "shop", owner: -1, name: "APPLE STORE", art: "shop" },
-  { x: 12, y: 2, kind: "shop", owner: -1, name: "ZARA", art: "shop" },
-  { x: 13, y: 6, kind: "shop", owner: -1, name: "FNAC", art: "shop" },
-  { x: 17, y: 4, kind: "shop", owner: -1, name: "MONOPRIX", art: "shop" },
-  { x: 2, y: 6, kind: "shop", owner: -1, name: "PSG STORE", art: "shop" },
-  { x: 22, y: 4, kind: "shop", owner: -1, name: "SEPHORA", art: "shop" },
-  { x: 8, y: 10, kind: "shop", owner: -1, name: "BOULANGERIE", art: "shop" },
-  { x: 19, y: 12, kind: "shop", owner: -1, name: "KEBAB", art: "shop" },
-];
-for (const p of PROPS0) MAP[p.y][p.x] = "P";
+// ---------- map: central Paris from OpenStreetMap (data/layout.py writes map.js) ----------
+const MAP = window.PARIS.grid.map((r) => [...r]);
+const PROPS0 = window.PARIS.props;
 const LANDMARKS = PROPS0.filter((p) => p.kind === "mark").length;
 const NEED = 4; // landmarks the lycéens must hold at curfew
 
@@ -505,14 +467,14 @@ const dist = (a, b, c, d) => Math.abs(a - c) + Math.abs(b - d);
 
 function newGame(humans) {
   G = {
-    humans, side: 0, round: 0, funds: [2000, 2000], units: [], nextId: 1,
+    humans, side: 0, round: 0, funds: [2000, 5000], units: [], nextId: 1,
     props: PROPS0.map((p) => ({ ...p, cap: 20 })), mode: "idle", cur: { x: 21, y: 3 },
     sel: null, reach: null, from: null, menu: null, targets: [], tsel: 0, fx: [],
     msg: "", msgT: 0, banner: null, busy: false, over: null, buttons: [],
   };
   const put = (t, x, y) => G.units.push({ id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false });
-  put("lyceen", 21, 3); put("lyceen", 19, 1); put("bloc", 20, 3); put("lyceen", 15, 11);
-  put("crs", 6, 3); put("crs", 4, 3); put("gm", 6, 4); put("crs", 14, 9);
+  put("lyceen", 21, 3); put("lyceen", 21, 9); put("bloc", 22, 8); put("lyceen", 15, 11);
+  put("crs", 9, 0); put("crs", 7, 1); put("gm", 8, 1); put("crs", 16, 7);
   buildMapLayer();
   screen = "game";
   startTurn();
@@ -965,12 +927,44 @@ cv.addEventListener("pointerdown", (e) => {
 let mapLayer = null;
 const rnd = (x, y, i = 0) => { let h = (x * 374761393 + y * 668265263 + i * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
+const IMG = {};
+const ASSETS = Promise.all(["paris", "props"].map((n) => new Promise((ok) => {
+  const i = new Image(); i.onload = () => { IMG[n] = i; ok(); }; i.onerror = () => ok(); i.src = `art/${n}.png`;
+}))).then(async () => {
+  try { IMG.propsMeta = await (await fetch("art/props.json")).json(); } catch {}
+  waterPixels();
+});
+let WATER = [];
+function waterPixels() {
+  // The Seine's pixels in the background, so the river can shimmer.
+  try {
+    const c = document.createElement("canvas"); c.width = MW * TS; c.height = MH * TS;
+    const g = c.getContext("2d"); g.drawImage(IMG.paris, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height).data;
+    for (let i = 0; i < d.length; i += 4) if (d[i] === 0x1e && d[i + 1] === 0x50 && d[i + 2] === 0x70) WATER.push(i / 4);
+  } catch {}
+}
 function buildMapLayer() {
   mapLayer ||= document.createElement("canvas");
   mapLayer.width = MW * TS; mapLayer.height = MH * TS;
   const g = mapLayer.getContext("2d");
   const f = (x, y, w, h, c) => { g.fillStyle = PAL[c]; g.fillRect(x, y, w, h); };
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(f, x, y);
+  if (!IMG.paris) { for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(f, x, y); return; }
+  g.drawImage(IMG.paris, 0, 0);
+  // tile corners, so the grid can be read without drawing lines over the city
+  for (let y = 1; y < MH; y++) for (let x = 1; x < MW; x++) f(x * TS, y * TS, 1, 1, 0);
+  const props = (G?.props || PROPS0).slice().sort((a, b) => a.y - b.y);
+  const meta = IMG.propsMeta;
+  for (const p of props) {
+    const px = p.x * TS, py = p.y * TS;
+    const art = p.art.startsWith("shop") && p.owner === 0 ? "shop_looted" : p.art;
+    const r = meta && IMG.props && meta.frames[art];
+    if (!r) { drawProp(f, p, px, py); continue; }
+    g.drawImage(IMG.props, r.x, r.y, 16, 24, px, py - 8, 16, 24);
+    const own = p.owner == null || p.owner < 0 ? 6 : SIDES[p.owner].flag;
+    f(px + 15, py - 8, 1, 6, 0); f(px + 12, py - 8, 3, 3, own);
+    if (p.owner < 0) f(px + 13, py - 7, 1, 1, 0);
+  }
 }
 function drawTile(f, x, y) {
   const px = x * TS, py = y * TS, t = terr(x, y);
@@ -1058,15 +1052,14 @@ function drawProp(f, p, px, py) {
 // ---------- drawing ----------
 function drawMap() {
   ctx.drawImage(mapLayer, 0, TOP);
-  // animated water
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (terr(x, y) === "~") {
-    for (let i = 0; i < 3; i++) {
-      const wx = (Math.floor(rnd(x, y, i) * 16) + Math.floor(frame / 12)) % 14, wy = 3 + i * 4;
-      fill(x * TS + wx, TOP + y * TS + wy, 2, 1, (frame >> 4) % 2 ? 20 : 21);
-    }
+  // the Seine shimmers
+  const ph = frame >> 3;
+  for (let i = 0; i < WATER.length; i++) {
+    const k = WATER[i], h = (k * 2654435761) >>> 0;
+    if ((h + ph) % 53 === 0) fill(k % (MW * TS), TOP + Math.floor(k / (MW * TS)), 2, 1, (h >> 3) % 3 ? 20 : 21);
   }
   // looted shops smoulder
-  for (const p of G.props) if (p.art === "shop" && p.owner === 0) {
+  for (const p of G.props) if (p.art.startsWith("shop") && p.owner === 0) {
     const fl = (frame >> 3) % 3;
     fill(p.x * TS + 3 + fl, TOP + p.y * TS + 11 - fl, 2, 2 + fl, 29); fill(p.x * TS + 4 + fl, TOP + p.y * TS + 12, 1, 2, 26);
     fill(p.x * TS + 4, TOP + p.y * TS + 2 - fl, 2, 2, 3);
@@ -1228,8 +1221,9 @@ function drawTitle() {
   textC("COMMAND &", W / 2, 22, 26, 0, 2);
   textC("COUVRE-FEU", W / 2, 42, 30, 0, 3);
   textC("PARIS - SATURDAY 17 OCTOBER 2026 - CURFEW 23:00", W / 2, 72, 13);
-  ctx.drawImage(SPR.lyceen10, 120, 84); ctx.drawImage(SPR.kangoo10, 138, 84); ctx.drawImage(SPR.bloc10, 102, 84);
-  ctx.drawImage(SPR.crs00, 248, 84); ctx.drawImage(SPR.canon00, 228, 84); ctx.drawImage(SPR.lacrymo00, 266, 84);
+  const spr = (t, f) => SHEET.frames?.has(t) ? SHEET.cache[`${t}/idle${(frame >> 5) % 2}${f}0`] : SPR[`${t}${f}0`];
+  ["torse", "lyceen", "panther", "kangoo"].forEach((t, i) => ctx.drawImage(spr(t, 1), 96 + i * 18, 84));
+  ["canon", "crs", "lbd", "lacrymo"].forEach((t, i) => ctx.drawImage(spr(t, 0), 222 + i * 18, 84));
   textC("VS", W / 2 + 4, 89, 7, 0, 1);
   TITLE_RECTS = [];
   TITLE_ITEMS.forEach((it, i) => {
@@ -1272,7 +1266,8 @@ function loop() {
   frame++;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   fill(0, 0, W, H, 0);
-  if (screen === "title") drawTitle();
+  if (!ready) textC("LOADING PARIS...", W / 2, H / 2, 6);
+  else if (screen === "title") drawTitle();
   else if (screen === "help") drawHelp();
   else if (G) {
     if (G.over) drawOver();
@@ -1291,6 +1286,8 @@ function loop() {
   }
   requestAnimationFrame(loop);
 }
+let ready = false;
+ASSETS.then(() => { mapLayer = null; G = null; ready = true; });
 // Test hook: lets a headless run inspect and drive the game.
 window.__cf = { get G() { return G; }, act, newGame, endTurn, get screen() { return screen; } };
 loop();
