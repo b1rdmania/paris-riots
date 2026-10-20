@@ -6,8 +6,7 @@ from PIL import Image
 pal = json.load(open("art/palette.json"))["colors"]
 flat = [int(c[i:i + 2], 16) for c in pal for i in (1, 3, 5)]
 pimg = Image.new("P", (1, 1)); pimg.putpalette(flat + flat[:3] * (256 - len(pal)))
-SRC = {n: f"art/full-scenes-first-four/{n}.png" for n in ["republique", "capucines", "louvre", "velib"]}
-SRC["seine-rain"] = "art/background-bank/sources/seine-rain.png"
+SRC = {n: f"art/sources/paintings/{n}.png" for n in ["republique", "capucines", "louvre", "velib", "seine-rain"]}
 def fit(im, w, h):
     r = max(w / im.width, h / im.height)
     im = im.resize((round(im.width * r), round(im.height * r)), Image.LANCZOS)

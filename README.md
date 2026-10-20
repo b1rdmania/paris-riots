@@ -1,8 +1,8 @@
 # Paris Riots: The Game
 
-A turn-based story game on a pixel map of central Paris. You play the lycéens through five chapters. Curfew is at 23:00.
+A turn-based story game on a pixel map of central Paris, set on 17 October 2026. You play the lycéens through five chapters. Curfew is at 23:00.
 
-Play: https://couvre-feu.pages.dev
+Play: https://couvre-feu.pages.dev (desktop browser)
 
 ![Paris Riots: The Game](game/og.jpg)
 
@@ -10,13 +10,13 @@ Play: https://couvre-feu.pages.dev
 
 | Part | Source |
 | --- | --- |
-| Map | OpenStreetMap streets, water and parks for central Paris, drawn as pixel art by `data/render.py`. The game grid comes from the same render, so the rules match the picture. |
+| Map | OpenStreetMap streets, water and parks for central Paris, drawn as pixel art. The game grid comes from the same drawing, so the rules match the picture. |
 | Rules | Advance Wars: move a unit, then fire, capture or wait. Each chapter has one goal. |
-| Story | Five chapters set on 17 October 2026, each with a diary card and a coach. You can play them in any order. |
+| Story | Five chapters, each with a diary card. Inès, a lycéenne, coaches you through each step. |
 | Art | Painted with Codex in a fixed 32-colour palette. |
-| Music | Ten French classics from BitMidi, played on a four-channel Game Boy-style synth from [Wario Synth](https://wario.style). The menu lists them. |
+| Music | Ten French songs from BitMidi, played on a four-channel Game Boy-style synth from [Wario Synth](https://wario.style). |
 
-The game is one page with a canvas and no libraries. It runs on Cloudflare Pages. It needs a desktop browser.
+The game is one page with a canvas and no libraries. It runs on Cloudflare Pages.
 
 ## Run it
 
@@ -26,9 +26,17 @@ python3 -m http.server -d game 8000
 
 Then open http://localhost:8000.
 
+## Folders
+
+| Folder | Contents |
+| --- | --- |
+| `game/` | The game. Deploy this folder. |
+| `data/` | Scripts that turn OpenStreetMap data into the map and its grid. |
+| `art/` | Palette, sprite sheets, source paintings and the art build scripts. |
+
 ## Rebuild the map
 
-Download the BBBike Paris extract to `data/Paris.osm.pbf`, then run these from `data/` with Python 3 and `osmium`, `shapely` and `pillow`:
+Download the BBBike Paris extract to `data/Paris.osm.pbf`. Then run these from `data/` with Python 3 and `osmium`, `shapely` and `pillow`:
 
 ```
 python extract.py Paris.osm.pbf paris.json
@@ -37,7 +45,7 @@ python grid.py
 python layout.py
 ```
 
-`layout.py` writes `game/map.js`.
+`layout.py` writes `game/map.js`. From the repo root, `python data/news.py` converts the source paintings to the game palette.
 
 ## Credits
 

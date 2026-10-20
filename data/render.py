@@ -5,16 +5,10 @@
 import json, math, random, sys
 from PIL import Image, ImageDraw
 
-import os
 MW, MH, TS = 24, 13, 16
 PW, PH = MW * TS, MH * TS
 CLAT = 48.8585
 W, E = 2.2865, 2.3745
-# EXTRA=n renders n more pixels of Paris on each side (scenery for wide phone screens)
-EXTRA = int(os.environ.get("EXTRA", "0"))
-if EXTRA:
-    dx = (E - W) * EXTRA / PW
-    W, E, PW = W - dx, E + dx, PW + 2 * EXTRA
 HLAT = (E - W) * math.cos(math.radians(CLAT)) * PH / PW
 N, S = CLAT + HLAT / 2, CLAT - HLAT / 2
 PAL = json.load(open("../art/palette.json"))["colors"]
@@ -103,5 +97,5 @@ for r in d["roads"]:
                 tx, ty = int(round(x + nx * side)), int(round(y + ny * side))
                 if 0 <= tx < PW and 0 <= ty < PH and C[ty][tx] in (0, 1): put((tx, ty), 16)
 img.save(sys.argv[2])
-if not EXTRA: json.dump({"W": W, "E": E, "N": N, "S": S, "classes": ["".join(".=TW-~bB"[C[y][x]] for x in range(PW)) for y in range(PH)]}, open("classes.json", "w"))
+json.dump({"W": W, "E": E, "N": N, "S": S, "classes": ["".join(".=TW-~bB"[C[y][x]] for x in range(PW)) for y in range(PH)]}, open("classes.json", "w"))
 print("ok", round(N, 5), round(S, 5))
