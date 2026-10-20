@@ -502,7 +502,15 @@ function drum(kind, t) {
   g.gain.setValueAtTime(kind === 1 ? 0.07 : 0.025, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
   s.connect(f).connect(g).connect(MUS.gain); s.start(t); s.stop(t + len + 0.01);
 }
+// iOS: treat this as media so the silent switch doesn't mute it (iOS 17+), and play a moment of
+// silence through an <audio> element, which older iPhones need before Web Audio is heard.
+let silenceTried = false;
 function unlockAudio() {
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+  if (!silenceTried) {
+    silenceTried = true;
+    try { const a = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="); a.play().catch(() => {}); } catch {}
+  }
   try { AC ||= new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch { return; }
   if (MUS.on && MUS.want && MUS.name !== MUS.want) startMusic(MUS.want);
 }
@@ -1642,7 +1650,7 @@ cv.addEventListener("pointermove", (e) => {
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
 cv.addEventListener("pointerdown", (e) => {
-  if (PHONE) { MUS.on = true; MUS.want = "piaf"; unlockAudio(); return; }
+  if (PHONE) return;
   // follow the input actually used (iPad with a trackpad, touch laptops)
   const t = e.pointerType !== "mouse";
   if (t !== TOUCH) { TOUCH = t; fit(); }
@@ -2249,7 +2257,8 @@ function drawPointer() {
   if (!mouse.on || !uiDraw("pointer", mouse.x - 1, mouse.y)) return;
 }
 
-// Phones and touch tablets: the title painting with a desktop-only note.
+// Phones and touch tablets: the title painting with a desktop-only note. Piaf on the first tap.
+if (PHONE) for (const ev of ["touchend", "click"]) addEventListener(ev, () => { MUS.on = true; MUS.want = "piaf"; silenceTried = false; unlockAudio(); }, { passive: true });
 function drawSorry() {
   const tm = IMG.titleMeta;
   if (IMG.title) ctx.drawImage(IMG.title, 0, 0); else fill(0, 0, W, H, 0);
@@ -2259,9 +2268,10 @@ function drawSorry() {
   text8("DESOLE.", 1, 1, 0); text8("DESOLE.", 0, 0, 26);
   for (const i of [1, 5]) { fill(i * 8 + 3, -3, 2, 1, 26); fill(i * 8 + 4, -4, 2, 1, 26); }
   ctx.restore();
-  text8C("THIS IS MUCH BETTER ON DESKTOP.", cx, band.y + 40, 7, 0);
+  text8C("THIS IS DESKTOP ONLY FOR NOW.", cx, band.y + 38, 7, 0);
+  text8C("TRY IT THERE.", cx, band.y + 49, 7, 0);
   // Piaf plays once the phone allows sound, which is after the first tap
-  if (MUS.name !== "piaf") { MUS.want = "piaf"; if ((frame >> 5) % 2) textC("TAP FOR SOUND", cx, band.y + 58, 5); }
+  if (MUS.name !== "piaf") { MUS.want = "piaf"; if ((frame >> 5) % 2) textC("TAP FOR SOUND", cx, band.y + 63, 5); }
 }
 
 // ---------- loop ----------
