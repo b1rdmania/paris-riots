@@ -1,0 +1,96 @@
+{
+  "image": "battle-cutins-review.png",
+  "status": "review-only",
+  "frames": {
+    "torse/idle": {
+      "x": 0,
+      "y": 0,
+      "w": 192,
+      "h": 128
+    },
+    "torse/attack0": {
+      "x": 192,
+      "y": 0,
+      "w": 192,
+      "h": 128
+    },
+    "torse/attack1": {
+      "x": 384,
+      "y": 0,
+      "w": 192,
+      "h": 128
+    },
+    "torse/attack2": {
+      "x": 576,
+      "y": 0,
+      "w": 192,
+      "h": 128
+    },
+    "torse/attack3": {
+      "x": 768,
+      "y": 0,
+      "w": 192,
+      "h": 128
+    },
+    "panther/idle": {
+      "x": 0,
+      "y": 128,
+      "w": 192,
+      "h": 128
+    },
+    "panther/attack0": {
+      "x": 192,
+      "y": 128,
+      "w": 192,
+      "h": 128
+    },
+    "panther/attack1": {
+      "x": 384,
+      "y": 128,
+      "w": 192,
+      "h": 128
+    },
+    "panther/attack2": {
+      "x": 576,
+      "y": 128,
+      "w": 192,
+      "h": 128
+    },
+    "panther/attack3": {
+      "x": 768,
+      "y": 128,
+      "w": 192,
+      "h": 128
+    },
+    "canon/idle": {
+      "x": 0,
+      "y": 256,
+      "w": 192,
+      "h": 128
+    },
+    "canon/attack0": {
+      "x": 192,
+      "y": 256,
+      "w": 192,
+      "h": 128
+    },
+    "canon/attack1": {
+      "x": 384,
+      "y": 256,
+      "w": 192,
+      "h": 128
+    },
+    "canon/attack2": {
+      "x": 576,
+      "y": 256,
+      "w": 192,
+      "h": 128
+    },
+    "canon/attack3": {
+      "x": 768,
+      "y": 256,
+      "w": 192,
+      "h": 128
+    }
+  }
+}

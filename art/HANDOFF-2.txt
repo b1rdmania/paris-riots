@@ -1,0 +1,98 @@
+KLAXXON / COMMAND & COUVRE-FEU — HANDOFF 2
+20 October 2026
+
+Delivered
+
+units.png + units.json: complete 13-unit roster, 104 hand-authored native
+16x16 frames. Original row/column order retained. All 13 IDs are in
+availableUnits; unavailableRows is empty. Runtime copies in game/art/ match.
+
+The first five were rebuilt from native pixel clusters, without downsampling:
+red hood / white phone; separate moustached head, bright belly and blue jeans;
+all-pink cat, white muzzle, curled tail and dark bag; bright police helmet and
+shield; blue truck, white stripe and water jet. The other eight follow the
+same outline, palette and scale. All frames have an empty bottom pixel row.
+
+fx.png + fx.json: eight requested effect families, four frames each, plus a
+blue CRS capture-flag variant (36 frames). Default capture_flag is Lycéens.
+
+tiles.png + tiles.json: 31 frames: block x4, road x16, place x2, park x2,
+Seine x4, north and south quay overlays, vertical bridge. Road mask bits are
+N=1, E=2, S=4, W=8. Quays are transparent overlays, not extra water tiles.
+
+props.png + props.json: all 15 required buildings / shops, plus five unbranded
+shop variants (sneakers, phone, brasserie, boulangerie, kebab). Cells are 16x24.
+Draw at tile y minus 8px, in map-row order. The 4x6 top-right pennant gap is
+empty in every frame. The existing pennant position must be moved into that
+gap when integrating: gap coordinates are relative to the sprite, not tile.
+
+Optional art included:
+- battle-cutins.png + JSON: 13 units x idle + 4 attack frames, each 96x64.
+  Three-person squads, belly slap, jewel snatch and water-cannon skittles.
+  The vehicle squads use the native map silhouettes enlarged exactly 2x;
+  human cut-ins have separate larger pixel drawings. Transparent panels.
+- commanders.png + JSON: two 48x48 fictional portraits. Class representative
+  with megaphone; moustached prefect with two phones. The representative's
+  long placard wording is supplied verbatim in JSON for UI rendering, rather
+  than squeezed into unreadable portrait pixels. No placard is baked in.
+
+Checks performed
+
+Opened the unchanged game locally in the Codex browser. art/review-game.html
+loads game/index.html in an iframe and calls the existing __cf hook to place
+units. It changes session state only; no game source was edited.
+
+Checked the rebuilt first five before generating the remaining units.
+Then checked the whole roster at 1x and 3x against the live map, including
+roads, zinc roofs and the park. Cycled all 13 through actual park cells
+(7..10,6). Inspected idle, walk, attack, hit and ko states at 3x, both normal
+team facings, HP=6 overlays and the engine's done-state dimming. No browser
+warnings or errors were reported during the final check.
+
+Visual assessment: all 13 idle silhouettes are identifiable at 1x. Black Bloc
+remains the darkest unit by design; stone, eye slit and shoes distinguish it.
+Injured units' HP labels obscure some lower-right equipment, as in the current
+engine. Helmets, faces and upper silhouettes stay visible. Done-state dimming
+is the engine's unchanged 55% dark overlay; it reduces contrast deliberately.
+
+art/style-check-2.png is the lossless 384x240 canvas exported from the actual
+running game, with the full roster on the map. It is not a mock-up.
+art/style-check-2-browser.jpg records the browser review page at 3x.
+art/style-check-2-first-five.jpg records the first-five check before expansion.
+
+Reviewed effects, terrain, props, cut-ins and portraits in standalone sheets.
+These have NOT been integrated or exercised in actual battles. Their timings
+are suggested starting points; sequencing, placement and occlusion need an
+engine integration pass. The optional cut-ins are a first art pass.
+
+node art/src/validate-art.cjs passes:
+- 258 nonempty, distinct frames across six production atlases.
+- 0 off-palette pixels; 0 partial-alpha pixels.
+- All frame rectangles within sheet bounds; animation frame references valid.
+- All unit bottom rows clear; all building pennant gaps clear.
+- No brown or skin-tone colours in any Panther unit frame.
+- Runtime unit PNG/JSON exactly match their art/ counterparts.
+The complete machine-readable report is art/units-validation.json.
+Palette file and game/index.html are unchanged.
+
+Rebuild and review
+
+Install art's pinned sharp dependency if needed: npm install --prefix art
+Rebuild: node art/src/build-art.cjs all
+Sync units: cp art/units.png art/units.json game/art/
+Validate: node art/src/validate-art.cjs
+
+Serve from REPO ROOT: python3 -m http.server 8765 --bind 127.0.0.1
+Game: http://localhost:8765/game/
+Live unit review: http://localhost:8765/art/review-game.html
+Other atlas review: http://localhost:8765/art/review-sheets.html
+
+Native source drawings are in art/src/. Review PNGs are enlarged companions,
+not runtime sheets. Old first-pass imagegen sources are retained for history;
+the new native art does not depend on them.
+
+Next integration work
+
+Claude can integrate fx, terrain, buildings, cut-ins and portraits using their
+JSON rectangles and suggested timings. Only units are currently wired and
+copied into game/art/. No engine changes, deployment or push were performed.

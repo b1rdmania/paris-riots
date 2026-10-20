@@ -1,0 +1,294 @@
+{
+  "version": 2,
+  "status": "integration-candidate",
+  "image": "tiles.png",
+  "palette": "palette.json",
+  "frameSize": {
+    "width": 16,
+    "height": 16
+  },
+  "sheet": {
+    "width": 128,
+    "height": 64,
+    "columns": 8,
+    "rows": 4
+  },
+  "frames": {
+    "block/0": {
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "block/1": {
+      "x": 16,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "block/2": {
+      "x": 32,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "block/3": {
+      "x": 48,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/0": {
+      "x": 64,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/1": {
+      "x": 80,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/2": {
+      "x": 96,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/3": {
+      "x": 112,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/4": {
+      "x": 0,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/5": {
+      "x": 16,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/6": {
+      "x": 32,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/7": {
+      "x": 48,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/8": {
+      "x": 64,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/9": {
+      "x": 80,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/10": {
+      "x": 96,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/11": {
+      "x": 112,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/12": {
+      "x": 0,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/13": {
+      "x": 16,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/14": {
+      "x": 32,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "road/15": {
+      "x": 48,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "place/0": {
+      "x": 64,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "place/1": {
+      "x": 80,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "park/0": {
+      "x": 96,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "park/1": {
+      "x": 112,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "seine/0": {
+      "x": 0,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "seine/1": {
+      "x": 16,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "seine/2": {
+      "x": 32,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "seine/3": {
+      "x": 48,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "quay_n": {
+      "x": 64,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "quay_s": {
+      "x": 80,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bridge": {
+      "x": 96,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    }
+  },
+  "roadMask": {
+    "N": 1,
+    "E": 2,
+    "S": 4,
+    "W": 8
+  },
+  "overlayFrames": [
+    "quay_n",
+    "quay_s"
+  ],
+  "animations": {
+    "seine": {
+      "frames": [
+        "seine/0",
+        "seine/1",
+        "seine/2",
+        "seine/3"
+      ],
+      "durationsMs": [
+        200,
+        200,
+        200,
+        200
+      ],
+      "loop": true
+    }
+  },
+  "notes": "Quay frames are transparent overlays on any Seine frame. Bridge runs north/south. Road masks identify connected neighbours. Empty final cell is not a frame."
+}

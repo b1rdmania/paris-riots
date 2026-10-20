@@ -1,0 +1,193 @@
+{
+  "version": 2,
+  "status": "integration-candidate",
+  "image": "props.png",
+  "palette": "palette.json",
+  "frameSize": {
+    "width": 16,
+    "height": 24
+  },
+  "sheet": {
+    "width": 128,
+    "height": 72,
+    "columns": 8,
+    "rows": 3
+  },
+  "frames": {
+    "beauvau": {
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "lycee": {
+      "x": 16,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "prefecture": {
+      "x": 32,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "invalides": {
+      "x": 48,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "sorbonne": {
+      "x": 64,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "metro": {
+      "x": 80,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "arc": {
+      "x": 96,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "opera": {
+      "x": 112,
+      "y": 0,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "louvre": {
+      "x": 0,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "halles": {
+      "x": 16,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "hdv": {
+      "x": 32,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "nd": {
+      "x": 48,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "eiffel": {
+      "x": 64,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "shop": {
+      "x": 80,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "shop_looted": {
+      "x": 96,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "shop_sneakers": {
+      "x": 112,
+      "y": 24,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "shop_phone": {
+      "x": 0,
+      "y": 48,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "shop_brasserie": {
+      "x": 16,
+      "y": 48,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "shop_boulangerie": {
+      "x": 32,
+      "y": 48,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    },
+    "shop_kebab": {
+      "x": 48,
+      "y": 48,
+      "w": 16,
+      "h": 24,
+      "width": 16,
+      "height": 24
+    }
+  },
+  "drawOffset": {
+    "x": 0,
+    "y": -8
+  },
+  "tileAnchor": {
+    "x": 0,
+    "y": 8
+  },
+  "pennantGap": {
+    "x": 12,
+    "y": 0,
+    "w": 4,
+    "h": 6
+  },
+  "notes": "Draw at tile top minus 8px, back to front by tile row. Owner pennant gap is in sprite coordinates; move engine pennant into that gap. Shop variants unbranded. Unused final four cells transparent."
+}

@@ -1,0 +1,10 @@
+{
+  "name": "klaxxon-native-art",
+  "private": true,
+  "version": "2.0.0",
+  "scripts": {
+    "build": "node src/build-art.cjs all",
+    "validate": "node src/validate-art.cjs"
+  },
+  "devDependencies": { "sharp": "0.34.5" }
+}

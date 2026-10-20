@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "status": "integration-candidate",
   "image": "units.png",
   "palette": "palette.json",
@@ -13,33 +13,6 @@
     "columns": 8,
     "rows": 13
   },
-  "availableUnits": [
-    "lyceen",
-    "torse",
-    "panther",
-    "crs",
-    "canon"
-  ],
-  "unavailableRows": [
-    1,
-    2,
-    5,
-    6,
-    8,
-    9,
-    10,
-    11
-  ],
-  "frameOrder": [
-    "idle0",
-    "idle1",
-    "walk0",
-    "walk1",
-    "attack0",
-    "attack1",
-    "hit",
-    "ko"
-  ],
   "frames": {
     "lyceen/idle0": {
       "x": 0,
@@ -100,6 +73,134 @@
     "lyceen/ko": {
       "x": 112,
       "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/idle0": {
+      "x": 0,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/idle1": {
+      "x": 16,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/walk0": {
+      "x": 32,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/walk1": {
+      "x": 48,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/attack0": {
+      "x": 64,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/attack1": {
+      "x": 80,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/hit": {
+      "x": 96,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bloc/ko": {
+      "x": 112,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/idle0": {
+      "x": 0,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/idle1": {
+      "x": 16,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/walk0": {
+      "x": 32,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/walk1": {
+      "x": 48,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/attack0": {
+      "x": 64,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/attack1": {
+      "x": 80,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/hit": {
+      "x": 96,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "trott/ko": {
+      "x": 112,
+      "y": 32,
       "w": 16,
       "h": 16,
       "width": 16,
@@ -233,6 +334,134 @@
       "width": 16,
       "height": 16
     },
+    "caddie/idle0": {
+      "x": 0,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "caddie/idle1": {
+      "x": 16,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "caddie/walk0": {
+      "x": 32,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "caddie/walk1": {
+      "x": 48,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "caddie/attack0": {
+      "x": 64,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "caddie/attack1": {
+      "x": 80,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "caddie/hit": {
+      "x": 96,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "caddie/ko": {
+      "x": 112,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/idle0": {
+      "x": 0,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/idle1": {
+      "x": 16,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/walk0": {
+      "x": 32,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/walk1": {
+      "x": 48,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/attack0": {
+      "x": 64,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/attack1": {
+      "x": 80,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/hit": {
+      "x": 96,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "kangoo/ko": {
+      "x": 112,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
     "crs/idle0": {
       "x": 0,
       "y": 112,
@@ -292,6 +521,262 @@
     "crs/ko": {
       "x": 112,
       "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/idle0": {
+      "x": 0,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/idle1": {
+      "x": 16,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/walk0": {
+      "x": 32,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/walk1": {
+      "x": 48,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/attack0": {
+      "x": 64,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/attack1": {
+      "x": 80,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/hit": {
+      "x": 96,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "gm/ko": {
+      "x": 112,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/idle0": {
+      "x": 0,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/idle1": {
+      "x": 16,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/walk0": {
+      "x": 32,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/walk1": {
+      "x": 48,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/attack0": {
+      "x": 64,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/attack1": {
+      "x": 80,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/hit": {
+      "x": 96,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "bravm/ko": {
+      "x": 112,
+      "y": 144,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/idle0": {
+      "x": 0,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/idle1": {
+      "x": 16,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/walk0": {
+      "x": 32,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/walk1": {
+      "x": 48,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/attack0": {
+      "x": 64,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/attack1": {
+      "x": 80,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/hit": {
+      "x": 96,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lbd/ko": {
+      "x": 112,
+      "y": 160,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/idle0": {
+      "x": 0,
+      "y": 176,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/idle1": {
+      "x": 16,
+      "y": 176,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/walk0": {
+      "x": 32,
+      "y": 176,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/walk1": {
+      "x": 48,
+      "y": 176,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/attack0": {
+      "x": 64,
+      "y": 176,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/attack1": {
+      "x": 80,
+      "y": 176,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/hit": {
+      "x": 96,
+      "y": 176,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lacrymo/ko": {
+      "x": 112,
+      "y": 176,
       "w": 16,
       "h": 16,
       "width": 16,
@@ -362,7 +847,32 @@
       "height": 16
     }
   },
-  "notes": "Only rows 0,3,4,7,12 supplied. Other rows are transparent; use existing placeholders for unavailable units. Right-facing. Bottom pixel row transparent. Nearest-neighbour scaling only.",
+  "availableUnits": [
+    "lyceen",
+    "bloc",
+    "trott",
+    "torse",
+    "panther",
+    "caddie",
+    "kangoo",
+    "crs",
+    "gm",
+    "bravm",
+    "lbd",
+    "lacrymo",
+    "canon"
+  ],
+  "unavailableRows": [],
+  "frameOrder": [
+    "idle0",
+    "idle1",
+    "walk0",
+    "walk1",
+    "attack0",
+    "attack1",
+    "hit",
+    "ko"
+  ],
   "animations": {
     "lyceen/idle": {
       "frames": [
@@ -409,6 +919,108 @@
     "lyceen/ko": {
       "frames": [
         "lyceen/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "bloc/idle": {
+      "frames": [
+        "bloc/idle0",
+        "bloc/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "bloc/walk": {
+      "frames": [
+        "bloc/walk0",
+        "bloc/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "bloc/attack": {
+      "frames": [
+        "bloc/attack0",
+        "bloc/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "bloc/hit": {
+      "frames": [
+        "bloc/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "bloc/ko": {
+      "frames": [
+        "bloc/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "trott/idle": {
+      "frames": [
+        "trott/idle0",
+        "trott/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "trott/walk": {
+      "frames": [
+        "trott/walk0",
+        "trott/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "trott/attack": {
+      "frames": [
+        "trott/attack0",
+        "trott/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "trott/hit": {
+      "frames": [
+        "trott/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "trott/ko": {
+      "frames": [
+        "trott/ko"
       ],
       "durationsMs": [
         800
@@ -517,6 +1129,108 @@
       ],
       "loop": false
     },
+    "caddie/idle": {
+      "frames": [
+        "caddie/idle0",
+        "caddie/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "caddie/walk": {
+      "frames": [
+        "caddie/walk0",
+        "caddie/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "caddie/attack": {
+      "frames": [
+        "caddie/attack0",
+        "caddie/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "caddie/hit": {
+      "frames": [
+        "caddie/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "caddie/ko": {
+      "frames": [
+        "caddie/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "kangoo/idle": {
+      "frames": [
+        "kangoo/idle0",
+        "kangoo/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "kangoo/walk": {
+      "frames": [
+        "kangoo/walk0",
+        "kangoo/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "kangoo/attack": {
+      "frames": [
+        "kangoo/attack0",
+        "kangoo/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "kangoo/hit": {
+      "frames": [
+        "kangoo/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "kangoo/ko": {
+      "frames": [
+        "kangoo/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
     "crs/idle": {
       "frames": [
         "crs/idle0",
@@ -562,6 +1276,210 @@
     "crs/ko": {
       "frames": [
         "crs/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "gm/idle": {
+      "frames": [
+        "gm/idle0",
+        "gm/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "gm/walk": {
+      "frames": [
+        "gm/walk0",
+        "gm/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "gm/attack": {
+      "frames": [
+        "gm/attack0",
+        "gm/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "gm/hit": {
+      "frames": [
+        "gm/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "gm/ko": {
+      "frames": [
+        "gm/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "bravm/idle": {
+      "frames": [
+        "bravm/idle0",
+        "bravm/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "bravm/walk": {
+      "frames": [
+        "bravm/walk0",
+        "bravm/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "bravm/attack": {
+      "frames": [
+        "bravm/attack0",
+        "bravm/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "bravm/hit": {
+      "frames": [
+        "bravm/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "bravm/ko": {
+      "frames": [
+        "bravm/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "lbd/idle": {
+      "frames": [
+        "lbd/idle0",
+        "lbd/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "lbd/walk": {
+      "frames": [
+        "lbd/walk0",
+        "lbd/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "lbd/attack": {
+      "frames": [
+        "lbd/attack0",
+        "lbd/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "lbd/hit": {
+      "frames": [
+        "lbd/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "lbd/ko": {
+      "frames": [
+        "lbd/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "lacrymo/idle": {
+      "frames": [
+        "lacrymo/idle0",
+        "lacrymo/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "lacrymo/walk": {
+      "frames": [
+        "lacrymo/walk0",
+        "lacrymo/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "lacrymo/attack": {
+      "frames": [
+        "lacrymo/attack0",
+        "lacrymo/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "lacrymo/hit": {
+      "frames": [
+        "lacrymo/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "lacrymo/ko": {
+      "frames": [
+        "lacrymo/ko"
       ],
       "durationsMs": [
         800
@@ -619,5 +1537,6 @@
       ],
       "loop": false
     }
-  }
+  },
+  "notes": "Hand-authored at native resolution. Row 15 transparent for team stripe. Faces right; engine mirrors side 0. HP may obscure right-hand props when injured."
 }

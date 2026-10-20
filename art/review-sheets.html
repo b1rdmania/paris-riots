@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><title>Klaxxon — atlas review</title>
+<h1>Native atlas review</h1>
+<p>Sheets are rendered with nearest-neighbour scaling. Effects and buildings are previews only; the game engine has not been changed.</p>
+<p><select id="sheet" aria-label="Sheet"><option>units</option><option>fx</option><option>tiles</option><option>props</option><option>battle-cutins</option><option>commanders</option></select> <select id="scale" aria-label="Scale"><option value="1">1×</option><option value="4" selected>4×</option><option value="6">6×</option></select> <select id="ground" aria-label="Background"><option value="#2e2c3a">Road</option><option value="#8c90a8">Roof</option><option value="#2e5e3a">Park</option></select></p>
+<p id="info"></p><canvas id="atlas"></canvas>
+<script>
+async function draw(){const name=document.getElementById('sheet').value,s=Number(document.getElementById('scale').value),ground=document.getElementById('ground').value;const meta=await(await fetch(name+'.json')).json(),img=new Image();img.src=name+'.png';await img.decode();const c=document.getElementById('atlas');c.width=img.width*s;c.height=img.height*s;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.fillStyle=ground;x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);document.getElementById('info').textContent=name+': '+Object.keys(meta.frames).length+' frames. '+(meta.notes||'');}
+for(const id of ['sheet','scale','ground'])document.getElementById(id).onchange=draw;draw();
+</script>

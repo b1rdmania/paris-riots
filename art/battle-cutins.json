@@ -1,0 +1,743 @@
+{
+  "version": 2,
+  "status": "integration-candidate",
+  "image": "battle-cutins.png",
+  "palette": "palette.json",
+  "frameSize": {
+    "width": 96,
+    "height": 64
+  },
+  "sheet": {
+    "width": 480,
+    "height": 832,
+    "columns": 5,
+    "rows": 13
+  },
+  "frames": {
+    "lyceen/idle": {
+      "x": 0,
+      "y": 0,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lyceen/attack0": {
+      "x": 96,
+      "y": 0,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lyceen/attack1": {
+      "x": 192,
+      "y": 0,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lyceen/attack2": {
+      "x": 288,
+      "y": 0,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lyceen/attack3": {
+      "x": 384,
+      "y": 0,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bloc/idle": {
+      "x": 0,
+      "y": 64,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bloc/attack0": {
+      "x": 96,
+      "y": 64,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bloc/attack1": {
+      "x": 192,
+      "y": 64,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bloc/attack2": {
+      "x": 288,
+      "y": 64,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bloc/attack3": {
+      "x": 384,
+      "y": 64,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "trott/idle": {
+      "x": 0,
+      "y": 128,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "trott/attack0": {
+      "x": 96,
+      "y": 128,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "trott/attack1": {
+      "x": 192,
+      "y": 128,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "trott/attack2": {
+      "x": 288,
+      "y": 128,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "trott/attack3": {
+      "x": 384,
+      "y": 128,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "torse/idle": {
+      "x": 0,
+      "y": 192,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "torse/attack0": {
+      "x": 96,
+      "y": 192,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "torse/attack1": {
+      "x": 192,
+      "y": 192,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "torse/attack2": {
+      "x": 288,
+      "y": 192,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "torse/attack3": {
+      "x": 384,
+      "y": 192,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "panther/idle": {
+      "x": 0,
+      "y": 256,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "panther/attack0": {
+      "x": 96,
+      "y": 256,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "panther/attack1": {
+      "x": 192,
+      "y": 256,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "panther/attack2": {
+      "x": 288,
+      "y": 256,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "panther/attack3": {
+      "x": 384,
+      "y": 256,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "caddie/idle": {
+      "x": 0,
+      "y": 320,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "caddie/attack0": {
+      "x": 96,
+      "y": 320,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "caddie/attack1": {
+      "x": 192,
+      "y": 320,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "caddie/attack2": {
+      "x": 288,
+      "y": 320,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "caddie/attack3": {
+      "x": 384,
+      "y": 320,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "kangoo/idle": {
+      "x": 0,
+      "y": 384,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "kangoo/attack0": {
+      "x": 96,
+      "y": 384,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "kangoo/attack1": {
+      "x": 192,
+      "y": 384,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "kangoo/attack2": {
+      "x": 288,
+      "y": 384,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "kangoo/attack3": {
+      "x": 384,
+      "y": 384,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "crs/idle": {
+      "x": 0,
+      "y": 448,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "crs/attack0": {
+      "x": 96,
+      "y": 448,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "crs/attack1": {
+      "x": 192,
+      "y": 448,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "crs/attack2": {
+      "x": 288,
+      "y": 448,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "crs/attack3": {
+      "x": 384,
+      "y": 448,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "gm/idle": {
+      "x": 0,
+      "y": 512,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "gm/attack0": {
+      "x": 96,
+      "y": 512,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "gm/attack1": {
+      "x": 192,
+      "y": 512,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "gm/attack2": {
+      "x": 288,
+      "y": 512,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "gm/attack3": {
+      "x": 384,
+      "y": 512,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bravm/idle": {
+      "x": 0,
+      "y": 576,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bravm/attack0": {
+      "x": 96,
+      "y": 576,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bravm/attack1": {
+      "x": 192,
+      "y": 576,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bravm/attack2": {
+      "x": 288,
+      "y": 576,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bravm/attack3": {
+      "x": 384,
+      "y": 576,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lbd/idle": {
+      "x": 0,
+      "y": 640,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lbd/attack0": {
+      "x": 96,
+      "y": 640,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lbd/attack1": {
+      "x": 192,
+      "y": 640,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lbd/attack2": {
+      "x": 288,
+      "y": 640,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lbd/attack3": {
+      "x": 384,
+      "y": 640,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lacrymo/idle": {
+      "x": 0,
+      "y": 704,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lacrymo/attack0": {
+      "x": 96,
+      "y": 704,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lacrymo/attack1": {
+      "x": 192,
+      "y": 704,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lacrymo/attack2": {
+      "x": 288,
+      "y": 704,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lacrymo/attack3": {
+      "x": 384,
+      "y": 704,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "canon/idle": {
+      "x": 0,
+      "y": 768,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "canon/attack0": {
+      "x": 96,
+      "y": 768,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "canon/attack1": {
+      "x": 192,
+      "y": 768,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "canon/attack2": {
+      "x": 288,
+      "y": 768,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "canon/attack3": {
+      "x": 384,
+      "y": 768,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    }
+  },
+  "frameOrder": [
+    "idle",
+    "attack0",
+    "attack1",
+    "attack2",
+    "attack3"
+  ],
+  "animations": {
+    "lyceen/attack": {
+      "frames": [
+        "lyceen/attack0",
+        "lyceen/attack1",
+        "lyceen/attack2",
+        "lyceen/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "bloc/attack": {
+      "frames": [
+        "bloc/attack0",
+        "bloc/attack1",
+        "bloc/attack2",
+        "bloc/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "trott/attack": {
+      "frames": [
+        "trott/attack0",
+        "trott/attack1",
+        "trott/attack2",
+        "trott/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "torse/attack": {
+      "frames": [
+        "torse/attack0",
+        "torse/attack1",
+        "torse/attack2",
+        "torse/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "panther/attack": {
+      "frames": [
+        "panther/attack0",
+        "panther/attack1",
+        "panther/attack2",
+        "panther/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "caddie/attack": {
+      "frames": [
+        "caddie/attack0",
+        "caddie/attack1",
+        "caddie/attack2",
+        "caddie/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "kangoo/attack": {
+      "frames": [
+        "kangoo/attack0",
+        "kangoo/attack1",
+        "kangoo/attack2",
+        "kangoo/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "crs/attack": {
+      "frames": [
+        "crs/attack0",
+        "crs/attack1",
+        "crs/attack2",
+        "crs/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "gm/attack": {
+      "frames": [
+        "gm/attack0",
+        "gm/attack1",
+        "gm/attack2",
+        "gm/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "bravm/attack": {
+      "frames": [
+        "bravm/attack0",
+        "bravm/attack1",
+        "bravm/attack2",
+        "bravm/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "lbd/attack": {
+      "frames": [
+        "lbd/attack0",
+        "lbd/attack1",
+        "lbd/attack2",
+        "lbd/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "lacrymo/attack": {
+      "frames": [
+        "lacrymo/attack0",
+        "lacrymo/attack1",
+        "lacrymo/attack2",
+        "lacrymo/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    },
+    "canon/attack": {
+      "frames": [
+        "canon/attack0",
+        "canon/attack1",
+        "canon/attack2",
+        "canon/attack3"
+      ],
+      "durationsMs": [
+        150,
+        120,
+        120,
+        240
+      ],
+      "loop": false
+    }
+  },
+  "notes": "Optional transparent side-on panels. Face right; mirror defender. Three-member squads; water cannon panel includes three slapstick targets. Ground baseline y=60. Vehicle panels deliberately retain the map sprite shapes at 2x."
+}

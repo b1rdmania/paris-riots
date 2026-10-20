@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "status": "integration-candidate",
+  "image": "commanders.png",
+  "palette": "palette.json",
+  "frameSize": {
+    "width": 48,
+    "height": 48
+  },
+  "sheet": {
+    "width": 96,
+    "height": 48,
+    "columns": 2,
+    "rows": 1
+  },
+  "frames": {
+    "la_deleguee": {
+      "x": 0,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "width": 48,
+      "height": 48
+    },
+    "le_prefet": {
+      "x": 48,
+      "y": 0,
+      "w": 48,
+      "h": 48,
+      "width": 48,
+      "height": 48
+    }
+  },
+  "notes": "Fictional faces. La deleguee has megaphone; placard text delivered as metadata for readable UI typography at 48px.",
+  "placardText": "GÉNÉRATION 6-7 REFAIT MAI 68"
+}
