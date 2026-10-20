@@ -1642,7 +1642,7 @@ cv.addEventListener("pointermove", (e) => {
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
 cv.addEventListener("pointerdown", (e) => {
-  if (PHONE) return;
+  if (PHONE) { MUS.on = true; MUS.want = "piaf"; unlockAudio(); return; }
   // follow the input actually used (iPad with a trackpad, touch laptops)
   const t = e.pointerType !== "mouse";
   if (t !== TOUCH) { TOUCH = t; fit(); }
@@ -2254,8 +2254,14 @@ function drawSorry() {
   const tm = IMG.titleMeta;
   if (IMG.title) ctx.drawImage(IMG.title, 0, 0); else fill(0, 0, W, H, 0);
   const band = tm?.menuBand || { x: 14, y: 150, w: 356, h: 76 }, cx = band.x + band.w / 2;
-  text8C("SORRY, THIS WORKS BEST", cx, band.y + 26, 26, 0);
-  text8C("ON DESKTOP ONLY.", cx, band.y + 40, 26, 0);
+  // DESOLE in the 8x8 font at double size, with acute accents drawn over both Es
+  ctx.save(); ctx.translate(Math.round(cx - tw8("DESOLE.")), band.y + 16); ctx.scale(2, 2);
+  text8("DESOLE.", 1, 1, 0); text8("DESOLE.", 0, 0, 26);
+  for (const i of [1, 5]) { fill(i * 8 + 3, -3, 2, 1, 26); fill(i * 8 + 4, -4, 2, 1, 26); }
+  ctx.restore();
+  text8C("THIS IS MUCH BETTER ON DESKTOP.", cx, band.y + 40, 7, 0);
+  // Piaf plays once the phone allows sound, which is after the first tap
+  if (MUS.name !== "piaf") { MUS.want = "piaf"; if ((frame >> 5) % 2) textC("TAP FOR SOUND", cx, band.y + 58, 5); }
 }
 
 // ---------- loop ----------
