@@ -881,7 +881,7 @@ function drawFx2(name, t, cx, cy, flip) {
   ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, -16, -16, 32, 32); ctx.restore();
 }
 // Slapstick: squads lose members as they lose HP, and the losers get launched off screen.
-const SQUAD = new Set(["lyceen", "bloc", "torse", "panther", "crs", "bravm", "lbd", "lacrymo"]);
+const SQUAD = new Set(["lyceen", "bloc", "torse", "panther", "crs", "lbd", "lacrymo"]);
 const figs = (hp) => (hp > 66 ? 3 : hp > 33 ? 2 : hp > 0 ? 1 : 0);
 const WORD = { lyceen: "CLONK!", bloc: "CLONK!", torse: "SLAP!", panther: "YOINK!", caddie: "BOOM!", kangoo: "HONK!",
   crs: "THWACK!", bravm: "VROOM!", lbd: "BOING!", lacrymo: "KOFF KOFF!", canon: "SPLOOSH!" };
