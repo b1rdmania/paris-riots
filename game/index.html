@@ -1605,6 +1605,7 @@ function titleInput(a) {
 const TITLE_ITEMS = [
   { label: "PLAY", fn: () => fadeTo(openChapters) },
   { label: "HOW TO PLAY", fn: () => { screen = "help"; } },
+  { label: "MUSIC", fn: () => openPlaylist("title") },
 ];
 
 addEventListener("keydown", (e) => {
@@ -1643,7 +1644,6 @@ cv.addEventListener("pointerdown", (e) => {
     if (PL_RECTS[i][4]) return window.open(PL_RECTS[i][4], "_blank", "noopener");
     plSel = i; act("ok"); return;
   }
-  if (screen === "title" && px > W - 92 && px <= W - 48 && py > H - 16) { SFX.ok(); openPlaylist("title"); return; }
   if (screen === "about") {
     const r = INFO_RECTS.find((q) => px >= q[0] && px < q[0] + q[2] && py >= q[1] && py < q[1] + q[3]);
     if (r) window.open(r[4], "_blank", "noopener"); else act("ok");
@@ -2106,7 +2106,6 @@ function drawTitle() {
     });
     text("ARROWS + SPACE, OR CLICK", 6, H - 10, 6, 0);
     { const hot = mouse.on && mouse.x > W - 46 && mouse.y > H - 14; fill(W - 44, H - 13, 40, 12, 29); fill(W - 43, H - 12, 38, 10, 0); textC("INFO", W - 24, H - 10, hot ? 26 : 7); }
-    { const hot = mouse.on && mouse.x > W - 92 && mouse.x <= W - 48 && mouse.y > H - 14; fill(W - 90, H - 13, 42, 12, 29); fill(W - 89, H - 12, 40, 10, 0); textC("MUSIC", W - 69, H - 10, hot ? 26 : 7); }
     return;
   }
   if (!mapLayer) { G = { props: PROPS0.map((p) => ({ ...p })) }; buildMapLayer(); G = null; }
