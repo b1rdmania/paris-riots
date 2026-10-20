@@ -7,7 +7,8 @@ scenes.png + scenes.json: fourteen 96x66 native painted battle backdrops in a
 384x264 atlas. Keys: republique, capucines, louvre, velib, champs, halles,
 rivoli_cafe, boulangerie, ile, guerre_civile, pont, jardin, beauvau, lycee.
 24 property-name mappings and all four requested terrain mappings (=, #, b, T).
-Captions are uppercase and under 40 characters. The bottom eight rows of each
+Captions are uppercase and at most 28 characters, so the appended time and
+SPACE: SKIP prompt do not collide in the existing battle footer. The bottom eight rows of each
 scene are plain opaque ground. Backgrounds must never be mirrored.
 
 The placards/graffiti were typeset at native resolution: GÉNÉRATION 6-7 /
