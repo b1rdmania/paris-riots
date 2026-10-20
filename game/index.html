@@ -14,6 +14,7 @@
 <body>
 <canvas id="c"></canvas>
 <script src="map.js"></script>
+<script src="music.js"></script>
 <script>
 "use strict";
 // One 384x240 canvas at native pixels, scaled up nearest-neighbour.
@@ -473,6 +474,75 @@ function noise(d = 0.2, vol = 0.05) {
     s.buffer = b; s.connect(g).connect(AC.destination); s.start();
   } catch {}
 }
+// ---------- music: Wario Synth-style four channels (two pulses, wave bass, noise drums) ----------
+const MUS = { name: null, want: null, on: true, timer: null, t0: 0, idx: null, gain: null, waves: null, noise: null };
+try { MUS.on = localStorage.getItem("pr-music") !== "0"; } catch {}
+const midiHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+function pulseWave(duty) {
+  const n = 32, re = new Float32Array(n), im = new Float32Array(n);
+  for (let k = 1; k < n; k++) re[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * duty);
+  return AC.createPeriodicWave(re, im);
+}
+function music(name) {
+  MUS.want = name;
+  if (AC && MUS.on && MUS.name !== name) startMusic(name);
+}
+function stopMusic() {
+  clearInterval(MUS.timer); MUS.timer = null;
+  if (MUS.gain) { const g = MUS.gain; g.gain.setTargetAtTime(0, AC.currentTime, 0.08); setTimeout(() => g.disconnect(), 500); }
+  MUS.gain = null; MUS.name = null;
+}
+function startMusic(name) {
+  stopMusic();
+  const S = window.MUSIC?.[name]; if (!S || !AC) return;
+  MUS.name = name; MUS.gain = AC.createGain(); MUS.gain.gain.value = 0.5; MUS.gain.connect(AC.destination);
+  MUS.waves ||= { lead: pulseWave(0.5), harm: pulseWave(0.25) };
+  MUS.t0 = AC.currentTime + 0.15; MUS.idx = { lead: 0, harm: 0, bass: 0, drums: 0 };
+  const tick = () => {
+    const now = AC.currentTime, ahead = now + 0.3;
+    for (const ch of ["lead", "harm", "bass", "drums"]) {
+      const notes = S[ch]; if (!notes) continue;
+      while (MUS.idx[ch] < notes.length) {
+        const n = notes[MUS.idx[ch]], t = MUS.t0 + n[0];
+        if (t > ahead) break;
+        MUS.idx[ch]++;
+        if (t >= now - 0.02) ch === "drums" ? drum(n[1], t) : voice(ch, n, t);
+      }
+    }
+    if (now > MUS.t0 + S.len) { MUS.t0 += S.len; MUS.idx = { lead: 0, harm: 0, bass: 0, drums: 0 }; }
+  };
+  tick(); MUS.timer = setInterval(tick, 60);
+}
+const VOL = { lead: 0.06, harm: 0.03, bass: 0.08 };
+function voice(ch, [, d, m], t) {
+  const o = AC.createOscillator(), g = AC.createGain(), v = VOL[ch], end = t + Math.max(0.05, d * 0.9);
+  if (ch === "bass") { o.type = "triangle"; if (m > 55) m -= 12; } else o.setPeriodicWave(MUS.waves[ch]);
+  o.frequency.value = midiHz(m);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.006);
+  g.gain.setValueAtTime(v * 0.75, Math.max(t + 0.012, end - 0.03)); g.gain.linearRampToValueAtTime(0, end);
+  o.connect(g).connect(MUS.gain); o.start(t); o.stop(end + 0.02);
+}
+function drum(kind, t) {
+  if (!MUS.noise) { const n = AC.sampleRate * 0.3; MUS.noise = AC.createBuffer(1, n, AC.sampleRate); const a = MUS.noise.getChannelData(0); for (let i = 0; i < n; i++) a[i] = Math.random() * 2 - 1; }
+  const g = AC.createGain();
+  if (kind === 0) {
+    const o = AC.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+    g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.14); o.connect(g).connect(MUS.gain); o.start(t); o.stop(t + 0.15); return;
+  }
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), len = kind === 1 ? 0.12 : 0.035;
+  s.buffer = MUS.noise; f.type = kind === 1 ? "bandpass" : "highpass"; f.frequency.value = kind === 1 ? 1800 : 7000;
+  g.gain.setValueAtTime(kind === 1 ? 0.07 : 0.025, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
+  s.connect(f).connect(g).connect(MUS.gain); s.start(t); s.stop(t + len + 0.01);
+}
+function unlockAudio() {
+  try { AC ||= new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch { return; }
+  if (MUS.on && MUS.want && MUS.name !== MUS.want) startMusic(MUS.want);
+}
+function toggleMusic() {
+  MUS.on = !MUS.on; try { localStorage.setItem("pr-music", MUS.on ? "1" : "0"); } catch {}
+  if (MUS.on) { unlockAudio(); if (MUS.want) startMusic(MUS.want); } else stopMusic();
+  say?.(MUS.on ? "MUSIC ON." : "MUSIC OFF.");
+}
 const SFX = {
   move: () => beep(660, 0.03), ok: () => beep(880, 0.05), back: () => beep(330, 0.05),
   hit: () => noise(0.18, 0.08), cap: () => { beep(523, 0.08); setTimeout(() => beep(784, 0.1), 80); },
@@ -480,7 +550,7 @@ const SFX = {
 };
 
 // ---------- state ----------
-let G = null, screen = "title", titleSel = 0, frame = 0;
+let G = null, screen = "title", titleSel = 0, frame = 0, helpBack = "title";
 const key = (x, y) => y * MW + x, unkey = (k) => [k % MW, Math.floor(k / MW)];
 const inb = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -488,7 +558,7 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, window.__fast ? 0 : ms));
 const dist = (a, b, c, d) => Math.abs(a - c) + Math.abs(b - d);
 
-function newGame(humans) {
+function newGame(humans, ch) {
   G = {
     humans, side: 0, round: 0, funds: [2000, 2500], units: [], nextId: 1,
     props: PROPS0.map((p) => ({ ...p, cap: 20 })), mode: "idle", cur: { x: 21, y: 3 },
@@ -496,9 +566,16 @@ function newGame(humans) {
     msg: "", msgT: 0, banner: null, busy: false, over: null, buttons: [],
     bar: new Map(), fire: new Map(), pick: null, power: [0, 0], noCap: -1, handover: null,
   };
-  const put = (t, x, y) => G.units.push({ id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false, cargo: [] });
-  put("lyceen", 21, 3); put("lyceen", 21, 9); put("bloc", 22, 8); put("lyceen", 15, 11);
-  put("crs", 9, 0); put("crs", 7, 1); put("gm", 8, 1); put("crs", 16, 7);
+  const put = (t, x, y) => { const u = { id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false, cargo: [] }; G.units.push(u); return u; };
+  if (ch) {
+    G.story = { i: STORY.indexOf(ch), step: 0, typed: 0, said: "" };
+    G.round = ch.round; G.funds = ch.funds || [0, 0]; G.noBuy = !ch.buy;
+    const own = (name, side) => { G.props.find((p) => p.name === name).owner = side; };
+    ch.setup(put, own);
+  } else {
+    put("lyceen", 21, 3); put("lyceen", 21, 9); put("bloc", 22, 8); put("lyceen", 15, 11);
+    put("crs", 9, 0); put("crs", 7, 1); put("gm", 8, 1); put("crs", 16, 7);
+  }
   buildMapLayer();
   screen = "game";
   startTurn();
@@ -522,7 +599,7 @@ const hpD = (u) => Math.ceil(u.hp / 10);
 const human = () => G.humans[G.side];
 const hour = () => START_HOUR + G.round;
 const marksHeld = (s) => G.props.filter((p) => p.kind === "mark" && p.owner === s).length;
-function say(m, t = 150) { G.msg = norm(m); G.msgT = t; }
+function say(m, t = 150) { if (!G) return; G.msg = norm(m); G.msgT = t; }
 
 function reach(u) {
   const d = new Map([[key(u.x, u.y), 0]]), prev = new Map(), q = [[0, u.x, u.y]], mv = U[u.type].move, mt = U[u.type].mt;
@@ -595,14 +672,18 @@ function startTurn() {
   if (human()) G.cur = lead ? { x: lead.x, y: lead.y } : hq ? { x: hq.x, y: hq.y } : G.cur;
   const sub = s === 0 ? NEWS[G.round] || "" : `INCOME €${inc}`;
   G.banner = { title: `${SIDES[s].short} - SAT ${hour()}:00`, sub: s === 0 ? sub : `INCOME €${inc}`, col: SIDES[s].col, t: 110, side: s };
-  const art = s === 0 && NEWS_ART[G.round];
+  if (G.story) G.banner.sub = s === 0 ? `GOAL: ${STORY[G.story.i].goal}` : "THE CRS MOVE.";
+  const art = !G.story && s === 0 && NEWS_ART[G.round];
   if (art && IMG[art]) Object.assign(G.banner, { news: art, t: 220 });
   if (G.humans[0] && G.humans[1]) G.handover = s;
   SFX.turn();
+  music(s ? "marseillaise" : "cancan");
+  if (G.story) { emit("turn", s); if (checkStory()) return; }
   if (!human()) runAI();
 }
 function endTurn() {
   if (G.over) return;
+  if (human()) emit("endturn");
   for (const u of G.units) u.done = false;
   G.mode = "idle"; G.menu = null; G.sel = null;
   const other = 1 - G.side;
@@ -616,10 +697,13 @@ function endTurn() {
 }
 function curfew() {
   const held = marksHeld(0);
+  if (G.story) return storyEnd(held >= NEED);
   if (held >= NEED) gameOver(0, `LYCEENS HOLD ${held} OF ${LANDMARKS} LANDMARKS AT CURFEW. MACRON ADDRESSES THE NATION.`);
   else gameOver(1, `LYCEENS HOLD ${held} OF ${LANDMARKS} LANDMARKS. CURFEW HOLDS. THE LOUVRE REOPENS TUESDAY.`);
 }
 function gameOver(winner, why) {
+  if (G.story) return storyEnd(winner === 0);
+  music(winner === 0 ? "internationale" : "marseillaise");
   G.over = { winner, why }; G.busy = false; G.mode = "over"; G.banner = null;
   SFX.cap();
 }
@@ -659,11 +743,13 @@ async function attack(a, d) {
   }
   await sleep(200);
   G.busy = false;
-  checkRout();
+  if (human()) emit("attack", a, d);
+  checkRout(); checkStory();
 }
 async function ko(u, seen, msg) {
   if (SHEET.frames?.has(u.type) && !seen) { u.hp = 1; setPose(u, "ko", 900); await sleep(900); }
   G.fx.push({ kind: "poof", x: u.x, y: u.y, t: 0, life: 30 });
+  G.fx.push({ kind: "word", x: u.x, y: u.y, t: 0, life: 70, c: u.side === 0 ? 30 : 25, word: msg && /SEINE/.test(msg) ? "SPLASH!" : u.side === 0 ? "ARRESTED!" : "OFF SICK!" });
   if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; }
   G.units = G.units.filter((o) => o !== u);
   say(msg || (u.cargo?.length ? "VAN TOWED. THE CREW GO HOME." : quipKO(u))); SFX.bad();
@@ -685,8 +771,11 @@ function doCapture(u) {
     if (u.side === 0 && p.kind === "shop") G.funds[0] += 500;
     say(quipCapture(u, p)); SFX.cap(); buildMapLayer();
     G.fx.push({ kind: "flag", x: p.x, y: p.y, t: 0, life: 40, side: u.side });
+    G.fx.push({ kind: "word", x: p.x, y: p.y, t: 0, life: 70, c: 26, word: u.side === 0 ? (p.kind === "shop" ? "LOOTED!" : p.kind === "mark" ? "BLOCKADE!" : "OURS!") : "SECURED!" });
     if (p.kind === "hq") gameOver(u.side, quipCapture(u, p));
   } else { say(`CAPTURING ${p.name}: ${p.cap} LEFT`); SFX.ok(); }
+  if (human()) emit("capture", u, p);
+  checkStory();
 }
 function buy(p, type) {
   G.funds[G.side] -= U[type].cost;
@@ -754,6 +843,7 @@ async function usePower(s) {
   G.banner = { title: POWER[s].name, sub: POWER[s].line, col: SIDES[s].col, t: 110, side: s, power: true };
   noise(0.4, 0.06); SFX.turn();
   await waitBanner();
+  if (human()) emit("power", s);
   if (s === 0) {
     for (const u of G.units.filter((o) => o.side === 0)) {
       for (const [dx, dy] of DIRS) {
@@ -783,7 +873,7 @@ const showBattle = (a, d) => !window.__fast && IMG.cutMeta && IMG["battle-cutins
 // What flies across the gap, and what it looks like when it lands.
 const SHOT = { lyceen: ["paving_stone", "smoke"], bloc: ["paving_stone", "smoke"], caddie: ["firework", "firework"], lbd: ["rubber_bullet", "smoke"],
   lacrymo: ["teargas", "teargas"], canon: [null, "water"] };
-const BT = { in: 260, idle: 260, atk: 630, fly: 320, drop: 420, gap: 220, ko: 900, hold: 420, out: 220 };
+const BT = { in: 260, idle: 300, atk: 630, fly: 360, drop: 520, gap: 300, ko: 1100, hold: 600, out: 220 };
 function battle(a, d, dmg, c) {
   // Lycéens always stand on the right, as on the map; CRS on the left.
   const L = a.side === 1 ? a : d, R = a.side === 1 ? d : a;
@@ -863,19 +953,93 @@ function drawFx2(name, t, cx, cy, flip) {
   ctx.save(); ctx.translate(cx, cy); if (flip) ctx.scale(-1, 1);
   ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, -16, -16, 32, 32); ctx.restore();
 }
+// Slapstick: squads lose members as they lose HP, and the losers get launched off screen.
+const SQUAD = new Set(["lyceen", "bloc", "trott", "torse", "panther", "crs", "gm", "bravm", "lbd", "lacrymo"]);
+const figs = (hp) => (hp > 66 ? 3 : hp > 33 ? 2 : hp > 0 ? 1 : 0);
+const WORD = { lyceen: "CLONK!", bloc: "CLONK!", trott: "VROOM!", torse: "SLAP!", panther: "YOINK!", caddie: "BOOM!", kangoo: "HONK!",
+  crs: "THWACK!", gm: "THWACK!", bravm: "VROOM!", lbd: "BOING!", lacrymo: "KOFF KOFF!", canon: "SPLOOSH!" };
+const IMPACT = { caddie: "firework", lacrymo: "teargas", canon: "water", lbd: "rubber", lyceen: "stone", bloc: "stone" };
+// small sound kit for the fights
+function tone(f1, f2, d, type = "square", vol = 0.05, at = 0) {
+  try {
+    const t = AC.currentTime + at, o = AC.createOscillator(), g = AC.createGain();
+    o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f2), t + d);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d + 0.02);
+  } catch {}
+}
+function hiss(d, vol, ftype, freq, at = 0) {
+  try {
+    const t = AC.currentTime + at, n = AC.sampleRate * d, buf = AC.createBuffer(1, n, AC.sampleRate), a = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) a[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    src.buffer = buf; f.type = ftype; f.frequency.value = freq; g.gain.value = vol;
+    src.connect(f).connect(g).connect(AC.destination); src.start(t);
+  } catch {}
+}
+const ATTACK_SFX = {
+  caddie: () => { for (let i = 0; i < 3; i++) tone(500 + i * 90, 1900, 0.35, "sine", 0.03, i * 0.08); },
+  canon: () => hiss(0.7, 0.12, "bandpass", 900),
+  lacrymo: () => { tone(300, 120, 0.1, "square", 0.04); hiss(0.4, 0.06, "highpass", 3000, 0.1); },
+  lbd: () => tone(900, 300, 0.08, "square", 0.05),
+  kangoo: () => { tone(440, 430, 0.22, "square", 0.04); tone(554, 550, 0.22, "square", 0.03); tone(440, 430, 0.22, "square", 0.04, 0.28); tone(554, 550, 0.22, "square", 0.03, 0.28); },
+  trott: () => tone(80, 260, 0.4, "sawtooth", 0.04), bravm: () => tone(70, 240, 0.45, "sawtooth", 0.05),
+};
+const HIT_SFX = {
+  firework: () => { hiss(0.35, 0.16, "lowpass", 1200); for (let i = 0; i < 7; i++) hiss(0.03, 0.08, "highpass", 4000, 0.08 + Math.random() * 0.35); },
+  water: () => hiss(0.4, 0.1, "bandpass", 1400),
+  teargas: () => { hiss(0.5, 0.05, "highpass", 2500); tone(240, 200, 0.07, "square", 0.04, 0.25); tone(220, 180, 0.07, "square", 0.04, 0.4); },
+  rubber: () => { tone(260, 900, 0.12, "sine", 0.07); tone(900, 200, 0.18, "sine", 0.05, 0.12); },
+  stone: () => { tone(130, 45, 0.16, "sine", 0.12); hiss(0.05, 0.08, "highpass", 2000); },
+  smoke: () => { hiss(0.06, 0.12, "highpass", 1500); tone(380, 160, 0.09, "square", 0.04); },
+};
+function spawn(B, kind, x, y, dir) {
+  const P = (n, f) => { for (let i = 0; i < n; i++) B.parts.push(f(i)); };
+  const R = Math.random;
+  if (kind === "firework") {
+    for (let k = 0; k < 2; k++) { const cx = x + (R() - 0.5) * 70, cy = y - 20 - R() * 40, c = pick([[26, 29], [25, 7], [30, 28], [31, 17], [8, 7]]);
+      P(34, () => { const a = R() * 6.28, v = 0.8 + R() * 2.6; return { x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 0.04, life: 40 + R() * 25, c: pick(c), s: 2 }; }); }
+  } else if (kind === "water") P(40, () => ({ x, y: y - 10 + R() * 30, vx: dir * (1 + R() * 4), vy: -2 + R() * 2.5, g: 0.14, life: 30 + R() * 20, c: pick([21, 21, 7, 20]), s: 2 }));
+  else if (kind === "teargas") P(16, () => ({ x: x + (R() - 0.5) * 50, y: y + (R() - 0.5) * 30, vx: (R() - 0.5) * 0.8, vy: -0.2 - R() * 0.5, g: -0.004, life: 60 + R() * 30, c: pick([31, 17, 6]), s: 5 + (R() * 5 | 0) }));
+  else if (kind === "rubber") P(5, () => ({ x, y: y - 10, vx: dir * (1 + R() * 2.5), vy: -3 - R() * 2, g: 0.25, life: 60, c: pick([2, 4]), s: 3, bounce: y + 40 }));
+  else if (kind === "stone") { P(7, () => ({ x, y: y - 10, vx: dir * (0.5 + R() * 2.5), vy: -3 - R() * 2, g: 0.22, life: 50, c: pick([4, 5, 6]), s: 3, bounce: y + 40 })); P(10, () => ({ x: x + (R() - 0.5) * 40, y: y + 30, vx: (R() - 0.5), vy: -0.4, g: 0, life: 30, c: 12, s: 2 })); }
+  else P(12, () => { const a = R() * 6.28; return { x, y: y - 10, vx: Math.cos(a) * 2.2, vy: Math.sin(a) * 2.2, g: 0.02, life: 25, c: pick([26, 7, 7]), s: 2 }; });
+}
+function burst(cx, cy, word, k) {
+  // comic-book burst: jagged yellow panel with the word in black
+  const w = tw8(word) * 2 + 18, h = 30;
+  const x = Math.round(cx - w / 2), y = Math.round(cy - h / 2);
+  for (let i = -2; i <= w + 2; i += 6) { fill(x + i, y - 4, 4, 5, 0); fill(x + i + 1, y - 3, 2, 4, 26); fill(x + i + 2, y + h - 1, 4, 5, 0); fill(x + i + 3, y + h - 1, 2, 4, 26); }
+  for (let j = 2; j <= h; j += 7) { fill(x - 5, y + j, 6, 4, 0); fill(x - 4, y + j + 1, 5, 2, 26); fill(x + w - 1, y + j + 3, 6, 4, 0); fill(x + w - 1, y + j + 4, 5, 2, 26); }
+  fill(x - 1, y - 1, w + 2, h + 2, 0); fill(x, y, w, h, 26); fill(x + 2, y + 2, w - 4, 2, 29);
+  ctx.save(); ctx.translate(x + 9, y + 7); ctx.scale(2, 2); text8(word, 0, 0, 0); ctx.restore();
+  if (k < 1) { ctx.globalAlpha = 1 - k; fill(x, y, w, h, 7); ctx.globalAlpha = 1; }
+}
 function drawBattle() {
   const B = G.battle, now = performance.now(), t = now - B.t0;
   if (B.skip || t >= B.end) { G.battle = null; B.done(); return; }
+  B.parts ||= [];
   const k = t < BT.in ? t / BT.in : t > B.end - BT.out ? (B.end - t) / BT.out : 1;
   ctx.globalAlpha = 0.7 * k; fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
   const y0 = 46, slide = Math.round((1 - k) * 200);
   const sides = [[B.L, 0 - slide, false], [B.R, 192 + slide, true]];
-  // sound cues
+  const centre = (u) => (u === B.L ? 96 - slide : 288 + slide);
+  // cues: launch sounds, impacts, particles
   const cue = (name, at, f) => { if (t >= at && !B.sfx[name]) { B.sfx[name] = 1; f(); } };
-  cue("a", B.t1, () => beep(220, 0.08, "square", 0.05, 220));
-  cue("h1", B.hit1, () => SFX.hit());
-  if (B.c) { cue("b", B.t2, () => beep(220, 0.08, "square", 0.05, 220)); cue("h2", B.hit2, () => SFX.hit()); }
+  cue("a", B.t1, () => (ATTACK_SFX[B.a.type] || (() => tone(220, 440, 0.08)))());
+  const hitCue = (who, by, at, loss) => cue("h" + who.id, at, () => {
+    const imp = IMPACT[by.type] || "smoke";
+    (HIT_SFX[imp] || HIT_SFX.smoke)();
+    spawn(B, imp, centre(who), y0 + 70, who === B.L ? -1 : 1);
+    B.shake = { at, amp: 2 + loss / 14 };
+  });
+  hitCue(B.d, B.a, B.hit1, B.dmg);
+  if (B.c) { cue("b", B.t2, () => (ATTACK_SFX[B.d.type] || (() => tone(220, 440, 0.08)))()); hitCue(B.a, B.d, B.hit2, B.c); }
+  if (B.a.type === "caddie") { cue("fw2", B.hit1 + 180, () => { spawn(B, "firework", centre(B.d), y0 + 60, 1); HIT_SFX.firework(); }); }
   if (B.kill1 || B.kill2) cue("ko", (B.kill1 ? B.hit1 : B.hit2) + BT.drop, () => SFX.bad());
+  // camera shake on impact
+  const sh = B.shake && t - B.shake.at < 260 ? Math.round(B.shake.amp * (1 - (t - B.shake.at) / 260)) * ((frame & 1) ? 1 : -1) : 0;
+  ctx.save(); ctx.translate(sh, sh ? -sh / 2 : 0);
   for (const [u, x0, flip] of sides) {
     const isA = u === B.a;
     drawBackdrop(x0, y0, u);
@@ -887,26 +1051,51 @@ function drawBattle() {
     const myT = isA ? t - B.t1 : t - B.t2, attacking = isA || (B.c > 0);
     const r = cutFrame(u, attacking && myT >= 0 && myT < BT.atk + 300, myT);
     const melee = !SHOT[u.type]?.[0] && U[u.type].cls !== "arty";
-    let lunge = melee && myT > 0 && myT < BT.atk ? Math.sin(myT / BT.atk * Math.PI) * 28 : 0;
-    let shake = t > hit && t < hit + 260 && loss ? ((t >> 5) % 2 ? 3 : -3) : 0;
+    const lunge = melee && myT > 0 && myT < BT.atk ? Math.sin(myT / BT.atk * Math.PI) * 28 : 0;
+    const wob = t > hit && t < hit + 260 && loss ? ((t >> 5) % 2 ? 3 : -3) : 0;
+    const squad = SQUAD.has(u.type);
     const gone = (isA ? B.kill2 : B.kill1) && t > hit + BT.drop;
-    const sink = gone ? Math.min(1, (t - hit - BT.drop) / 500) : 0;
+    const sink = gone && !squad ? Math.min(1, (t - hit - BT.drop) / 500) : 0;
+    const img = IMG["battle-cutins"];
     ctx.save();
     ctx.beginPath(); ctx.rect(x0, y0, 192, 132); ctx.clip();
     ctx.globalAlpha = 1 - sink * 0.85;
-    const px = x0 + (flip ? -lunge : lunge) + shake, py = y0 + 132 - 128 - 4 + sink * 30;
-    if (flip) { ctx.translate(px + 192, py); ctx.scale(-1, 1); ctx.drawImage(IMG["battle-cutins"], r.x, r.y, 96, 64, 0, 0, 192, 128); }
-    else ctx.drawImage(IMG["battle-cutins"], r.x, r.y, 96, 64, px, py, 192, 128);
+    const px = x0 + (flip ? -lunge : lunge) + wob, py = y0 + 132 - 128 - 4 + sink * 30;
+    if (flip) { ctx.translate(px + 192, py); ctx.scale(-1, 1); } else ctx.translate(px, py);
+    if (squad) {
+      const n0 = figs(start), nNow = figs(hp);
+      for (let fi = 0; fi < n0; fi++) {
+        const sx = fi * 32;
+        if (fi < nNow) { ctx.drawImage(img, r.x + sx, r.y, 32, 64, sx * 2, 0, 64, 128); continue; }
+        // this one leaves: launched backwards, spinning, the moment the HP bar passes its share
+        const share = fi === 2 ? 66 : fi === 1 ? 33 : 0, tc = hit + BT.drop * Math.max(0, start - share) / Math.max(1, loss);
+        const q = Math.max(0, (t - tc) / 650);
+        cue(`fly${u.id}${fi}`, tc, () => tone(1300, 220, 0.55, "sine", 0.04));
+        if (q > 1.3) continue;
+        ctx.save(); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, q - 0.85) * 2.5);
+        ctx.translate(sx * 2 + 32 - q * 170, 64 - Math.sin(Math.min(q, 1) * Math.PI) * 80 - q * 30);
+        ctx.rotate(-q * 10);
+        ctx.drawImage(img, r.x + sx, r.y, 32, 64, -32, -64, 64, 128);
+        ctx.restore();
+      }
+    } else {
+      // the water cannon's panel has its victims painted in; only show them while it's spraying
+      const sw = u.type === "canon" && !(isA && myT >= 0 && myT < BT.atk + 300) ? 40 : 96;
+      ctx.drawImage(img, r.x, r.y, sw, 64, 0, 0, sw * 2, 128);
+    }
     ctx.restore();
-    // impact on this side
-    const shooter = isA ? B.d : B.a, shot = SHOT[shooter.type];
-    const impact = shot ? shot[1] : "smoke";
-    if (loss && t > hit - 40) drawFx2(impact, t - hit + 40, x0 + 96, y0 + 84, flip);
+    // white flash on the frame a hit lands
+    if (loss && t > hit && t < hit + 70) { ctx.globalAlpha = 0.55; fill(x0, y0, 192, 132, 7); ctx.globalAlpha = 1; }
+    // the word
+    if (loss && t > hit && t < hit + 750) {
+      const shooter = isA ? B.d : B.a, pop = Math.min(1, (t - hit) / 90);
+      burst(x0 + 96 + (flip ? 14 : -14), y0 + 34 - Math.round((1 - pop) * 8), WORD[shooter.type] || "POW!", pop);
+    }
     if (gone) {
       const stamp = u.side === 0 ? "ARRESTED!" : "SIGNED OFF!";
       const sw = tw(stamp, 2) + 12;
-      fill(x0 + 96 - sw / 2, y0 + 50, sw, 22, 30); fill(x0 + 96 - sw / 2 + 2, y0 + 52, sw - 4, 18, 0);
-      textC(stamp, x0 + 96, y0 + 55, 7, null, 2);
+      fill(x0 + 96 - sw / 2, y0 + 86, sw, 22, 30); fill(x0 + 96 - sw / 2 + 2, y0 + 88, sw - 4, 18, 0);
+      textC(stamp, x0 + 96, y0 + 91, 7, null, 2);
     }
     // header: name, HP, bar
     const s = SIDES[u.side];
@@ -915,15 +1104,31 @@ function drawBattle() {
     const hx = x0 + 120;
     for (let i = 0; i < 10; i++) fill(hx + i * 5, y0 - 12, 4, 7, i < hpd ? (hpd <= 3 ? 30 : s.hi) : 2);
     text(String(hpd), x0 + 176, y0 - 12, 26);
-    if (loss && t > hit && t < hit + 900) { const dy = Math.min(14, (t - hit) / 40); fill(x0 + 84, y0 + 20 - dy, 26, 11, 0); text(`-${Math.ceil(loss / 10)}`, x0 + 88, y0 + 22 - dy, 30); }
   }
-  // projectiles crossing the gap
+  // projectiles crossing the gap (fireworks go up three at a time with spark trails)
   for (const [u, at, from] of [[B.a, B.t1 + BT.atk * 0.55, B.a === B.L ? 0 : 1], [B.d, B.t2 + BT.atk * 0.55, B.d === B.L ? 0 : 1]]) {
     const shot = SHOT[u.type]?.[0]; if (!shot || (u === B.d && !B.c)) continue;
-    const q = (t - at) / BT.fly; if (q < 0 || q > 1) continue;
-    const xA = from === 0 ? 150 : 234, xB = from === 0 ? 292 : 92;
-    const x = xA + (xB - xA) * q, y = y0 + 70 - Math.sin(q * Math.PI) * (U[u.type].cls === "arty" ? 50 : 16);
-    drawFx2(shot, (t - at) % 400, x, y, from === 1);
+    const n = u.type === "caddie" ? 3 : 1;
+    for (let j = 0; j < n; j++) {
+      const q = (t - at - j * 70) / BT.fly; if (q < 0 || q > 1) continue;
+      const xA = from === 0 ? 150 : 234, xB = from === 0 ? 292 : 92;
+      const x = xA + (xB - xA) * q, y = y0 + 70 - j * 10 - Math.sin(q * Math.PI) * (U[u.type].cls === "arty" ? 60 : 16);
+      if (u.type === "caddie") B.parts.push({ x, y, vx: (Math.random() - 0.5) * 0.6, vy: 0.3, g: 0.03, life: 18, c: pick([26, 29, 28]), s: 1 });
+      drawFx2(shot, (t - at) % 400, x, y, from === 1);
+    }
+  }
+  // particles
+  for (const p of B.parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += p.g; p.life--;
+    if (p.bounce && p.y > p.bounce) { p.y = p.bounce; p.vy *= -0.55; p.vx *= 0.8; }
+    if (p.y > y0 - 18 && p.y < y0 + 132) fill(Math.round(p.x), Math.round(p.y), p.s, p.s, p.c);
+  }
+  B.parts = B.parts.filter((p) => p.life > 0);
+  ctx.restore();
+  // damage numbers above the shake
+  for (const [u, x0] of sides) {
+    const isA = u === B.a, hit = isA ? B.hit2 : B.hit1, loss = isA ? B.c : B.dmg;
+    if (loss && t > hit && t < hit + 900) { const dy = Math.min(10, (t - hit) / 40); fill(x0 + 158, y0 + 22 - dy, 26, 11, 0); text(`-${Math.ceil(loss / 10)}`, x0 + 162, y0 + 24 - dy, 30); }
   }
   // divider and footer
   fill(191, y0 - 18, 2, 150, 0);
@@ -952,24 +1157,28 @@ function field(mt, goals) {
   return d;
 }
 async function runAI() {
+  const g = G;
   G.busy = true;
   await waitBanner();
+  if (G !== g || G.over) return;
   const s = G.side;
+  if (G.story && STORY[G.story.i].passive) { await sleep(700); if (G !== g) return; G.busy = false; return endTurn(); }
   if (s === 1 && G.power[1] >= POWER_FULL) { await usePower(1); G.busy = true; }
-  await aiPass(s);
-  if (G.over) return;
+  await aiPass(s, g);
+  if (G !== g || G.over) return;
   // The lycéens fire their power after moving, so everyone gets a second go.
-  if (s === 0 && G.power[0] >= POWER_FULL) { await usePower(0); G.busy = true; await aiPass(s); if (G.over) return; }
-  aiBuild();
+  if (s === 0 && G.power[0] >= POWER_FULL) { await usePower(0); G.busy = true; await aiPass(s, g); if (G !== g || G.over) return; }
+  if (!G.noBuy) aiBuild();
   await sleep(400);
+  if (G !== g || G.over) return;
   G.busy = false;
   endTurn();
 }
-async function aiPass(s) {
+async function aiPass(s, g) {
   const rank = (u) => (U[u.type].cls === "arty" ? 2 : 0) - (u.type === "fourgon" ? 4 : 0);
   const order = G.units.filter((u) => u.side === s && !u.done).sort((a, b) => rank(b) - rank(a) || U[b.type].cost - U[a.type].cost);
   for (const u of order) {
-    if (G.over) return;
+    if (G !== g || G.over) return;
     if (!G.units.includes(u) || u.done) continue;
     await aiUnit(u);
     u.done = true;
@@ -1088,10 +1297,196 @@ function aiBuild() {
   }
 }
 
+// ---------- story mode: five chapters, a diary intro and a coach for each ----------
+// Inès is fictional. She narrates in the diary cards and coaches you through each step.
+const unitOf = (type) => G.units.find((u) => u.type === type && u.side === 0);
+const propNamed = (name) => G.props.find((p) => p.name === name);
+const posOf = (u) => (u ? [u.x, u.y] : null);
+const STORY = [
+  {
+    title: "RENDEZ-VOUS A REPUBLIQUE", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true,
+    diary: "11:58. THE CEILING IN B12 FELL IN AGAIN. ON MADAME DUVAL THIS TIME. SHE'S FINE. THE CEILING ISN'T. EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
+    goal: "LOOT THE MONOPRIX",
+    setup(put) { put("lyceen", 21, 1); put("lyceen", 23, 3); put("crs", 16, 2); },
+    win: () => propNamed("MONOPRIX").owner === 0,
+    steps: [
+      { say: "THAT'S YOU. CLICK YOUR LYCEEN TO PICK HER UP.", at: () => [21, 1], done: (e) => e === "select" },
+      { say: "BLUE SQUARES ARE WHERE SHE CAN WALK. CLICK THE MONOPRIX.", at: () => [20, 3], done: (e, u) => e === "moved" && u.x === 20 && u.y === 3 },
+      { say: "NOW CHOOSE CAPTURE.", menu: "CAPTURE", done: (e) => e === "capture" },
+      { say: "LOOTING TAKES TWO GOES. CLICK END TURN.", ui: "end_turn", done: (e) => e === "endturn" },
+      { say: "THE CRS JUST WATCHED. CLICK HER AGAIN, CLICK HER OWN SQUARE, THEN CAPTURE.", at: () => [20, 3], done: () => false },
+    ],
+    won: "MONOPRIX LOOTED. THE AIR MAX ARE ON VINTED BY 12:47.",
+    lost: "SOMEHOW YOU GOT ARRESTED IN A MONOPRIX.",
+  },
+  {
+    title: "LE MUR DE BOUCLIERS", time: "SAMEDI 14:00", art: "news/capucines", round: 2,
+    diary: "BOULEVARD DES CAPUCINES. SOMEBODY BROUGHT A PLACARD. SOMEBODY ELSE BROUGHT A BLACK BLOC. TWO CRS ARE STANDING BETWEEN US AND THE OPERA LIKE THEY OWN IT.",
+    goal: "BREAK THE CRS LINE: KNOCK OUT BOTH COPS",
+    setup(put) { put("bloc", 12, 3); put("lyceen", 9, 3); put("lyceen", 10, 2); put("lyceen", 14, 3); put("crs", 12, 1); put("crs", 13, 1); },
+    win: () => !G.units.some((u) => u.side === 1),
+    turns: 4,
+    steps: [
+      { say: "THE BLACK BLOC HITS HARDEST. CLICK HIM.", at: () => posOf(unitOf("bloc")), done: (e, u) => e === "select" && u.type === "bloc" },
+      { say: "WALK HIM UP NEXT TO A COP.", at: () => [12, 2], done: (e, u) => e === "moved" && G.units.some((o) => o.side === 1 && dist(o.x, o.y, u.x, u.y) === 1) },
+      { say: "CHOOSE FIRE, THEN CLICK THE COP.", menu: "FIRE", done: (e) => e === "attack" },
+      { say: "THEY HIT BACK. GANG UP: EVERY KID CAN FIRE. STANDING ON BLOCKS (***) HURTS LESS.", done: (e) => e === "endturn" },
+    ],
+    won: "THE LINE BREAKS. A KID HOLDS UP THE PLACARD: GENERATION 6-7 REFAIT MAI 68.",
+    lost: "EVERYONE ARRESTED. MUM HAS TO COLLECT YOU FROM THE COMMISSARIAT.",
+  },
+  {
+    title: "LA PYRAMIDE", time: "SAMEDI 15:00", art: "news/louvre", round: 3,
+    diary: "THE ECOLE DU LOUVRE KIDS BARRICADED THE PYRAMID. THEN A GIRL IN A PINK CATSUIT WALKED UP AND ASKED WHERE THE CROWN JEWELS WERE. NOBODY ASKED WHY.",
+    goal: "TAKE THE LOUVRE",
+    setup(put) { put("caddie", 14, 2); put("panther", 12, 3); put("lyceen", 16, 2); put("lyceen", 11, 4); put("crs", 14, 5); put("gm", 14, 4); },
+    win: () => propNamed("LOUVRE").owner === 0,
+    turns: 4,
+    steps: [
+      { say: "FIREWORKS FIRST. THE CADDIE FIRES 2-3 SQUARES AWAY, BUT NOT AFTER MOVING. CLICK IT.", at: () => posOf(unitOf("caddie")), done: (e, u) => e === "select" && u.type === "caddie" },
+      { say: "DON'T MOVE IT. CLICK ITS OWN SQUARE, THEN FIRE AT A COP.", at: () => posOf(unitOf("caddie")), done: (e, a) => e === "attack" && a.type === "caddie" },
+      { say: "NOW THE PINK PANTHER. SHE TAKES ANY BUILDING IN ONE GO. WALK HER INTO THE LOUVRE.", at: () => [13, 5], done: () => false },
+    ],
+    won: "SEVEN MINUTES. THE CROWN JEWELS ARE GONE. AGAIN. THE LOUVRE IS SHUT UNTIL FURTHER NOTICE.",
+    lost: "THE PANTHER GOT AWAY. YOU DIDN'T.",
+  },
+  {
+    title: "LES VELIBS BRULENT", time: "SAMEDI 17:00", art: "news/velib", round: 5,
+    diary: "WE'VE GOT THE HOTEL DE VILLE. SOMEONE SET FIRE TO THE VELIBS. THEN THE WATER CANNON TURNED UP AND EVERYONE WENT VERY QUIET.",
+    goal: "HOLD THE HOTEL DE VILLE UNTIL 19:00",
+    setup(put, own) {
+      own("HOTEL DE VILLE", 0); own("LES HALLES", 0); own("METRO CHATELET", 0);
+      put("lyceen", 17, 6); put("torse", 17, 5); put("lyceen", 16, 7); put("bloc", 18, 4);
+      put("canon", 18, 7); put("lacrymo", 20, 5); put("crs", 19, 4); put("crs", 18, 3);
+      G.power[0] = POWER_FULL;
+    },
+    win: () => G.side === 0 && G.round >= 7 && propNamed("HOTEL DE VILLE").owner === 0,
+    lose: () => propNamed("HOTEL DE VILLE").owner === 1,
+    status: () => `${Math.max(0, 7 - G.round)} HOURS TO GO`,
+    steps: [
+      { say: "YOUR POWER IS FULL. CLICK POWER! APPEL TIKTOK PUTS BARRICADES ROUND EVERY KID.", ui: "power", done: (e) => e === "power" },
+      { say: "THE WATER CANNON PUSHES YOU BACK A SQUARE. ON A BRIDGE THAT MEANS THE SEINE. GET OFF THE BRIDGE.", at: () => [16, 7], done: (e) => e === "endturn" },
+    ],
+    won: "19:00. THE HOTEL DE VILLE IS STILL OURS. SOMEONE ORDERED PIZZA.",
+    lost: "THE CRS TOOK THE HOTEL DE VILLE. YOUR SHOES ARE STILL WET.",
+  },
+  {
+    title: "COUVRE-FEU", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000],
+    diary: "THE PREFET SAYS CURFEW AT 23:00. THREE HOURS. IF WE HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES, THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
+    goal: "HOLD 4 LANDMARKS AT THE 23:00 CURFEW",
+    setup(put, own) {
+      for (const n of ["LOUVRE", "LES HALLES", "HOTEL DE VILLE", "METRO CHATELET"]) own(n, 0);
+      for (const n of ["OPERA", "ARC DE TRIOMPHE", "TOUR EIFFEL"]) own(n, 1);
+      put("lyceen", 17, 5); put("lyceen", 18, 5); put("bloc", 14, 5); put("kangoo", 18, 4); put("caddie", 19, 4); put("lyceen", 15, 9);
+      put("crs", 12, 1); put("gm", 13, 1); put("canon", 9, 3); put("lacrymo", 11, 5); put("crs", 16, 9); put("bravm", 11, 7);
+    },
+    win: () => false,
+    status: () => `${marksHeld(0)}/4 LANDMARKS HELD`,
+    steps: [
+      { say: "THREE HOURS TO CURFEW. YOU HOLD 3 LANDMARKS. NOTRE-DAME, ON THE ISLAND, WOULD MAKE 4.", at: () => [17, 8], done: (e) => e === "select" },
+      { say: "NEED MORE KIDS? CLICK THE LYCEE CHARLEMAGNE TO BUY SOME. THEN END TURN.", at: () => [20, 8], done: (e) => e === "endturn" },
+    ],
+    won: "23:00. FOUR LANDMARKS. THE PREFET IS ON TV LOOKING TIRED.",
+    lost: "23:00. CURFEW. EVERYONE GOES HOME. THE CEILING IS STILL BROKEN.",
+  },
+];
+const EPILOGUE = "SUNDAY. MUM FOUND OUT. GROUNDED UNTIL 2027. ON THE NEWS THE MINISTER PROMISED A NEW CEILING FOR EVERY LYCEE IN FRANCE. WORTH IT.";
+let storyBest = 0;
+try { storyBest = Math.min(STORY.length - 1, Number(localStorage.getItem("pr-chapter")) || 0); } catch {}
+function emit(e, a, b) {
+  if (!G?.story || G.over) return;
+  const ch = STORY[G.story.i], st = ch.steps[G.story.step];
+  if (st && st.done(e, a, b)) G.story.step++;
+}
+function checkStory() {
+  if (!G?.story || G.over) return false;
+  const ch = STORY[G.story.i];
+  if (ch.win()) { storyEnd(true); return true; }
+  const out = !G.units.some((u) => u.side === 0) || (ch.lose && ch.lose()) || (ch.turns && G.round >= ch.round + ch.turns);
+  if (out) { storyEnd(false); return true; }
+  return false;
+}
+function storyEnd(won) {
+  const i = G.story.i;
+  G.over = { story: true, winner: won ? 0 : 1, why: "" }; G.busy = false; G.battle = null; G.banner = null;
+  if (won) { storyBest = Math.max(storyBest, Math.min(STORY.length - 1, i + 1)); try { localStorage.setItem("pr-chapter", storyBest); } catch {} }
+  openCard(won ? (i === STORY.length - 1 ? "end" : "won") : "lost", i);
+}
+let CARD = null;
+function openCard(kind, i) {
+  CARD = { kind, i, t: 0 }; screen = "card";
+  music(kind === "intro" ? "gymnopedie" : kind === "lost" ? "marseillaise" : kind === "end" ? "internationale" : "cancan");
+}
+function cardText() {
+  const ch = STORY[CARD.i];
+  return { intro: ch.diary, won: ch.won, lost: ch.lost, end: `${ch.won} ${EPILOGUE}` }[CARD.kind];
+}
+function cardInput(a) {
+  const full = cardText().length;
+  if (a === "ok" && CARD.t < full) { CARD.t = full; return; }
+  SFX.ok();
+  if (a === "back") { screen = "title"; CARD = null; G = null; return; }
+  if (a !== "ok") return;
+  const i = CARD.i;
+  if (CARD.kind === "intro") { CARD = null; newGame([true, false], STORY[i]); }
+  else if (CARD.kind === "won") openCard("intro", i + 1);
+  else if (CARD.kind === "lost") openCard("intro", i);
+  else { screen = "title"; CARD = null; G = null; }
+}
+function drawCard() {
+  const ch = STORY[CARD.i], k = CARD.kind;
+  CARD.t = Math.min(cardText().length, CARD.t + 1.2);
+  const img = IMG[k === "end" ? "victory_lyceens" : ch.art];
+  if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
+  if (k !== "intro") { ctx.globalAlpha = 0.35; fill(0, 0, W, H, 0); ctx.globalAlpha = 1; }
+  const nLines = Math.min(6, wrap(cardText(), 55).length), y = H - 8 - (62 + nLines * 10);
+  box(12, y, W - 24, H - y - 8);
+  const head = k === "intro" ? `CHAPITRE ${CARD.i + 1} / ${STORY.length}` : k === "won" ? `CHAPITRE ${CARD.i + 1} - DONE` : k === "lost" ? "ARRESTED" : "THE END";
+  text8(head, 24, y + 10, k === "lost" ? 30 : 26);
+  text(ch.time, W - 24 - tw(ch.time), y + 11, 13);
+  text8(k === "intro" ? ch.title : k === "end" ? "THE STREETS WIN" : ch.title, 24, y + 24, 7);
+  const body = cardText().slice(0, Math.floor(CARD.t));
+  if (k === "intro" || k === "end") text("DIARY OF INES, 16", W - 24 - tw("DIARY OF INES, 16"), y + 25, 5);
+  wrap(body, 55).slice(0, 6).forEach((l, i) => text(l, 24, y + 40 + i * 10, 12));
+  const foot = k === "intro" ? `GOAL: ${ch.goal}` : "";
+  if (foot && CARD.t >= cardText().length) text(foot, 24, H - 26, 26);
+  const go = { intro: "SPACE: PLAY", won: "SPACE: NEXT CHAPTER", lost: "SPACE: TRY AGAIN   ESC: TITLE", end: "SPACE: TITLE. FREE PLAY IS ON THE TITLE SCREEN." }[k];
+  if ((frame >> 5) % 2 || CARD.t < cardText().length) text(go, W - 24 - tw(go), H - 26 + (foot ? 0 : 0), 29);
+}
+// The coach: Inès's portrait, the current step typed out, and an arrow at the thing to click.
+function coachTarget(st) {
+  if (!st) return null;
+  if (st.menu && G.menu) { const i = G.menu.items.findIndex((it) => it.label.startsWith(st.menu)); const r = G.menuRects?.[i]; if (r) return { x: r[0] - 6, y: r[1] + 5, side: true }; }
+  if (st.ui) { const b = G.buttons.find((o) => o.name === st.ui); if (b) return { x: b.x + b.w / 2, y: b.y - 2 }; }
+  if (st.at && !G.menu) { const t = st.at(); if (t) return { x: t[0] * TS + 8, y: TOP + t[1] * TS - 1 }; }
+  return null;
+}
+function drawCoach() {
+  const ch = STORY[G.story.i], st = ch.steps[G.story.step];
+  const msg = st ? st.say : `GOAL: ${ch.goal}${ch.status ? ` - ${ch.status()}` : ""}`;
+  if (G.story.said !== msg) { G.story.said = msg; G.story.typed = 0; if (st) beep(988, 0.03); }
+  G.story.typed = Math.min(msg.length, G.story.typed + 1.5);
+  const tgt = coachTarget(st);
+  const top = tgt ? tgt.y > TOP + 120 : false;
+  const by = top ? TOP + 4 : BOT - 34, bx = 54, w = W - bx - 4;
+  box(bx, by, w, 30);
+  const pr = IMG.comMeta?.frames.la_deleguee;
+  if (pr && IMG.commanders) { fill(4, by - 14, 46, 44, 0); ctx.drawImage(IMG.commanders, pr.x + 1, pr.y + 1, 46, 46, 4, by - 15, 46, 46); }
+  text("INES", bx + 8, by + 6, 30);
+  wrap(msg.slice(0, Math.floor(G.story.typed)), 46).slice(0, 2).forEach((l, i) => text(l, bx + 36, by + 6 + i * 10, 7));
+  if (tgt) {
+    // bouncing arrow
+    const b = Math.round(Math.sin(frame / 6) * 3);
+    if (tgt.side) { const x = tgt.x - 10 + b, y = tgt.y; for (let i = 0; i < 5; i++) { fill(x + i, y - 4 + i, 1, 9 - 2 * i, 26); } fill(x - 4, y - 1, 4, 3, 26); }
+    else { const x = tgt.x, y = tgt.y - 12 + b; fill(x - 1, y - 6, 3, 6, 0); for (let i = 0; i < 5; i++) fill(x - 4 + i, y + i, 9 - 2 * i, 1, 26); fill(x - 1, y - 7, 3, 7, 26); fill(x - 5, y - 1, 11, 1, 0); }
+  }
+}
+
 // ---------- player input ----------
 function act(a) {
   if (screen === "title") return titleInput(a);
-  if (screen === "help") { screen = "title"; SFX.back(); return; }
+  if (screen === "card") return cardInput(a);
+  if (screen === "help") { screen = helpBack; helpBack = "title"; SFX.back(); return; }
   if (!G) return;
   if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
   if (G.handover != null) { if (a === "ok") { G.handover = null; SFX.ok(); } return; }
@@ -1124,21 +1519,27 @@ function act(a) {
     if (a === "back") { SFX.back(); G.mode = "moved"; actionMenu(); }
     return;
   }
-  if (mv) { c.x = Math.max(0, Math.min(MW - 1, c.x + mv[0])); c.y = Math.max(0, Math.min(MH - 1, c.y + mv[1])); SFX.move(); return; }
+  if (mv) { G.info = null; c.x = Math.max(0, Math.min(MW - 1, c.x + mv[0])); c.y = Math.max(0, Math.min(MH - 1, c.y + mv[1])); SFX.move(); return; }
   if (a === "ok") return okAt(c.x, c.y);
   if (a === "back") {
     if (G.mode === "move") { G.mode = "idle"; G.sel = null; G.reach = null; SFX.back(); }
+    else if (G.info) { G.info = null; SFX.back(); }
+    else if (G.mode === "idle") { SFX.ok(); mainMenu(); }
     return;
   }
-  if (a === "end" && G.mode === "idle") endTurn();
+  if (a === "menu" && G.mode === "idle") { G.info = null; SFX.ok(); mainMenu(); }
+  if (a === "end" && G.mode === "idle") { G.info = null; endTurn(); }
 }
 function okAt(x, y) {
   if (G.mode === "idle") {
     const u = unitAt(x, y);
-    if (u && u.side === G.side && !u.done) { G.sel = u; G.reach = reach(u); G.from = { x: u.x, y: u.y }; G.mode = "move"; SFX.ok(); return; }
+    if (u && u.side === G.side && !u.done) {
+      G.info = null; emit("select", u); G.sel = u; G.reach = reach(u); G.from = { x: u.x, y: u.y }; G.mode = "move"; SFX.ok(); return; }
     const p = propAt(x, y);
-    if (!u && p && p.owner === G.side && (p.kind === "base" || p.kind === "hq")) return buyMenu(p);
-    return mainMenu();
+    if (!u && p && p.owner === G.side && (p.kind === "base" || p.kind === "hq") && !G.noBuy) { G.info = null; return buyMenu(p); }
+    // anything else: say what it is
+    G.info = G.info && G.info.x === x && G.info.y === y ? null : { x, y }; SFX.move();
+    return;
   }
   if (G.mode === "move") {
     const u = G.sel;
@@ -1150,6 +1551,7 @@ function okAt(x, y) {
       G.busy = false;
       const van = G.units.find((o) => o !== u && o.x === u.x && o.y === u.y);
       if (van) { board(u, van); return finish(u); }
+      emit("moved", u);
       G.mode = "moved"; actionMenu();
     });
   }
@@ -1187,6 +1589,7 @@ async function fireAt(t) {
 function finish(u) {
   u.done = true; G.sel = null; G.mode = "idle"; G.reach = null; G.pick = null;
   if (G.over) return;
+  if (checkStory()) return;
   if (!G.units.some((o) => o.side === G.side && !o.done) && !G.props.some((p) => p.owner === G.side && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y) && G.funds[G.side] >= 1000)) say("EVERYONE HAS MOVED. END TURN WHEN READY.");
 }
 function buyMenu(p) {
@@ -1197,14 +1600,17 @@ function buyMenu(p) {
   };
 }
 function mainMenu() {
+  G.info = null;
   G.menu = {
-    title: `SAT ${hour()}:00`, sel: 0,
+    title: `MENU - SAT ${hour()}:00`, sel: 0, wide: true,
     items: [
       ...(G.power[G.side] >= POWER_FULL ? [{ label: `POWER: ${POWER[G.side].name}`, fn: () => usePower(G.side) }] : []),
       { label: "END TURN", fn: () => { G.menu = null; endTurn(); } },
-      { label: `BATTLES: ${BATTLE_MODES[battleMode]}`, fn: () => { battleMode = (battleMode + 1) % 3; try { localStorage.setItem("pr-battles", battleMode); } catch {} mainMenu(); G.menu.sel = 1; } },
-      { label: "RULES", fn: () => { G.menu = null; screen = "help"; } },
-      { label: "QUIT", fn: () => { G = null; screen = "title"; } },
+      { label: `BATTLE SCENES: ${BATTLE_MODES[battleMode]}`, blurb: "THE ZOOMED-IN FIGHTS. TURN OFF TO PLAY FASTER.", fn: () => { const i = G.menu.sel; battleMode = (battleMode + 1) % 3; try { localStorage.setItem("pr-battles", battleMode); } catch {} mainMenu(); G.menu.sel = i; } },
+      { label: `MUSIC: ${MUS.on ? "ON" : "OFF"}`, blurb: "OR PRESS M ANY TIME.", fn: () => { const i = G.menu.sel; toggleMusic(); mainMenu(); G.menu.sel = i; } },
+      { label: "HOW TO PLAY", fn: () => { G.menu = null; helpBack = "game"; screen = "help"; } },
+      { label: "QUIT TO TITLE", fn: () => { G = null; screen = "title"; } },
+      { label: "BACK TO THE GAME", fn: () => { G.menu = null; } },
     ],
   };
 }
@@ -1215,14 +1621,18 @@ function titleInput(a) {
   if (a === "ok") { SFX.ok(); TITLE_ITEMS[titleSel].fn(); }
 }
 const TITLE_ITEMS = [
-  { label: "PLAY THE LYCEENS", fn: () => newGame([true, false]) },
-  { label: "PLAY THE CRS", fn: () => newGame([false, true]) },
+  { get label() { return storyBest ? `STORY: CHAPTER ${storyBest + 1}` : "STORY MODE - START HERE"; }, fn: () => openCard("intro", storyBest) },
+  { label: "FREE PLAY: LYCEENS", fn: () => newGame([true, false]) },
+  { label: "FREE PLAY: CRS", fn: () => newGame([false, true]) },
   { label: "TWO PLAYERS, ONE SCREEN", fn: () => newGame([true, true]) },
   { label: "HOW TO PLAY", fn: () => { screen = "help"; } },
 ];
 
 addEventListener("keydown", (e) => {
-  const a = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down", " ": "ok", Enter: "ok", z: "ok", Escape: "back", Backspace: "back", x: "back", e: "end" }[e.key];
+  unlockAudio();
+  if (e.key === "m" || e.key === "M") { toggleMusic(); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const a = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down", " ": "ok", Enter: "ok", z: "ok", Escape: "back", Backspace: "back", x: "back", e: "end", E: "end", Tab: "menu" }[e.key];
   if (!a) return;
   e.preventDefault(); act(a);
 });
@@ -1244,6 +1654,7 @@ cv.addEventListener("pointermove", (e) => {
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
 cv.addEventListener("pointerdown", (e) => {
+  unlockAudio();
   if (e.button === 2) return;
   const [px, py] = pt(e);
   if (screen === "title") {
@@ -1251,7 +1662,7 @@ cv.addEventListener("pointerdown", (e) => {
     if (i >= 0) { titleSel = i; act("ok"); }
     return;
   }
-  if (screen === "help") return act("ok");
+  if (screen === "help" || screen === "card") return act("ok");
   if (!G) return;
   if (G.over || G.banner || G.battle || G.handover != null) return act("ok");
   for (const b of G.buttons) if (px >= b.x && px < b.x + b.w && py >= b.y && py < b.y + b.h) return b.fn();
@@ -1448,7 +1859,8 @@ function drawUnits() {
     const px = u.x * TS, py = TOP + u.y * TS;
     const dim = u.done && u.side === G.side && !G.over;
     const fl = u.side === 0 ? 1 : 0;
-    if (SHEET.frames?.has(u.type)) ctx.drawImage(SHEET.cache[`${u.type}/${poseOf(u)}${fl}${dim ? 1 : 0}`], px, py);
+    const hop = u.pose?.name === "walk" && performance.now() < u.pose.t0 + u.pose.dur && (frame >> 2) % 2 ? -2 : 0;
+    if (SHEET.frames?.has(u.type)) ctx.drawImage(SHEET.cache[`${u.type}/${poseOf(u)}${fl}${dim ? 1 : 0}`], px, py + hop);
     else {
       const bob = !dim && u.side === G.side && (frame >> 4) % 2 ? -1 : 0;
       ctx.drawImage(SPR[`${u.type}${fl}${dim ? 1 : 0}`], px, py + bob);
@@ -1485,6 +1897,9 @@ function drawFx() {
       for (let i = 0; i < 6; i++) { const a = i + t * 0.05, r = 3 + t * 0.15; fill(px + Math.cos(a) * r - 2, py + Math.sin(a) * r - 2, 4, 3, i % 2 ? 31 : 17); }
     } else if (e.kind === "water") {
       for (let i = 0; i < 12; i++) fill(px - 8 + ((i * 5 + t) % 16), py - 6 + ((i * 7 + t * 2) % 14), 1, 2, i % 3 ? 21 : 7);
+    } else if (e.kind === "word") {
+      const y = py - 14 - Math.min(t, 20) * 0.6, x = Math.max(4, Math.min(W - tw8(e.word) - 4, px - tw8(e.word) / 2));
+      text8(e.word, x + 1, y + 1, 0); text8(e.word, x, y, e.c);
     } else if (e.kind === "jet") {
       const [dx, dy] = e.dir, n = Math.min(e.tiles.length * 16, t * 3);
       const sx = e.sx * TS + 8, sy = TOP + e.sy * TS + 8;
@@ -1560,6 +1975,8 @@ function drawTop() {
   const lm = `LANDMARKS ${marksHeld(0)}/${LANDMARKS}`;
   text(lm, W - tw(lm) - 5, 5, marksHeld(0) >= NEED ? 30 : 6);
 }
+// small bottom-bar button in the same black-and-brass as END TURN
+function flatBtn(x, w) { fill(x, BOT + 2, w, 12, 29); fill(x + 1, BOT + 3, w - 2, 10, 0); }
 function drawBottom() {
   fill(0, BOT, W, H - BOT, 1); fill(0, BOT, W, 1, 0);
   G.buttons = [];
@@ -1581,14 +1998,17 @@ function drawBottom() {
     const btn = (name, label, fn, x) => {
       const w = 48;
       if (!uiDraw(`${name}_${hover(x - w, w) ? "pressed" : "normal"}`, x - w, BOT + 2)) { fill(x - w, BOT + 2, w, 12, 3); textC(label, x - w / 2, BOT + 5, 13); }
-      G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn }); return x - w - 4;
+      G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn, name }); return x - w - 4;
     };
     let x = W - 3;
     if (G.mode === "idle" && !G.menu) {
-      x = btn("end_turn", "END TURN", () => { SFX.ok(); endTurn(); }, x);
+      x = btn("end_turn", "END TURN", () => { SFX.ok(); G.info = null; endTurn(); }, x);
+      { const w = 40, bx = x - w; flatBtn(bx, w); textC("MENU", bx + w / 2, BOT + 5, mouse.on && mouse.x >= bx && mouse.x < x && mouse.y > BOT ? 26 : 13);
+        G.buttons.push({ x: bx, y: BOT + 2, w, h: 12, fn: () => { SFX.ok(); mainMenu(); } }); x = bx - 4; }
       if (G.power[G.side] >= POWER_FULL) {
-        const w = 48; box(x - w, BOT + 2, w, 12); textC("POWER!", x - w / 2, BOT + 5, (frame >> 4) % 2 ? 26 : 29);
-        G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn: () => usePower(G.side) });
+        const w = 48; flatBtn(x - w, w); textC("POWER!", x - w / 2, BOT + 5, (frame >> 4) % 2 ? 26 : 29);
+        G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn: () => usePower(G.side), name: "power" });
+        x -= w + 4;
       }
     }
     if (G.mode !== "idle" || G.menu) btn("back", "BACK", () => act("back"), x);
@@ -1671,20 +2091,65 @@ function drawOver() {
   if ((frame >> 5) % 2) text("SPACE", W - 34, H - 11, 26);
 }
 
+// What is on a square: unit, building, ground. Shown when you click anything you can't act on.
+function infoFor(x, y) {
+  const u = unitAt(x, y), p = propAt(x, y), k = key(x, y), out = [];
+  let title = "", tc = 26;
+  if (u) {
+    const t = U[u.type];
+    title = t.name; tc = SIDES[u.side].hi;
+    out.push([`${SIDES[u.side].short} - HEALTH ${hpD(u)}/10`, 7]);
+    out.push([`MOVES ${t.move}, ${{ foot: "ON FOOT", wheels: "ON WHEELS: ROADS ONLY", scoot: "SCOOTER: ANYWHERE" }[t.mt]}`, 6]);
+    out.push([t.r ? `FIRES ${t.r[1] === 1 ? "AT THE NEXT SQUARE" : `${t.r[0]}-${t.r[1]} SQUARES AWAY`}${t.cls === "arty" ? ", NOT AFTER MOVING" : ""}` : "CAN'T FIRE", 6]);
+    out.push([t.blurb, 21]);
+    if (u.cargo?.length) out.push([`CARRYING ${u.cargo.length} COP${u.cargo.length > 1 ? "S" : ""}`, 25]);
+    if (u.side === G.side && u.done) out.push(["ALREADY MOVED THIS TURN.", 4]);
+    out.push(["", 0]);
+  }
+  if (p) {
+    if (!title) title = p.name; else out.push([`ON: ${p.name}`, 13]);
+    const owner = p.owner < 0 ? "NOBODY YET" : SIDES[p.owner].short;
+    out.push([{ hq: "HQ. LOSE IT AND YOU LOSE.", base: "BASE. BUY NEW UNITS HERE.", mark: "LANDMARK. COUNTS AT CURFEW.", shop: "SHOP. CAPTURE IT FOR CASH." }[p.kind], 7]);
+    out.push([`HELD BY: ${owner}. PAYS €${INCOME[p.kind]} A TURN.`, 6]);
+    if (p.cap < 20) out.push([`BEING CAPTURED: ${p.cap}/20 LEFT`, 26]);
+    out.push([`COVER ${"*".repeat(defAt(x, y))}. FOOT UNITS CAPTURE IT.`, 6]);
+  } else {
+    const t = terr(x, y);
+    if (!title) title = TNAME[t]; else out.push([`ON: ${TNAME[t]}`, 13]);
+    out.push([{ "#": "HAUSSMANN BLOCKS. PEOPLE CLIMB THROUGH, VANS CAN'T.", "=": "BOULEVARD. EVERYONE MOVES FAST.", T: "PARK. TREES GIVE SOME COVER.", "~": "THE SEINE. NOBODY CROSSES. WATER CANNON VICTIMS END UP HERE.", b: "BRIDGE. THE ONLY WAY OVER THE SEINE." }[t], 7]);
+    if (t !== "~") out.push([`COVER ${"*".repeat(defAt(x, y)) || "NONE"}.`, 6]);
+  }
+  if (G.bar.has(k)) out.push(["BARRICADE: VANS CAN'T PASS. COVER ***.", 29]);
+  if (G.fire.has(k)) out.push(["ON FIRE: NOBODY CAN ENTER.", 28]);
+  return { title, tc, lines: out };
+}
+function drawInfo() {
+  const { x, y } = G.info, I = infoFor(x, y), w = 196, cols = 30;
+  const lines = I.lines.flatMap(([l, c]) => (l ? wrap(l, cols).map((t) => [t, c]) : [["", 0]]));
+  const h = 8 + 12 + lines.length * 9 + 6;
+  const bx = x * TS + 8 < W / 2 ? W - w - 6 : 6, by = Math.max(TOP + 4, Math.min(BOT - h - 4, TOP + y * TS - h / 2));
+  box(bx, by, w, h);
+  text8(I.title, bx + 8, by + 8, I.tc);
+  lines.forEach(([l, c], i) => text(l, bx + 8, by + 22 + i * 9, c));
+  // tie the card to its square
+  fill(x * TS, TOP + y * TS, 16, 1, 26); fill(x * TS, TOP + y * TS + 15, 16, 1, 26); fill(x * TS, TOP + y * TS, 1, 16, 26); fill(x * TS + 15, TOP + y * TS, 1, 16, 26);
+}
+
 // ---------- title & help ----------
 let TITLE_RECTS = [];
 function drawTitle() {
   TITLE_RECTS = [];
+  music("cancan");
   const tm = IMG.titleMeta;
   if (IMG.title && tm) {
     ctx.drawImage(IMG.title, 0, 0);
     TITLE_ITEMS.forEach((it, i) => {
-      const y = tm.menuBaselines[i] - 2, sel = i === titleSel;
-      TITLE_RECTS.push([tm.menuBand.x, y - 4, tm.menuBand.w, 16]);
+      const y = tm.menuBand.y + 7 + i * 14, sel = i === titleSel;
+      TITLE_RECTS.push([tm.menuBand.x, y - 3, tm.menuBand.w, 14]);
       textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
       if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
     });
-    text("ARROWS + SPACE, OR CLICK", 6, H - 10, 6, 0);
+    text(`ARROWS + SPACE, OR CLICK. M = MUSIC ${MUS.on ? "ON" : "OFF"}`, 6, H - 10, 6, 0);
     text("17.10.2026", W - 66, H - 10, 6, 0);
     return;
   }
@@ -1741,6 +2206,7 @@ function loop() {
   if (!ready) textC("LOADING PARIS...", W / 2, H / 2, 6);
   else if (screen === "title") drawTitle();
   else if (screen === "help") drawHelp();
+  else if (screen === "card" && CARD) drawCard();
   else if (G) {
     if (G.over) drawOver();
     else if (G.handover != null) drawHandover();
@@ -1753,6 +2219,8 @@ function loop() {
       drawFx();
       if (human() || G.busy) drawCursor();
       drawTop(); drawBottom();
+      if (G.story && !G.banner && !G.battle) drawCoach();
+      if (G.info && !G.menu) drawInfo();
       if (G.menu) drawMenu();
       if (G.battle) drawBattle();
       if (G.banner) drawBanner();
@@ -1764,7 +2232,7 @@ function loop() {
 let ready = false;
 ASSETS.then(() => { mapLayer = null; G = null; ready = true; });
 // Test hook: lets a headless run inspect and drive the game.
-window.__cf = { get G() { return G; }, act, newGame, endTurn, attack, get screen() { return screen; } };
+window.__cf = { get G() { return G; }, act, newGame, endTurn, attack, openCard, STORY, get CARD() { return CARD; }, get screen() { return screen; } };
 loop();
 </script>
 </body>
