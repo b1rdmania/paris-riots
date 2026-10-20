@@ -3,15 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Paris Riots - The Game</title>
-<meta name="description" content="Turn-based Paris riot, Saturday 17 October 2026. Play the lycéens or the CRS. Curfew at 23:00.">
+<title>Paris Riots: The Game</title>
+<meta name="description" content="Turn-based. Pick a side. Curfew at 23:00.">
+<meta name="theme-color" content="#0f0e14">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://couvre-feu.pages.dev/">
+<meta property="og:title" content="Paris Riots: The Game">
+<meta property="og:description" content="Turn-based. Pick a side. Curfew at 23:00.">
+<meta property="og:image" content="https://couvre-feu.pages.dev/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Paris Riots: The Game">
+<meta name="twitter:description" content="Turn-based. Pick a side. Curfew at 23:00.">
+<meta name="twitter:image" content="https://couvre-feu.pages.dev/og.jpg">
 <style>
-  html, body { margin: 0; height: 100%; background: #0f0e14; }
-  body { display: grid; place-items: center; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+  html { background-color: #0f0e14; overscroll-behavior-y: none; }
+  body {
+    margin: 0; box-sizing: border-box; block-size: 100dvh; background: #0f0e14;
+    display: grid; place-items: center; overflow: clip;
+    /* clear of the notch and the home bar */
+    padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px);
+    padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+    touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
   canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  .rotate { display: none; }
+  /* the board needs the width: on a phone held upright, ask for landscape */
+  @media (orientation: portrait) and (pointer: coarse) {
+    canvas { display: none; }
+    .rotate { display: grid; gap: 1.25rem; justify-items: center; box-sizing: border-box; inline-size: 100%; padding-inline: 1.5rem; text-align: center;
+      font: 600 1rem/1.4 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.08em; color: #f0d020; }
+    .rotate img { inline-size: min(100%, 26rem); image-rendering: pixelated; }
+    .rotate small { color: #b8bccc; font-weight: 400; letter-spacing: 0.02em; }
+  }
 </style>
 </head>
 <body>
+<div class="rotate"><img src="og.jpg" alt="Paris Riots: The Game"><span>TURN YOUR PHONE SIDEWAYS</span><small>The map of Paris needs the whole screen.</small></div>
 <canvas id="c"></canvas>
 <script src="map.js"></script>
 <script src="music.js"></script>
@@ -32,7 +61,10 @@ const PAL = [
 const cv = document.getElementById("c"), ctx = cv.getContext("2d");
 cv.width = W; cv.height = H; ctx.imageSmoothingEnabled = false;
 function fit() {
-  const s = Math.min(innerWidth / W, innerHeight / H);
+  // fit inside the body's padded box, so the canvas stays clear of the notch
+  const cs = getComputedStyle(document.body), b = document.body;
+  const aw = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const s = Math.min(aw / W, ah / H);
   const k = s >= 2 ? Math.floor(s) : s;
   cv.style.width = W * k + "px"; cv.style.height = H * k + "px";
 }
@@ -57,7 +89,7 @@ const GL = {
   "/": [1, 1, 2, 4, 8, 16, 16], "(": [2, 4, 8, 8, 8, 4, 2], ")": [8, 4, 2, 2, 2, 4, 8], '"': [10, 10, 0, 0, 0, 0, 0],
   "&": [12, 18, 20, 8, 21, 18, 13], "+": [0, 4, 4, 31, 4, 4, 0], "%": [24, 25, 2, 4, 8, 19, 3], " ": [],
   "€": [7, 8, 30, 8, 30, 8, 7], "*": [0, 4, 21, 14, 21, 4, 0], ">": [8, 4, 2, 1, 2, 4, 8], "<": [2, 4, 8, 16, 8, 4, 2], "=": [0, 0, 31, 0, 31, 0, 0],
-  "↑": [4, 14, 21, 4, 4, 4, 4], "↓": [4, 4, 4, 4, 21, 14, 4], "→": [0, 4, 2, 31, 2, 4, 0], "←": [0, 4, 8, 31, 8, 4, 0],
+  "@": [14, 17, 23, 21, 23, 16, 14], "↑": [4, 14, 21, 4, 4, 4, 4], "↓": [4, 4, 4, 4, 21, 14, 4], "→": [0, 4, 2, 31, 2, 4, 0], "←": [0, 4, 8, 31, 8, 4, 0],
 };
 const norm = (t) => String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase()
   .replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-");
@@ -125,24 +157,6 @@ const ART = {
     "....kKKk.kKKk...",
     "...kkkk...kkkk..",
     "................",
-  ],
-  trott: [
-    "................",
-    "......kkkkk.....",
-    ".....krrrrrk....",
-    "....krrrkSSk....",
-    "....krrkSkSk....",
-    "....krrkSSSk.kk.",
-    ".....kkkkkk..kq.",
-    "....krrrrrrk.k..",
-    "...krrrrrrSSkk..",
-    "...kSkrrrrk..k..",
-    "....kbbbbbk..k..",
-    "....kbbkbbk..k..",
-    "..kkqqqqqqqqqqk.",
-    "..kkkkkkkkkkkkk.",
-    ".kwGk......kwGk.",
-    "..kk........kk..",
   ],
   caddie: [
     "..O......O......",
@@ -234,24 +248,6 @@ const ART = {
     "....kNNkkNNk....",
     "...kkkk..kkkk...",
   ],
-  fourgon: [
-    "................",
-    "................",
-    "...........BB...",
-    "..kkkkkkkkkkkk..",
-    ".kwwwwwwwwwkBBk.",
-    ".kwkkwkkwwwkBBBk",
-    ".kwkkwkkwwwkkkkk",
-    ".kwwwwwwwwwwwwwk",
-    ".kbbbbbbbbbbbbbk",
-    ".krrrrrrrrrrrrrk",
-    ".kwwwwwwwwwwwwwk",
-    ".kkkkkkkkkkkkkkk",
-    "..kKKk.....kKKk.",
-    "..kGGk.....kGGk.",
-    "...kk.......kk..",
-    "................",
-  ],
   crs: [
     "................",
     ".....kkkkk......",
@@ -266,24 +262,6 @@ const ART = {
     "...knnnnnnnkGGGk",
     "...knnnnnnnkGGGk",
     "....kNNNNNk.kkk.",
-    "....kNNkNNk.....",
-    "....kNNkkNNk....",
-    "...kkkk..kkkk...",
-  ],
-  gm: [
-    "..........k.....",
-    ".....kkkkkKk....",
-    "....kbbbbbKk....",
-    "...kbbbbbbbk....",
-    "...kbbbkBBBkk...",
-    "...kbbkBBBBBk...",
-    "....kkkssssk....",
-    "..kkkkssssk.kkkk",
-    ".kGGGkkkkkkkGGGk",
-    ".kGwGknnnnnkGwGk",
-    ".kGGGknnnnnkGGGk",
-    ".kGGGknnnnnkGGGk",
-    "..kkkkNNNNNkkkk.",
     "....kNNkNNk.....",
     "....kNNkkNNk....",
     "...kkkk..kkkk...",
@@ -397,20 +375,17 @@ const SIDES = [
 const U = {
   lyceen: { side: 0, name: "LYCEEN", cls: "inf", cost: 750, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. FILMS EVERYTHING." },
   bloc: { side: 0, name: "BLACK BLOC", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. THROWS PAVING STONES." },
-  trott: { side: 0, name: "TROTTINETTE", cls: "recon", cost: 4000, move: 7, mt: "scoot", r: [1, 1], blurb: "RENTED SCOOTER. RIDES THROUGH ANYTHING." },
   torse: { side: 0, name: "TONTON TORSE NU", cls: "mech", dfn: "tank", cost: 5000, move: 3, mt: "foot", r: [1, 1], gasproof: true, blurb: "TOPLESS UNCLE. TEAR GAS DOES NOTHING." },
   panther: { side: 0, name: "PINK PANTHER", cls: "inf", cost: 5000, move: 6, mt: "scoot", cap: true, capAll: true, r: null, one: true, blurb: "JEWEL THIEF. CAPTURES IN ONE TURN. ONLY ONE." },
-  caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 3], burn: true, blurb: "FIREWORKS, RANGE 2-3. LEAVES THE STREET ON FIRE." },
+  caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 3], blurb: "FIREWORKS IN A TROLLEY. RANGE 2-3." },
   kangoo: { side: 0, name: "GILETS JAUNES", cls: "tank", cost: 7000, move: 5, mt: "wheels", r: [1, 1], blurb: "A KANGOO OF UNCLES. NOBODY INVITED THEM." },
-  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, board: true, r: [1, 1], blurb: "CAPTURES. RIDES IN VANS." },
-  gm: { side: 1, name: "GENDARME MOBILE", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, board: true, r: [1, 1], blurb: "CAPTURES. TWO SHIELDS. RIDES IN VANS." },
-  fourgon: { side: 1, name: "FOURGON", cls: "recon", cost: 2500, move: 6, mt: "wheels", r: null, carry: 2, blurb: "RIOT VAN. CARRIES 2 COPS. DROPS THEM OFF." },
+  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. HAS A SHIELD." },
   bravm: { side: 1, name: "BRAV-M", cls: "recon", cost: 4000, move: 7, mt: "wheels", r: [1, 1], blurb: "TWO MEN, ONE MOTORBIKE." },
-  lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], board: true, blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
-  lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], splash: true, board: true, blurb: "TEAR GAS, RANGE 2-3. GASSES THE NEIGHBOURS TOO." },
+  lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
+  lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], splash: true, blurb: "TEAR GAS, RANGE 2-3. GASSES THE NEIGHBOURS TOO." },
   canon: { side: 1, name: "CANON A EAU", cls: "tank", cost: 8000, move: 5, mt: "wheels", r: [1, 1], push: true, blurb: "HOSES THEM BACK A TILE. INTO THE SEINE = GONE." },
 };
-const ROSTER = [["lyceen", "bloc", "trott", "torse", "panther", "caddie", "kangoo"], ["crs", "gm", "fourgon", "bravm", "lbd", "lacrymo", "canon"]];
+const ROSTER = [["lyceen", "bloc", "torse", "panther", "caddie", "kangoo"], ["crs", "bravm", "lbd", "lacrymo", "canon"]];
 // Base damage %, attacker class -> defender class (Advance Wars shape).
 const DMG = {
   inf: { inf: 55, mech: 45, recon: 12, arty: 15, tank: 5 },
@@ -564,9 +539,9 @@ function newGame(humans, ch) {
     props: PROPS0.map((p) => ({ ...p, cap: 20 })), mode: "idle", cur: { x: 21, y: 3 },
     sel: null, reach: null, from: null, menu: null, targets: [], tsel: 0, fx: [],
     msg: "", msgT: 0, banner: null, busy: false, over: null, buttons: [],
-    bar: new Map(), fire: new Map(), pick: null, power: [0, 0], noCap: -1, handover: null,
+    power: [0, 0], noCap: -1, handover: null,
   };
-  const put = (t, x, y) => { const u = { id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false, cargo: [] }; G.units.push(u); return u; };
+  const put = (t, x, y) => { const u = { id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false }; G.units.push(u); return u; };
   if (ch) {
     G.story = { i: STORY.indexOf(ch), step: 0, typed: 0, said: "" };
     G.round = ch.round; G.funds = ch.funds || [0, 0]; G.noBuy = !ch.buy;
@@ -574,7 +549,7 @@ function newGame(humans, ch) {
     ch.setup(put, own);
   } else {
     put("lyceen", 21, 3); put("lyceen", 21, 9); put("bloc", 22, 8); put("lyceen", 15, 11);
-    put("crs", 9, 0); put("crs", 7, 1); put("gm", 8, 1); put("crs", 16, 7);
+    put("crs", 9, 0); put("crs", 7, 1); put("lbd", 8, 1); put("crs", 16, 7);
   }
   buildMapLayer();
   screen = "game";
@@ -583,18 +558,8 @@ function newGame(humans, ch) {
 const unitAt = (x, y) => G.units.find((u) => u.x === x && u.y === y);
 const propAt = (x, y) => G.props.find((p) => p.x === x && p.y === y);
 const terr = (x, y) => MAP[y][x];
-const defAt = (x, y) => {
-  if (G?.bar?.has(key(x, y))) return 3;
-  const p = terr(x, y) === "P" && propAt(x, y); return p ? (p.kind === "hq" ? 4 : 3) : DEF[terr(x, y)];
-};
-// Fire blocks everyone; a barricade stops vehicles and slows people climbing over.
-const cost = (mt, x, y) => {
-  const k = key(x, y);
-  if (G?.fire?.has(k)) return 0;
-  if (G?.bar?.has(k)) return mt === "wheels" ? 0 : 2;
-  return COST[mt][terr(x, y)];
-};
-const canBoard = (u, o) => U[u.type].board && o.type === "fourgon" && o.side === u.side && o.cargo.length < U.fourgon.carry;
+const defAt = (x, y) => { const p = terr(x, y) === "P" && propAt(x, y); return p ? (p.kind === "hq" ? 4 : 3) : DEF[terr(x, y)]; };
+const cost = (mt, x, y) => COST[mt][terr(x, y)];
 const hpD = (u) => Math.ceil(u.hp / 10);
 const human = () => G.humans[G.side];
 const hour = () => START_HOUR + G.round;
@@ -617,7 +582,7 @@ function reach(u) {
       if (!d.has(kk) || nc < d.get(kk)) { d.set(kk, nc); prev.set(kk, key(x, y)); q.push([nc, nx, ny]); }
     }
   }
-  for (const k of [...d.keys()]) { const [x, y] = unkey(k); const o = unitAt(x, y); if (o && o !== u && !canBoard(u, o)) d.delete(k); }
+  for (const k of [...d.keys()]) { const [x, y] = unkey(k); const o = unitAt(x, y); if (o && o !== u) d.delete(k); }
   return { d, prev };
 }
 function pathTo(R, sx, sy, x, y) {
@@ -657,7 +622,6 @@ const quipKO = (u) => u.side === 0 ? pick(["ARRESTED. MUM IS FURIOUS.", "ARRESTE
 // ---------- turn flow ----------
 function startTurn() {
   const s = G.side;
-  tickHazards(s);
   let inc = 0;
   for (const p of G.props) if (p.owner === s) inc += INCOME[p.kind];
   G.funds[s] += inc;
@@ -672,7 +636,7 @@ function startTurn() {
   if (human()) G.cur = lead ? { x: lead.x, y: lead.y } : hq ? { x: hq.x, y: hq.y } : G.cur;
   const sub = s === 0 ? NEWS[G.round] || "" : `INCOME €${inc}`;
   G.banner = { title: `${SIDES[s].short} - SAT ${hour()}:00`, sub: s === 0 ? sub : `INCOME €${inc}`, col: SIDES[s].col, t: 110, side: s };
-  if (G.story) G.banner.sub = s === 0 ? `GOAL: ${STORY[G.story.i].goal}` : "THE CRS MOVE.";
+  if (G.story) { if (s === 1) G.banner = null; else Object.assign(G.banner, { title: `SAT ${hour()}:00`, sub: storyStatus(), t: 70, t0: 70 }); }
   const art = !G.story && s === 0 && NEWS_ART[G.round];
   if (art && IMG[art]) Object.assign(G.banner, { news: art, t: 220 });
   if (G.humans[0] && G.humans[1]) G.handover = s;
@@ -683,7 +647,7 @@ function startTurn() {
 }
 function endTurn() {
   if (G.over) return;
-  if (human()) emit("endturn");
+  emit("endturn");
   for (const u of G.units) u.done = false;
   G.mode = "idle"; G.menu = null; G.sel = null;
   const other = 1 - G.side;
@@ -733,7 +697,6 @@ async function attack(a, d) {
     }
     if (own) say("OOPS. GASSED OUR OWN LADS.");
   }
-  if (U[a.type].burn) setFire(d.x, d.y);
   if (U[a.type].push && d.hp > 0) await push(a, d);
   if (d.hp <= 0) await ko(d, scene);
   else if (c) {
@@ -743,7 +706,7 @@ async function attack(a, d) {
   }
   await sleep(200);
   G.busy = false;
-  if (human()) emit("attack", a, d);
+  emit("attack", a, d);
   checkRout(); checkStory();
 }
 async function ko(u, seen, msg) {
@@ -752,7 +715,8 @@ async function ko(u, seen, msg) {
   G.fx.push({ kind: "word", x: u.x, y: u.y, t: 0, life: 70, c: u.side === 0 ? 30 : 25, word: msg && /SEINE/.test(msg) ? "SPLASH!" : u.side === 0 ? "ARRESTED!" : "OFF SICK!" });
   if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; }
   G.units = G.units.filter((o) => o !== u);
-  say(msg || (u.cargo?.length ? "VAN TOWED. THE CREW GO HOME." : quipKO(u))); SFX.bad();
+  emit(msg && /SEINE/.test(msg) ? "seine" : "ko", u);
+  say(msg || quipKO(u)); SFX.bad();
   await sleep(300);
 }
 function checkRout() {
@@ -772,14 +736,15 @@ function doCapture(u) {
     say(quipCapture(u, p)); SFX.cap(); buildMapLayer();
     G.fx.push({ kind: "flag", x: p.x, y: p.y, t: 0, life: 40, side: u.side });
     G.fx.push({ kind: "word", x: p.x, y: p.y, t: 0, life: 70, c: 26, word: u.side === 0 ? (p.kind === "shop" ? "LOOTED!" : p.kind === "mark" ? "BLOCKADE!" : "OURS!") : "SECURED!" });
+    emit("captured", u, p);
     if (p.kind === "hq") gameOver(u.side, quipCapture(u, p));
   } else { say(`CAPTURING ${p.name}: ${p.cap} LEFT`); SFX.ok(); }
-  if (human()) emit("capture", u, p);
+  emit("capture", u, p);
   checkStory();
 }
 function buy(p, type) {
   G.funds[G.side] -= U[type].cost;
-  G.units.push({ id: G.nextId++, type, side: G.side, x: p.x, y: p.y, hp: 100, done: true, capturing: false, cargo: [] });
+  G.units.push({ id: G.nextId++, type, side: G.side, x: p.x, y: p.y, hp: 100, done: true, capturing: false });
   SFX.ok();
 }
 
@@ -793,17 +758,6 @@ function pop(x, y, dmg) { G.fx.push({ kind: "num", x, y, n: Math.ceil(dmg / 10),
 
 // ---------- riot rules: fire, the water cannon push, vans, commander powers ----------
 const alive = (s) => G.units.some((u) => u.side === s);
-function setFire(x, y) {
-  if (!inb(x, y) || terr(x, y) === "~") return;
-  G.fire.set(key(x, y), 4); G.bar.delete(key(x, y));
-}
-function tickHazards(s) {
-  // Fires and barricades last two hours (four half-turns).
-  for (const m of [G.fire, G.bar]) for (const [k, v] of [...m]) v <= 1 ? m.delete(k) : m.set(k, v - 1);
-  let burnt = 0;
-  for (const u of G.units) if (u.side === s && G.fire.has(key(u.x, u.y))) { u.hp = Math.max(1, u.hp - 20); burnt++; }
-  if (burnt) say("SOMEBODY IS STANDING IN A FIRE.");
-}
 // Water cannon: whatever it hits goes one tile straight back. The Seine takes them out of the game.
 async function push(a, d) {
   const nx = d.x + Math.sign(d.x - a.x), ny = d.y + Math.sign(d.y - a.y);
@@ -820,19 +774,9 @@ async function push(a, d) {
   }
   d.x = nx; d.y = ny; await sleep(120);
 }
-// Riot vans: drive a cop onto the van to board; unload onto a free tile next to it.
-function board(u, van) {
-  G.units = G.units.filter((o) => o !== u); van.cargo.push(u); u.done = true; u.capturing = false;
-  say(`${U[u.type].name} IN THE VAN. SIRENS ON.`); beep(880, 0.1); setTimeout(() => beep(660, 0.1), 120);
-}
-const unloadTiles = (v) => DIRS.map(([dx, dy]) => [v.x + dx, v.y + dy]).filter(([x, y]) => inb(x, y) && cost("foot", x, y) && !unitAt(x, y));
-function unload(v, x, y) {
-  const c = v.cargo.shift(); c.x = x; c.y = y; c.done = true; G.units.push(c);
-  say(`${U[c.type].name} JUMPS OUT.`); SFX.ok();
-}
 // Commander powers: the meter fills as you deal and take damage. One big move per charge.
 const POWER = [
-  { name: "APPEL TIKTOK", who: "LA DELEGUEE", portrait: "la_deleguee", line: "IT WENT VIRAL. BARRICADES UP. EVERYONE MOVES AGAIN." },
+  { name: "APPEL TIKTOK", who: "LA DELEGUEE", portrait: "la_deleguee", line: "IT WENT VIRAL. EVERYONE GETS TO MOVE AGAIN." },
   { name: "COUVRE-FEU ANTICIPE", who: "LE PREFET", portrait: "le_prefet", line: "GAS ON EVERY LYCEEN. NO CAPTURES NEXT TURN." },
 ];
 const POWER_FULL = 300;
@@ -843,16 +787,10 @@ async function usePower(s) {
   G.banner = { title: POWER[s].name, sub: POWER[s].line, col: SIDES[s].col, t: 110, side: s, power: true };
   noise(0.4, 0.06); SFX.turn();
   await waitBanner();
-  if (human()) emit("power", s);
+  emit("power", s);
   if (s === 0) {
-    for (const u of G.units.filter((o) => o.side === 0)) {
-      for (const [dx, dy] of DIRS) {
-        const x = u.x + dx, y = u.y + dy;
-        if (inb(x, y) && "=b".includes(terr(x, y)) && !unitAt(x, y) && !G.fire.has(key(x, y))) G.bar.set(key(x, y), 4);
-      }
-      u.done = false;
-    }
-    say("BINS, BIKES AND CONES ON EVERY CORNER.");
+    for (const u of G.units.filter((o) => o.side === 0)) { u.done = false; G.fx.push({ kind: "word", x: u.x, y: u.y, t: 0, life: 50, c: 26, word: "GO!" }); }
+    say("IT WENT VIRAL. EVERYONE MOVES AGAIN.");
   } else {
     for (const u of G.units.filter((o) => o.side === 0)) {
       if (!U[u.type].gasproof) { u.hp = Math.max(1, u.hp - 10); pop(u.x, u.y, 10); }
@@ -866,10 +804,10 @@ async function usePower(s) {
 const noCapture = () => G.side === 0 && G.noCap === G.round;
 
 // ---------- battle scene (Advance Wars cut-in) ----------
-const BATTLE_MODES = ["ALL", "MY TURN ONLY", "OFF"];
+const BATTLE_MODES = ["ON", "OFF"];
 let battleMode = 0;
-try { battleMode = Number(localStorage.getItem("pr-battles")) || 0; } catch {}
-const showBattle = (a, d) => !window.__fast && IMG.cutMeta && IMG["battle-cutins"] && IMG.cutMeta.frames[`${a.type}/idle`] && IMG.cutMeta.frames[`${d.type}/idle`] && (battleMode === 0 || (battleMode === 1 && human()));
+try { battleMode = localStorage.getItem("pr-battles") === "off" ? 1 : 0; } catch {}
+const showBattle = (a, d) => !window.__fast && IMG.cutMeta && IMG["battle-cutins"] && IMG.cutMeta.frames[`${a.type}/idle`] && IMG.cutMeta.frames[`${d.type}/idle`] && battleMode === 0;
 // What flies across the gap, and what it looks like when it lands.
 const SHOT = { lyceen: ["paving_stone", "smoke"], bloc: ["paving_stone", "smoke"], caddie: ["firework", "firework"], lbd: ["rubber_bullet", "smoke"],
   lacrymo: ["teargas", "teargas"], canon: [null, "water"] };
@@ -954,10 +892,10 @@ function drawFx2(name, t, cx, cy, flip) {
   ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, -16, -16, 32, 32); ctx.restore();
 }
 // Slapstick: squads lose members as they lose HP, and the losers get launched off screen.
-const SQUAD = new Set(["lyceen", "bloc", "trott", "torse", "panther", "crs", "gm", "bravm", "lbd", "lacrymo"]);
+const SQUAD = new Set(["lyceen", "bloc", "torse", "panther", "crs", "bravm", "lbd", "lacrymo"]);
 const figs = (hp) => (hp > 66 ? 3 : hp > 33 ? 2 : hp > 0 ? 1 : 0);
-const WORD = { lyceen: "CLONK!", bloc: "CLONK!", trott: "VROOM!", torse: "SLAP!", panther: "YOINK!", caddie: "BOOM!", kangoo: "HONK!",
-  crs: "THWACK!", gm: "THWACK!", bravm: "VROOM!", lbd: "BOING!", lacrymo: "KOFF KOFF!", canon: "SPLOOSH!" };
+const WORD = { lyceen: "CLONK!", bloc: "CLONK!", torse: "SLAP!", panther: "YOINK!", caddie: "BOOM!", kangoo: "HONK!",
+  crs: "THWACK!", bravm: "VROOM!", lbd: "BOING!", lacrymo: "KOFF KOFF!", canon: "SPLOOSH!" };
 const IMPACT = { caddie: "firework", lacrymo: "teargas", canon: "water", lbd: "rubber", lyceen: "stone", bloc: "stone" };
 // small sound kit for the fights
 function tone(f1, f2, d, type = "square", vol = 0.05, at = 0) {
@@ -983,7 +921,7 @@ const ATTACK_SFX = {
   lacrymo: () => { tone(300, 120, 0.1, "square", 0.04); hiss(0.4, 0.06, "highpass", 3000, 0.1); },
   lbd: () => tone(900, 300, 0.08, "square", 0.05),
   kangoo: () => { tone(440, 430, 0.22, "square", 0.04); tone(554, 550, 0.22, "square", 0.03); tone(440, 430, 0.22, "square", 0.04, 0.28); tone(554, 550, 0.22, "square", 0.03, 0.28); },
-  trott: () => tone(80, 260, 0.4, "sawtooth", 0.04), bravm: () => tone(70, 240, 0.45, "sawtooth", 0.05),
+  bravm: () => tone(70, 240, 0.45, "sawtooth", 0.05),
 };
 const HIT_SFX = {
   firework: () => { hiss(0.35, 0.16, "lowpass", 1200); for (let i = 0; i < 7; i++) hiss(0.03, 0.08, "highpass", 4000, 0.08 + Math.random() * 0.35); },
@@ -1175,7 +1113,7 @@ async function runAI() {
   endTurn();
 }
 async function aiPass(s, g) {
-  const rank = (u) => (U[u.type].cls === "arty" ? 2 : 0) - (u.type === "fourgon" ? 4 : 0);
+  const rank = (u) => (U[u.type].cls === "arty" ? 2 : 0);
   const order = G.units.filter((u) => u.side === s && !u.done).sort((a, b) => rank(b) - rank(a) || U[b.type].cost - U[a.type].cost);
   for (const u of order) {
     if (G !== g || G.over) return;
@@ -1188,7 +1126,6 @@ async function aiPass(s, g) {
 function waitBanner() { return new Promise((r) => { const t = () => (G.banner ? setTimeout(t, 50) : r()); t(); }); }
 async function aiUnit(u) {
   const s = u.side, t = U[u.type], R = reach(u);
-  if (u.type === "fourgon") return aiVan(u, R);
   const noCap = s === 0 && G.noCap === G.round;
   const here = propAt(u.x, u.y);
   if (t.cap && here && here.owner !== s && u.capturing && !noCap) { G.cur = { x: u.x, y: u.y }; await sleep(150); doCapture(u); return; }
@@ -1198,7 +1135,7 @@ async function aiUnit(u) {
   for (const [k] of R.d) {
     const [x, y] = unkey(k), moved = x !== u.x || y !== u.y;
     const occ = unitAt(x, y);
-    if (occ && occ !== u) { if (canBoard(u, occ) && goalDist(x, y) > 6) offer(260, { x, y, act: "board", van: occ }); continue; }
+    if (occ && occ !== u) continue;
     for (const d of targetsFrom(u, x, y, moved)) {
       const dmg = calcDmg(u, d, d.x, d.y, 4), kill = dmg >= d.hp;
       let v = Math.min(dmg, d.hp) * U[d.type].cost / 100 + (kill ? U[d.type].cost * 0.4 : 0);
@@ -1209,7 +1146,6 @@ async function aiUnit(u) {
       if (d.capturing) v += 1500;
       v += defAt(x, y) * 30;
       if (t.splash) for (const o of G.units) if (o !== d && dist(o.x, o.y, d.x, d.y) === 1 && !U[o.type].gasproof) v += o.side === s ? -150 : 120;
-      if (t.burn && "=b".includes(terr(d.x, d.y))) v += 150;
       if (t.push && !kill) {
         const nx = d.x + Math.sign(d.x - x), ny = d.y + Math.sign(d.y - y);
         if (inb(nx, ny) && terr(nx, ny) === "~") v += U[d.type].cost * 0.7;
@@ -1230,7 +1166,6 @@ async function aiUnit(u) {
     const b = best;
     if (b.act === "fire") { G.cur = { x: b.d.x, y: b.d.y }; await sleep(120); await attack(u, b.d); }
     else if (b.act === "cap") doCapture(u);
-    else if (b.act === "board") board(u, b.van);
     return;
   }
   // Walk toward the nearest useful thing.
@@ -1254,39 +1189,18 @@ async function aiUnit(u) {
   const p = propAt(u.x, u.y);
   if (t.cap && p && p.owner !== s && !noCap) doCapture(u);
 }
-async function aiVan(u, R) {
-  const s = u.side;
-  const goals = (u.cargo.length ? G.props.filter((p) => p.owner !== s) : G.units.filter((o) => o.side === s && U[o.type].board)).map((o) => [o.x, o.y]);
-  if (!goals.length) return;
-  const f = field("wheels", goals);
-  let bx = u.x, by = u.y;
-  for (const [k] of R.d) { const [x, y] = unkey(k); if (unitAt(x, y) && unitAt(x, y) !== u) continue; if (f[k] < f[key(bx, by)]) { bx = x; by = y; } }
-  if (bx !== u.x || by !== u.y) { G.cur = { x: bx, y: by }; await moveUnit(u, pathTo(R, u.x, u.y, bx, by)); }
-  if (!u.cargo.length) return;
-  const near = G.props.some((p) => p.owner !== s && dist(p.x, p.y, u.x, u.y) <= 3) || G.units.some((o) => o.side !== s && dist(o.x, o.y, u.x, u.y) <= 2);
-  if (!near && f[key(u.x, u.y)] > 2) return;
-  while (u.cargo.length) {
-    const tiles = unloadTiles(u); if (!tiles.length) break;
-    const g = (x, y) => Math.min(...goals.map(([a, b]) => dist(a, b, x, y)));
-    tiles.sort((a, b) => g(...a) - g(...b));
-    unload(u, ...tiles[0]); await sleep(180);
-  }
-}
 function aiBuild() {
   const s = G.side;
   const bases = G.props.filter((p) => p.owner === s && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y));
   bases.sort(() => Math.random() - 0.5);
-  const [inf, mech, recon, arty, tank] = s === 0 ? ["lyceen", "bloc", "trott", "caddie", "kangoo"] : ["crs", "gm", "bravm", "lacrymo", "canon"];
+  const [inf, mech, recon, arty, tank] = s === 0 ? ["lyceen", "bloc", "torse", "caddie", "kangoo"] : ["crs", "lbd", "bravm", "lacrymo", "canon"];
   for (const p of bases) {
     const f = G.funds[s], mine = G.units.filter((u) => u.side === s);
     const foot = mine.filter((u) => U[u.type].cap).length;
     const veh = G.units.filter((u) => u.side !== s && ["tank", "recon"].includes(U[u.type].cls)).length;
     let t = null;
     if (foot < 4 && f >= U[inf].cost) t = inf;
-    else if (s === 1 && f >= 2500 && G.round >= 1 && !G.units.some((u) => u.type === "fourgon" && u.side === 1) && Math.random() < 0.5) t = "fourgon";
     else if (s === 0 && f >= 5000 && !G.units.some((u) => u.type === "panther") && Math.random() < 0.35) t = "panther";
-    else if (s === 0 && f >= 5000 && Math.random() < 0.25) t = "torse";
-    else if (s === 1 && f >= 4500 && Math.random() < 0.3) t = "lbd";
     else if (veh >= 2 && f >= 3000 && Math.random() < 0.5) t = mech;
     else if (f >= 7000 && Math.random() < 0.55) t = tank;
     else if (f >= 6000 && Math.random() < 0.4) t = arty;
@@ -1307,6 +1221,7 @@ const STORY = [
     title: "RENDEZ-VOUS A REPUBLIQUE", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true,
     diary: "11:58. THE CEILING IN B12 FELL IN AGAIN. ON MADAME DUVAL THIS TIME. SHE'S FINE. THE CEILING ISN'T. EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
     goal: "LOOT THE MONOPRIX",
+    beats: [{ on: "turn", test: (s) => s === 1, say: "THE CRS ARE JUST WATCHING. FOR NOW." }],
     setup(put) { put("lyceen", 21, 1); put("lyceen", 23, 3); put("crs", 16, 2); },
     win: () => propNamed("MONOPRIX").owner === 0,
     steps: [
@@ -1322,7 +1237,12 @@ const STORY = [
   {
     title: "LE MUR DE BOUCLIERS", time: "SAMEDI 14:00", art: "news/capucines", round: 2,
     diary: "BOULEVARD DES CAPUCINES. SOMEBODY BROUGHT A PLACARD. SOMEBODY ELSE BROUGHT A BLACK BLOC. TWO CRS ARE STANDING BETWEEN US AND THE OPERA LIKE THEY OWN IT.",
-    goal: "BREAK THE CRS LINE: KNOCK OUT BOTH COPS",
+    goal: "KNOCK OUT BOTH COPS BEFORE 18:00",
+    beats: [
+      { on: "ko", test: (u) => u.side === 1, say: "ONE DOWN. HE'S SITTING ON THE KERB RUBBING HIS BACK." },
+      { on: "ko", test: (u) => u.side === 0, say: "THEY GOT KARIM. HIS MUM IS GOING TO KILL HIM." },
+      { on: "turn", test: (s) => s === 0 && G.round === 5, say: "17:00. ONE HOUR BEFORE THEIR REINFORCEMENTS SHOW UP." },
+    ],
     setup(put) { put("bloc", 12, 3); put("lyceen", 9, 3); put("lyceen", 10, 2); put("lyceen", 14, 3); put("crs", 12, 1); put("crs", 13, 1); },
     win: () => !G.units.some((u) => u.side === 1),
     turns: 4,
@@ -1330,7 +1250,7 @@ const STORY = [
       { say: "THE BLACK BLOC HITS HARDEST. CLICK HIM.", at: () => posOf(unitOf("bloc")), done: (e, u) => e === "select" && u.type === "bloc" },
       { say: "WALK HIM UP NEXT TO A COP.", at: () => [12, 2], done: (e, u) => e === "moved" && G.units.some((o) => o.side === 1 && dist(o.x, o.y, u.x, u.y) === 1) },
       { say: "CHOOSE FIRE, THEN CLICK THE COP.", menu: "FIRE", done: (e) => e === "attack" },
-      { say: "THEY HIT BACK. GANG UP: EVERY KID CAN FIRE. STANDING ON BLOCKS (***) HURTS LESS.", done: (e) => e === "endturn" },
+      { say: "THEY HIT BACK. GANG UP: EVERY KID CAN FIRE. THEN END TURN.", ui: "end_turn", done: (e) => e === "endturn" },
     ],
     won: "THE LINE BREAKS. A KID HOLDS UP THE PLACARD: GENERATION 6-7 REFAIT MAI 68.",
     lost: "EVERYONE ARRESTED. MUM HAS TO COLLECT YOU FROM THE COMMISSARIAT.",
@@ -1338,8 +1258,13 @@ const STORY = [
   {
     title: "LA PYRAMIDE", time: "SAMEDI 15:00", art: "news/louvre", round: 3,
     diary: "THE ECOLE DU LOUVRE KIDS BARRICADED THE PYRAMID. THEN A GIRL IN A PINK CATSUIT WALKED UP AND ASKED WHERE THE CROWN JEWELS WERE. NOBODY ASKED WHY.",
-    goal: "TAKE THE LOUVRE",
-    setup(put) { put("caddie", 14, 2); put("panther", 12, 3); put("lyceen", 16, 2); put("lyceen", 11, 4); put("crs", 14, 5); put("gm", 14, 4); },
+    goal: "TAKE THE LOUVRE BEFORE 19:00",
+    beats: [
+      { on: "attack", test: (a) => a.type === "caddie", say: "THAT WAS LOUDER THAN I EXPECTED. A TOURIST IS FILMING IT." },
+      { on: "captured", test: (u) => u.side === 1, say: "A COP IS STANDING IN THE LOUVRE. HE LOOKS LOST." },
+      { on: "ko", test: (u) => u.type === "panther", say: "THEY GOT THE PANTHER?! NOBODY GETS THE PANTHER." },
+    ],
+    setup(put) { put("caddie", 14, 2); put("panther", 12, 3); put("lyceen", 16, 2); put("lyceen", 11, 4); put("crs", 14, 5); put("crs", 14, 4); },
     win: () => propNamed("LOUVRE").owner === 0,
     turns: 4,
     steps: [
@@ -1354,6 +1279,11 @@ const STORY = [
     title: "LES VELIBS BRULENT", time: "SAMEDI 17:00", art: "news/velib", round: 5,
     diary: "WE'VE GOT THE HOTEL DE VILLE. SOMEONE SET FIRE TO THE VELIBS. THEN THE WATER CANNON TURNED UP AND EVERYONE WENT VERY QUIET.",
     goal: "HOLD THE HOTEL DE VILLE UNTIL 19:00",
+    beats: [
+      { on: "seine", say: "SOMEONE JUST WENT IN THE SEINE. A BATEAU MOUCHE IS TURNING ROUND." },
+      { on: "power", test: (s) => s === 0, say: "IT WENT VIRAL. HALF OF PARIS IS ON ITS WAY." },
+      { on: "turn", test: (s) => s === 0 && G.round === 6, say: "18:00. ONE MORE HOUR. SOMEONE BROUGHT CREPES." },
+    ],
     setup(put, own) {
       own("HOTEL DE VILLE", 0); own("LES HALLES", 0); own("METRO CHATELET", 0);
       put("lyceen", 17, 6); put("torse", 17, 5); put("lyceen", 16, 7); put("bloc", 18, 4);
@@ -1364,7 +1294,7 @@ const STORY = [
     lose: () => propNamed("HOTEL DE VILLE").owner === 1,
     status: () => `${Math.max(0, 7 - G.round)} HOURS TO GO`,
     steps: [
-      { say: "YOUR POWER IS FULL. CLICK POWER! APPEL TIKTOK PUTS BARRICADES ROUND EVERY KID.", ui: "power", done: (e) => e === "power" },
+      { say: "YOUR POWER IS FULL. CLICK POWER! APPEL TIKTOK LETS EVERYONE MOVE TWICE.", ui: "power", done: (e) => e === "power" },
       { say: "THE WATER CANNON PUSHES YOU BACK A SQUARE. ON A BRIDGE THAT MEANS THE SEINE. GET OFF THE BRIDGE.", at: () => [16, 7], done: (e) => e === "endturn" },
     ],
     won: "19:00. THE HOTEL DE VILLE IS STILL OURS. SOMEONE ORDERED PIZZA.",
@@ -1374,11 +1304,16 @@ const STORY = [
     title: "COUVRE-FEU", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000],
     diary: "THE PREFET SAYS CURFEW AT 23:00. THREE HOURS. IF WE HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES, THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
     goal: "HOLD 4 LANDMARKS AT THE 23:00 CURFEW",
+    beats: [
+      { on: "turn", test: (s) => s === 0 && G.round === 10, say: () => `22:00. ONE HOUR LEFT. WE HOLD ${marksHeld(0)} OF 4.` },
+      { on: "captured", test: (u, p) => u.side === 0 && p.name === "NOTRE-DAME", say: "NOTRE-DAME IS OURS. QUASIMODO WOULD BE PROUD." },
+      { on: "captured", test: (u, p) => u.side === 1 && p.kind === "mark", say: (u, p) => `THEY TOOK ${p.name}. WE NEED IT BACK.` },
+    ],
     setup(put, own) {
       for (const n of ["LOUVRE", "LES HALLES", "HOTEL DE VILLE", "METRO CHATELET"]) own(n, 0);
       for (const n of ["OPERA", "ARC DE TRIOMPHE", "TOUR EIFFEL"]) own(n, 1);
       put("lyceen", 17, 5); put("lyceen", 18, 5); put("bloc", 14, 5); put("kangoo", 18, 4); put("caddie", 19, 4); put("lyceen", 15, 9);
-      put("crs", 12, 1); put("gm", 13, 1); put("canon", 9, 3); put("lacrymo", 11, 5); put("crs", 16, 9); put("bravm", 11, 7);
+      put("crs", 12, 1); put("lbd", 13, 1); put("canon", 9, 3); put("lacrymo", 11, 5); put("crs", 16, 9); put("bravm", 11, 7);
     },
     win: () => false,
     status: () => `${marksHeld(0)}/4 LANDMARKS HELD`,
@@ -1390,14 +1325,28 @@ const STORY = [
     lost: "23:00. CURFEW. EVERYONE GOES HOME. THE CEILING IS STILL BROKEN.",
   },
 ];
+const BEATS_ALL = [
+  { on: "seine", say: "SOMEONE WENT IN THE SEINE. THE BATEAU MOUCHE PASSENGERS ARE CLAPPING." },
+  { on: "power", test: (s) => s === 1, say: "THE PREFET JUST GASSED EVERYONE. MY EYES." },
+];
 const EPILOGUE = "SUNDAY. MUM FOUND OUT. GROUNDED UNTIL 2027. ON THE NEWS THE MINISTER PROMISED A NEW CEILING FOR EVERY LYCEE IN FRANCE. WORTH IT.";
 let storyBest = 0, storyDone = 0, chapSel = 0, CHAP_RECTS = [];
 try { storyBest = Math.min(STORY.length - 1, Number(localStorage.getItem("pr-chapter")) || 0); storyDone = Number(localStorage.getItem("pr-done")) || 0; } catch {}
 function emit(e, a, b) {
   if (!G?.story || G.over) return;
-  const ch = STORY[G.story.i], st = ch.steps[G.story.step];
-  if (st && st.done(e, a, b)) G.story.step++;
+  const S = G.story, ch = STORY[S.i], st = ch.steps[S.step];
+  if (human() && st && st.done(e, a, b)) S.step++;
+  S.used ||= new Set();
+  for (const bt of [...(ch.beats || []), ...BEATS_ALL]) {
+    if (bt.on !== e || S.used.has(bt) || (bt.test && !bt.test(a, b))) continue;
+    S.used.add(bt); S.beat = { say: typeof bt.say === "function" ? bt.say(a, b) : bt.say, f: 300 }; beep(988, 0.03); setTimeout(() => beep(1318, 0.05), 60);
+    break;
+  }
 }
+const storyStatus = () => {
+  const ch = STORY[G.story.i];
+  return ch.status ? ch.status() : ch.turns ? `${ch.round + ch.turns - G.round} HOURS LEFT` : ch.goal;
+};
 function checkStory() {
   if (!G?.story || G.over) return false;
   const ch = STORY[G.story.i];
@@ -1408,15 +1357,25 @@ function checkStory() {
 }
 function storyEnd(won) {
   const i = G.story.i;
-  G.over = { story: true, winner: won ? 0 : 1, why: "" }; G.busy = false; G.battle = null; G.banner = null;
+  G.over = { story: true, winner: won ? 0 : 1, why: "" }; G.busy = false; G.battle = null; G.banner = null; G.menu = null; G.info = null;
   if (won) {
     storyBest = Math.max(storyBest, Math.min(STORY.length - 1, i + 1)); storyDone |= 1 << i;
     try { localStorage.setItem("pr-chapter", storyBest); localStorage.setItem("pr-done", storyDone); } catch {}
   }
-  openCard(won ? (i === STORY.length - 1 ? "end" : "won") : "lost", i);
+  G.ending = { won, f: 0, next: won ? (i === STORY.length - 1 ? "end" : "won") : "lost", i };
+  if (won) { SFX.cap(); setTimeout(() => SFX.cap(), 200); } else SFX.bad();
+}
+function drawEnding() {
+  const E = G.ending;
+  E.f++;
+  const word = E.won ? "CHAPITRE TERMINE!" : "ARRESTED!";
+  const pop = Math.min(1, E.f / 8);
+  burst(W / 2, H / 2 - 10 - Math.round((1 - pop) * 10), word, pop);
+  if (E.f > 30) { const l = E.won ? STORY[E.i].goal : "EVERYONE GOES HOME IN A VAN."; fill(W / 2 - tw(l) / 2 - 6, H / 2 + 14, tw(l) + 12, 15, 0); textC(l, W / 2, H / 2 + 18, 7); }
+  if (E.f > 110 || E.skip) { const kind = E.next, i = E.i; fadeTo(() => openCard(kind, i)); E.f = -1e9; }
 }
 // Chapter select: every chapter is open, so people can jump to the bit they want.
-function openChapters() { chapSel = storyBest; screen = "chapters"; music("gymnopedie"); }
+function openChapters() { chapSel = storyBest; screen = "chapters"; music("gymnopedie"); FADE = 1; }
 function chaptersInput(a) {
   const n = STORY.length;
   if (a === "up") { chapSel = (chapSel + n - 1) % n; SFX.move(); }
@@ -1442,46 +1401,77 @@ function drawChapters() {
   text(`GOAL: ${ch.goal}`, 24, H - 24, 21);
   if ((frame >> 5) % 2) text("SPACE: PLAY  ESC: BACK", W - 24 - tw("SPACE: PLAY  ESC: BACK"), H - 24, 29);
 }
-let CARD = null;
+let CARD = null, FADE = 0, FADING = null;
+// Fade to black, run fn, fade back in.
+function fadeTo(fn) { if (FADING) return; FADING = { f: 0, fn }; }
+function drawFade() {
+  if (FADING) {
+    FADING.f++;
+    ctx.globalAlpha = Math.min(1, FADING.f / 14); fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
+    if (FADING.f >= 14) { const fn = FADING.fn; FADING = null; fn(); FADE = 1; }
+  } else if (FADE > 0) { ctx.globalAlpha = FADE; fill(0, 0, W, H, 0); ctx.globalAlpha = 1; FADE = Math.max(0, FADE - 0.06); }
+}
 function openCard(kind, i) {
-  CARD = { kind, i, t: 0 }; screen = "card";
+  CARD = { kind, i, t: 0, f: 0, phase: kind === "intro" ? 0 : 1 }; screen = "card"; FADE = 1;
   music(kind === "intro" ? "gymnopedie" : kind === "lost" ? "marseillaise" : kind === "end" ? "internationale" : "cancan");
+  if (kind === "intro") [523, 659, 784, 1046].forEach((f, j) => setTimeout(() => beep(f, 0.18, "square", 0.035), 120 + j * 110));
 }
 function cardText() {
   const ch = STORY[CARD.i];
   return { intro: ch.diary, won: ch.won, lost: ch.lost, end: `${ch.won} ${EPILOGUE}` }[CARD.kind];
 }
 function cardInput(a) {
+  if (FADING) return;
   const full = cardText().length;
-  if (a === "ok" && CARD.t < full) { CARD.t = full; return; }
-  SFX.ok();
-  if (a === "back") { CARD = null; G = null; openChapters(); return; }
+  if (a === "back") { SFX.back(); fadeTo(() => { CARD = null; G = null; openChapters(); }); return; }
   if (a !== "ok") return;
-  const i = CARD.i;
-  if (CARD.kind === "intro") { CARD = null; newGame([true, false], STORY[i]); }
-  else if (CARD.kind === "won") openCard("intro", i + 1);
-  else if (CARD.kind === "lost") openCard("intro", i);
-  else { CARD = null; G = null; openChapters(); }
+  if (CARD.phase === 0) { CARD.phase = 1; CARD.f = Math.max(CARD.f, 1); return; }
+  if (CARD.t < full) { CARD.t = full; return; }
+  SFX.ok();
+  const i = CARD.i, kind = CARD.kind;
+  if (kind === "intro") fadeTo(() => { CARD = null; newGame([true, false], STORY[i]); });
+  else if (kind === "won") openCard("intro", i + 1);
+  else if (kind === "lost") openCard("intro", i);
+  else fadeTo(() => { CARD = null; G = null; openChapters(); });
 }
+const wideOf = (art) => art && "wide/" + art.split("/")[1];
 function drawCard() {
   const ch = STORY[CARD.i], k = CARD.kind;
-  CARD.t = Math.min(cardText().length, CARD.t + 1.2);
-  const img = IMG[k === "end" ? "victory_lyceens" : ch.art];
-  if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
+  CARD.f++;
+  // the painting, drifting slowly (a wider copy gives the camera room)
+  const wide = IMG[wideOf(k === "end" ? null : ch.art)], img = IMG[k === "end" ? "victory_lyceens" : ch.art];
+  if (wide) ctx.drawImage(wide, -Math.round(48 + 46 * Math.sin(CARD.f / 260)), -Math.round(30 + 28 * Math.cos(CARD.f / 330)));
+  else if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
   if (k !== "intro") { ctx.globalAlpha = 0.35; fill(0, 0, W, H, 0); ctx.globalAlpha = 1; }
-  const nLines = Math.min(6, wrap(cardText(), 55).length), y = H - 8 - (62 + nLines * 10);
-  box(12, y, W - 24, H - y - 8);
+  // part card: the chapter title, big, before the diary
+  if (CARD.phase === 0) {
+    if (CARD.f > 130) { CARD.phase = 1; CARD.f = 1; }
+    const a = Math.min(1, CARD.f / 20);
+    const lines = wrap(ch.title, 20), top = 120 - lines.length * 10 - 14;
+    ctx.globalAlpha = 0.6 * a; fill(0, top - 10, W, lines.length * 20 + 48, 0); ctx.globalAlpha = a;
+    text8C(`CHAPITRE ${CARD.i + 1}`, W / 2, top, 26, 0);
+    lines.forEach((l, j) => { ctx.save(); ctx.translate(Math.round(W / 2 - tw8(l)), top + 14 + j * 20); ctx.scale(2, 2); text8(l, 1, 1, 0); text8(l, 0, 0, 7); ctx.restore(); });
+    textC(ch.time, W / 2, top + 18 + lines.length * 20, 13, 0);
+    ctx.globalAlpha = 1;
+    return;
+  }
+  // the diary slides up and types
+  CARD.t = Math.min(cardText().length, CARD.t + 1.2);
+  const nLines = Math.min(6, wrap(cardText(), 55).length) + (k === "won" ? 2 : 0), h = 62 + nLines * 10;
+  const slide = k === "intro" ? Math.max(0, 1 - CARD.f / 14) : 0, y = H - 8 - h + Math.round(slide * (h + 10));
+  box(12, y, W - 24, h);
   const head = k === "intro" ? `CHAPITRE ${CARD.i + 1} / ${STORY.length}` : k === "won" ? `CHAPITRE ${CARD.i + 1} - DONE` : k === "lost" ? "ARRESTED" : "THE END";
   text8(head, 24, y + 10, k === "lost" ? 30 : 26);
   text(ch.time, W - 24 - tw(ch.time), y + 11, 13);
-  text8(k === "intro" ? ch.title : k === "end" ? "THE STREETS WIN" : ch.title, 24, y + 24, 7);
-  const body = cardText().slice(0, Math.floor(CARD.t));
+  text8(k === "end" ? "THE STREETS WIN" : ch.title, 24, y + 24, 7);
   if (k === "intro" || k === "end") text("DIARY OF INES, 16", W - 24 - tw("DIARY OF INES, 16"), y + 25, 5);
-  wrap(body, 55).slice(0, 6).forEach((l, i) => text(l, 24, y + 40 + i * 10, 12));
-  const foot = k === "intro" ? `GOAL: ${ch.goal}` : "";
-  if (foot && CARD.t >= cardText().length) text(foot, 24, H - 26, 26);
-  const go = { intro: "SPACE: PLAY   ESC: CHAPTERS", won: "SPACE: NEXT CHAPTER   ESC: CHAPTERS", lost: "SPACE: TRY AGAIN   ESC: CHAPTERS", end: "SPACE: BACK TO THE CHAPTERS" }[k];
-  if ((frame >> 5) % 2 || CARD.t < cardText().length) text(go, W - 24 - tw(go), H - 26 + (foot ? 0 : 0), 29);
+  const done = CARD.t >= cardText().length;
+  wrap(cardText().slice(0, Math.floor(CARD.t)), 55).slice(0, 6).forEach((l, j) => text(l, 24, y + 40 + j * 10, 12));
+  if (done && k === "won") { const n = STORY[CARD.i + 1]; text(`NEXT: ${n.time.replace("SAMEDI ", "")} - ${n.title}`, 24, H - 36, 21); }
+  if (done && k === "intro") text(`GOAL: ${ch.goal}`, 24, H - 26, 26);
+  if (done && k === "end") text("MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: PUBLIC DOMAIN.", 24, H - 36, 5);
+  const go = { intro: "SPACE: PLAY", won: "SPACE: NEXT CHAPTER", lost: "SPACE: TRY AGAIN", end: "SPACE: CHAPTERS" }[k];
+  if (done && (frame >> 5) % 2) text(go, W - 24 - tw(go), H - 26 + (k === "intro" ? -10 : 0), 29);
 }
 // The coach: Inès's portrait, the current step typed out, and an arrow at the thing to click.
 function coachTarget(st) {
@@ -1492,8 +1482,11 @@ function coachTarget(st) {
   return null;
 }
 function drawCoach() {
-  const ch = STORY[G.story.i], st = ch.steps[G.story.step];
-  const msg = st ? st.say : `GOAL: ${ch.goal}${ch.status ? ` - ${ch.status()}` : ""}`;
+  const S = G.story, ch = STORY[S.i];
+  if (S.beat && S.beat.f > 0) S.beat.f--;
+  const beat = S.beat && S.beat.f > 0 ? S.beat.say : null;
+  const st = beat || !human() ? null : ch.steps[S.step];
+  const msg = beat || (!human() ? "THE CRS ARE MOVING. WATCH THEM." : st ? st.say : `GOAL: ${ch.goal} - ${storyStatus()}`);
   if (G.story.said !== msg) { G.story.said = msg; G.story.typed = 0; if (st) beep(988, 0.03); }
   G.story.typed = Math.min(msg.length, G.story.typed + 1.5);
   const tgt = coachTarget(st);
@@ -1514,11 +1507,13 @@ function drawCoach() {
 
 // ---------- player input ----------
 function act(a) {
+  if (screen === "about") { if (a === "ok" || a === "back") { SFX.back(); screen = "title"; } return; }
   if (screen === "title") return titleInput(a);
   if (screen === "card") return cardInput(a);
   if (screen === "chapters") return chaptersInput(a);
   if (screen === "help") { screen = helpBack; helpBack = "title"; SFX.back(); return; }
   if (!G) return;
+  if (G.ending) { if (a === "ok") G.ending.skip = true; return; }
   if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
   if (G.handover != null) { if (a === "ok") { G.handover = null; SFX.ok(); } return; }
   if (G.battle) { if (a === "ok" || a === "back") G.battle.skip = true; return; }
@@ -1532,16 +1527,6 @@ function act(a) {
     if (a === "down") { m.sel = (m.sel + 1) % m.items.length; SFX.move(); }
     if (a === "ok") { const it = m.items[m.sel]; if (it.off) SFX.bad(); else { SFX.ok(); it.fn(); } }
     if (a === "back") { SFX.back(); m.back ? m.back() : (G.menu = null); }
-    return;
-  }
-  if (G.mode === "pick") {
-    const P = G.pick;
-    if (mv) {
-      const i = (P.i + (a === "left" || a === "up" ? P.tiles.length - 1 : 1)) % P.tiles.length;
-      P.i = i; G.cur = { x: P.tiles[i][0], y: P.tiles[i][1] }; SFX.move();
-    }
-    if (a === "ok") { const [x, y] = P.tiles[P.i]; G.mode = "anim"; G.pick = null; SFX.ok(); P.fn(x, y); }
-    if (a === "back") { SFX.back(); G.pick = null; if (P.back) P.back(); else { G.mode = "moved"; actionMenu(); } }
     return;
   }
   if (G.mode === "target") {
@@ -1580,8 +1565,6 @@ function okAt(x, y) {
     G.reach = null;
     moveUnit(u, path).then(() => {
       G.busy = false;
-      const van = G.units.find((o) => o !== u && o.x === u.x && o.y === u.y);
-      if (van) { board(u, van); return finish(u); }
       emit("moved", u);
       G.mode = "moved"; actionMenu();
     });
@@ -1594,22 +1577,11 @@ function actionMenu() {
   if (tg.length) items.push({ label: "FIRE", fn: () => { G.menu = null; G.targets = tg; G.tsel = 0; G.cur = { x: tg[0].x, y: tg[0].y }; G.mode = "target"; } });
   const p = propAt(u.x, u.y);
   if (t.cap && p && p.owner !== G.side) items.push({ label: noCapture() ? "CAPTURE (CURFEW)" : "CAPTURE", off: noCapture(), fn: () => { G.menu = null; doCapture(u); finish(u); } });
-  if (u.cargo?.length && unloadTiles(u).length) items.push({ label: `UNLOAD (${u.cargo.length})`, fn: () => unloadStep(u) });
   items.push({ label: "WAIT", fn: () => { G.menu = null; finish(u); } });
   G.menu = {
     items, sel: 0, title: t.name, at: u,
     back: () => { G.menu = null; u.x = G.from.x; u.y = G.from.y; G.reach = reach(u); G.mode = "move"; G.cur = { x: u.x, y: u.y }; },
   };
-}
-function pickTiles(tiles, fn) {
-  G.menu = null; G.mode = "pick"; G.pick = { tiles, fn, i: 0 };
-  G.cur = { x: tiles[0][0], y: tiles[0][1] };
-}
-function unloadStep(v) {
-  const tiles = unloadTiles(v);
-  if (!v.cargo.length || !tiles.length) return finish(v);
-  pickTiles(tiles, (x, y) => { unload(v, x, y); unloadStep(v); });
-  G.pick.back = () => { G.pick = null; finish(v); };
 }
 async function fireAt(t) {
   const u = G.sel; G.mode = "anim"; G.targets = [];
@@ -1618,7 +1590,7 @@ async function fireAt(t) {
   if (G.units.includes(u)) finish(u); else { G.sel = null; G.mode = "idle"; }
 }
 function finish(u) {
-  u.done = true; G.sel = null; G.mode = "idle"; G.reach = null; G.pick = null;
+  u.done = true; G.sel = null; G.mode = "idle"; G.reach = null;
   if (G.over) return;
   if (checkStory()) return;
   if (!G.units.some((o) => o.side === G.side && !o.done) && !G.props.some((p) => p.owner === G.side && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y) && G.funds[G.side] >= 1000)) say("EVERYONE HAS MOVED. END TURN WHEN READY.");
@@ -1636,8 +1608,7 @@ function mainMenu() {
     title: `MENU - SAT ${hour()}:00`, sel: 0, wide: true,
     items: [
       ...(G.power[G.side] >= POWER_FULL ? [{ label: `POWER: ${POWER[G.side].name}`, fn: () => usePower(G.side) }] : []),
-      { label: "END TURN", fn: () => { G.menu = null; endTurn(); } },
-      { label: `BATTLE SCENES: ${BATTLE_MODES[battleMode]}`, blurb: "THE ZOOMED-IN FIGHTS. TURN OFF TO PLAY FASTER.", fn: () => { const i = G.menu.sel; battleMode = (battleMode + 1) % 3; try { localStorage.setItem("pr-battles", battleMode); } catch {} mainMenu(); G.menu.sel = i; } },
+      { label: `BATTLE SCENES: ${BATTLE_MODES[battleMode]}`, blurb: "THE ZOOMED-IN FIGHTS. TURN OFF TO PLAY FASTER.", fn: () => { const i = G.menu.sel; battleMode = 1 - battleMode; try { localStorage.setItem("pr-battles", battleMode ? "off" : "on"); } catch {} mainMenu(); G.menu.sel = i; } },
       { label: `MUSIC: ${MUS.on ? "ON" : "OFF"}`, blurb: "OR PRESS M ANY TIME.", fn: () => { const i = G.menu.sel; toggleMusic(); mainMenu(); G.menu.sel = i; } },
       { label: "HOW TO PLAY", fn: () => { G.menu = null; helpBack = "game"; screen = "help"; } },
       { label: "QUIT TO TITLE", fn: () => { G = null; screen = "title"; } },
@@ -1650,18 +1621,25 @@ function titleInput(a) {
   if (a === "up") { titleSel = (titleSel + n - 1) % n; SFX.move(); }
   if (a === "down") { titleSel = (titleSel + 1) % n; SFX.move(); }
   if (a === "ok") { SFX.ok(); TITLE_ITEMS[titleSel].fn(); }
+  if (a === "back" && TITLE_ITEMS === FREE_ITEMS) { SFX.back(); TITLE_ITEMS = MAIN_ITEMS; titleSel = 1; }
 }
-const TITLE_ITEMS = [
-  { get label() { return storyDone ? "STORY MODE - PICK A CHAPTER" : "STORY MODE - START HERE"; }, fn: () => openChapters() },
-  { label: "FREE PLAY: LYCEENS", fn: () => newGame([true, false]) },
-  { label: "FREE PLAY: CRS", fn: () => newGame([false, true]) },
-  { label: "TWO PLAYERS, ONE SCREEN", fn: () => newGame([true, true]) },
+const MAIN_ITEMS = [
+  { label: "STORY - START HERE", fn: () => fadeTo(openChapters) },
+  { label: "FREE PLAY", fn: () => { TITLE_ITEMS = FREE_ITEMS; titleSel = 0; } },
   { label: "HOW TO PLAY", fn: () => { screen = "help"; } },
 ];
+const FREE_ITEMS = [
+  { label: "PLAY THE LYCEENS", fn: () => fadeTo(() => newGame([true, false])) },
+  { label: "PLAY THE CRS", fn: () => fadeTo(() => newGame([false, true])) },
+  { label: "TWO PLAYERS, ONE SCREEN", fn: () => fadeTo(() => newGame([true, true])) },
+  { label: "BACK", fn: () => { TITLE_ITEMS = MAIN_ITEMS; titleSel = 1; } },
+];
+let TITLE_ITEMS = MAIN_ITEMS;
 
 addEventListener("keydown", (e) => {
   unlockAudio();
   if (e.key === "m" || e.key === "M") { toggleMusic(); return; }
+  if ((e.key === "i" || e.key === "I") && screen === "title") { SFX.ok(); screen = "about"; return; }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const a = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down", " ": "ok", Enter: "ok", z: "ok", Escape: "back", Backspace: "back", x: "back", e: "end", E: "end", Tab: "menu" }[e.key];
   if (!a) return;
@@ -1680,7 +1658,6 @@ cv.addEventListener("pointermove", (e) => {
   if (py < TOP || py >= BOT) return;
   const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
   if (G.mode === "target") return;
-  if (G.mode === "pick") { const i = G.pick.tiles.findIndex(([x, y]) => x === tx && y === ty); if (i >= 0) { G.pick.i = i; G.cur = { x: tx, y: ty }; } return; }
   if (lastTile !== key(tx, ty)) { lastTile = key(tx, ty); G.cur = { x: tx, y: ty }; }
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
@@ -1688,6 +1665,12 @@ cv.addEventListener("pointerdown", (e) => {
   unlockAudio();
   if (e.button === 2) return;
   const [px, py] = pt(e);
+  if (screen === "title" && px > W - 48 && py > H - 16) { SFX.ok(); screen = "about"; return; }
+  if (screen === "about") {
+    const r = INFO_RECTS.find((q) => px >= q[0] && px < q[0] + q[2] && py >= q[1] && py < q[1] + q[3]);
+    if (r) window.open(r[4], "_blank", "noopener"); else act("ok");
+    return;
+  }
   if (screen === "title") {
     const i = TITLE_RECTS.findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
     if (i >= 0) { titleSel = i; act("ok"); }
@@ -1701,8 +1684,9 @@ cv.addEventListener("pointerdown", (e) => {
   }
   if (screen === "help" || screen === "card") return act("ok");
   if (!G) return;
-  if (G.over || G.banner || G.battle || G.handover != null) return act("ok");
-  for (const b of G.buttons) if (px >= b.x && px < b.x + b.w && py >= b.y && py < b.y + b.h) return b.fn();
+  if (G.ending || G.over || G.banner || G.battle || G.handover != null) return act("ok");
+  const pad = e.pointerType === "mouse" ? 0 : 3;
+  for (const b of G.buttons) if (px >= b.x - pad && px < b.x + b.w + pad && py >= b.y - pad && py < b.y + b.h + pad) return b.fn();
   if (G.menu) {
     const i = (G.menuRects || []).findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
     if (i >= 0) { G.menu.sel = i; act("ok"); } else act("back");
@@ -1710,11 +1694,6 @@ cv.addEventListener("pointerdown", (e) => {
   }
   if (py < TOP || py >= BOT || G.busy || !human()) return;
   const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
-  if (G.mode === "pick") {
-    const i = G.pick.tiles.findIndex(([x, y]) => x === tx && y === ty);
-    if (i >= 0) { G.pick.i = i; act("ok"); } else act("back");
-    return;
-  }
   if (G.mode === "target") {
     const i = G.targets.findIndex((t) => t.x === tx && t.y === ty);
     if (i >= 0) { G.tsel = i; fireAt(G.targets[i]); } else { act("back"); }
@@ -1731,12 +1710,15 @@ const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
 const IMG = {};
 const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "title", "ui", "help", "victory_lyceens", "victory_crs", "font8", "commanders",
   "bank/seine-rain", "bank/metro-last-train", "bank/students-afterglow-results", "bank/cafe-morning-after-results",
-  "news/republique", "news/capucines", "news/louvre", "news/velib"].map((n) => new Promise((ok) => {
-  const i = new Image(); i.onload = () => { IMG[n] = i; ok(); }; i.onerror = () => ok(); i.src = `art/${n}.png`;
+  "news/republique", "news/capucines", "news/louvre", "news/velib",
+  "wide/republique", "wide/capucines", "wide/louvre", "wide/velib", "wide/seine-rain"].map((n) => new Promise((ok) => {
+  // a dropped request gets two more tries before the game falls back to plain drawing
+  const load = (tries) => { const i = new Image(); i.onload = () => { IMG[n] = i; ok(); }; i.onerror = () => (tries ? setTimeout(() => load(tries - 1), 400) : ok()); i.src = `art/${n}.png`; };
+  load(2);
 }))).then(async () => {
   for (const [k, f] of [["propsMeta", "props"], ["cutMeta", "battle-cutins"], ["fxMeta", "fx"], ["sceneMeta", "scenes"], ["uiMeta", "ui"], ["font8Meta", "font8"],
     ["titleMeta", "title"], ["helpMeta", "help"], ["vicMeta0", "victory_lyceens"], ["vicMeta1", "victory_crs"], ["comMeta", "commanders"]]) {
-    try { IMG[k] = await (await fetch(`art/${f}.json`)).json(); } catch {}
+    for (let t = 0; t < 3 && !IMG[k]; t++) { try { IMG[k] = await (await fetch(`art/${f}.json`)).json(); } catch { await new Promise((r) => setTimeout(r, 400)); } }
   }
   waterPixels();
 });
@@ -1864,27 +1846,12 @@ function drawMap() {
     const k = WATER[i], h = (k * 2654435761) >>> 0;
     if ((h + ph) % 53 === 0) fill(k % (MW * TS), TOP + Math.floor(k / (MW * TS)), 2, 1, (h >> 3) % 3 ? 20 : 21);
   }
-  // barricades and fires
-  for (const [k] of G.bar) drawBarricade(...unkey(k));
-  for (const [k] of G.fire) {
-    const [x, y] = unkey(k), r = IMG.fxMeta && fxFrame("flame", (performance.now() + k * 97) % 440);
-    if (r && IMG.fx) ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, x * TS, TOP + y * TS, 16, 16);
-    else { const fl = (frame >> 3) % 3; fill(x * TS + 4, TOP + y * TS + 6 - fl, 8, 9 + fl, 28); fill(x * TS + 6, TOP + y * TS + 9, 4, 6, 26); }
-  }
   // looted shops smoulder
   for (const p of G.props) if (p.art.startsWith("shop") && p.owner === 0) {
     const fl = (frame >> 3) % 3;
     fill(p.x * TS + 3 + fl, TOP + p.y * TS + 11 - fl, 2, 2 + fl, 29); fill(p.x * TS + 4 + fl, TOP + p.y * TS + 12, 1, 2, 26);
     fill(p.x * TS + 4, TOP + p.y * TS + 2 - fl, 2, 2, 3);
   }
-}
-function drawBarricade(x, y) {
-  const px = x * TS, py = TOP + y * TS;
-  fill(px + 1, py + 11, 14, 4, 10); fill(px + 1, py + 11, 14, 1, 11); fill(px + 1, py + 15, 14, 1, 0);
-  fill(px + 1, py + 4, 6, 8, 15); fill(px + 1, py + 4, 6, 1, 16); fill(px + 2, py + 3, 4, 1, 0); fill(px + 1, py + 4, 1, 8, 0);
-  fill(px + 8, py + 6, 3, 3, 0); fill(px + 12, py + 6, 3, 3, 0); fill(px + 9, py + 7, 1, 1, 6); fill(px + 13, py + 7, 1, 1, 6);
-  fill(px + 10, py + 5, 3, 1, 16); fill(px + 11, py + 3, 1, 3, 6);
-  fill(px + 11, py + 9, 3, 3, 28); fill(px + 12, py + 8, 1, 1, 28); fill(px + 11, py + 10, 3, 1, 7);
 }
 function checker(x, y, c, phase = 0) {
   ctx.fillStyle = PAL[c];
@@ -1906,7 +1873,6 @@ function drawUnits() {
     const h = hpD(u);
     if (h < 10) { fill(px + 10, py + 8, 6, 8, 0); text(String(h), px + 11, py + 9, 7); }
     if (u.capturing) { fill(px, py + 8, 6, 8, 0); text("C", px + 1, py + 9, 26); }
-    for (let i = 0; i < (u.cargo?.length || 0); i++) { fill(px + 1 + i * 4, py, 3, 3, 0); fill(px + 2 + i * 4, py + 1, 1, 1, 25); }
   }
 }
 function drawCursor() {
@@ -2002,15 +1968,15 @@ function drawTop() {
   if (!uiDraw(s ? "emblem_crs" : "emblem_lyceens", 0, 0)) { fill(4, 4, 8, 8, sd.col); fill(5, 5, 6, 2, sd.hi); }
   text(sd.name, 18, 5, 7);
   let x = 18 + tw(sd.name) + 10;
-  text(`€${G.funds[s]}`, x, 5, 26); x += tw(`€${G.funds[s]}`) + 12;
+  if (!G.noBuy) { text(`€${G.funds[s]}`, x, 5, 26); x += tw(`€${G.funds[s]}`) + 12; }
   const clock = `SAT ${hour()}:00`;
   text(clock, x, 5, 13); x += tw(clock) + 12;
   // power meter
   const full = G.power[s] >= POWER_FULL, segs = Math.floor(G.power[s] / POWER_FULL * 8);
   text("POWER", x, 5, full && (frame >> 4) % 2 ? 26 : 6); x += 32;
   for (let i = 0; i < 8; i++) fill(x + i * 4, 5, 3, 7, i < segs ? (full ? 26 : sd.hi) : 2);
-  const lm = `LANDMARKS ${marksHeld(0)}/${LANDMARKS}`;
-  text(lm, W - tw(lm) - 5, 5, marksHeld(0) >= NEED ? 30 : 6);
+  const lm = G.story ? storyStatus() : `LANDMARKS ${marksHeld(0)}/${LANDMARKS}`;
+  text(lm, W - tw(lm) - 5, 5, G.story ? 26 : marksHeld(0) >= NEED ? 30 : 6);
 }
 // small bottom-bar button in the same black-and-brass as END TURN
 function flatBtn(x, w) { fill(x, BOT + 2, w, 12, 29); fill(x + 1, BOT + 3, w - 2, 10, 0); }
@@ -2024,9 +1990,9 @@ function drawBottom() {
     const d = defAt(x, y);
     const tn = p ? p.name : TNAME[terr(x, y)];
     const k = key(x, y);
-    info = `${tn}${G.bar.has(k) ? " + BARRICADE" : ""}${G.fire.has(k) ? " + FIRE" : ""} ${"*".repeat(d)}`;
+    info = `${tn} ${"*".repeat(d)}`;
     if (p && p.cap < 20) info += ` CAP ${p.cap}`;
-    if (u) info = `${U[u.type].name} ${hpD(u)}/10${u.cargo?.length ? ` +${u.cargo.length} COPS` : ""} - ${info}`;
+    if (u) info = `${U[u.type].name} ${hpD(u)}/10 - ${info}`;
     if (G.mode === "target" && G.sel) { const t = G.targets[G.tsel]; if (t) info = `HIT ${U[t.type].name} FOR ~${calcDmg(G.sel, t, t.x, t.y, 4)}%`; }
   }
   text(info, 5, BOT + 5, G.msgT > 0 ? 26 : 7);
@@ -2087,9 +2053,9 @@ function drawBanner() {
     if (b.t <= 0) G.banner = null;
     return;
   }
-  const k = b.t > 100 ? (110 - b.t) / 10 : b.t < 10 ? b.t / 10 : 1;
+  const T0 = b.t0 || 110, k = b.t > T0 - 10 ? (T0 - b.t) / 10 : b.t < 10 ? b.t / 10 : 1;
   const r = IMG.uiMeta?.frames[b.side ? "turn_crs" : "turn_lyceens"];
-  const y = Math.round(H / 2 - 23), ox = Math.round((1 - k) * (b.t > 100 ? -W : W));
+  const y = Math.round(H / 2 - 23), ox = Math.round((1 - k) * (b.t > T0 - 10 ? -W : W));
   if (r && IMG.ui) {
     uiDraw(b.side ? "turn_crs" : "turn_lyceens", ox, y);
     const tb = r.textBounds, c = r.textColor;
@@ -2136,10 +2102,9 @@ function infoFor(x, y) {
     const t = U[u.type];
     title = t.name; tc = SIDES[u.side].hi;
     out.push([`${SIDES[u.side].short} - HEALTH ${hpD(u)}/10`, 7]);
-    out.push([`MOVES ${t.move}, ${{ foot: "ON FOOT", wheels: "ON WHEELS: ROADS ONLY", scoot: "SCOOTER: ANYWHERE" }[t.mt]}`, 6]);
+    out.push([`MOVES ${t.move}, ${{ foot: "ON FOOT", wheels: "ON WHEELS: ROADS ONLY", scoot: "SNEAKS THROUGH ANYTHING" }[t.mt]}`, 6]);
     out.push([t.r ? `FIRES ${t.r[1] === 1 ? "AT THE NEXT SQUARE" : `${t.r[0]}-${t.r[1]} SQUARES AWAY`}${t.cls === "arty" ? ", NOT AFTER MOVING" : ""}` : "CAN'T FIRE", 6]);
     out.push([t.blurb, 21]);
-    if (u.cargo?.length) out.push([`CARRYING ${u.cargo.length} COP${u.cargo.length > 1 ? "S" : ""}`, 25]);
     if (u.side === G.side && u.done) out.push(["ALREADY MOVED THIS TURN.", 4]);
     out.push(["", 0]);
   }
@@ -2156,8 +2121,6 @@ function infoFor(x, y) {
     out.push([{ "#": "HAUSSMANN BLOCKS. PEOPLE CLIMB THROUGH, VANS CAN'T.", "=": "BOULEVARD. EVERYONE MOVES FAST.", T: "PARK. TREES GIVE SOME COVER.", "~": "THE SEINE. NOBODY CROSSES. WATER CANNON VICTIMS END UP HERE.", b: "BRIDGE. THE ONLY WAY OVER THE SEINE." }[t], 7]);
     if (t !== "~") out.push([`COVER ${"*".repeat(defAt(x, y)) || "NONE"}.`, 6]);
   }
-  if (G.bar.has(k)) out.push(["BARRICADE: VANS CAN'T PASS. COVER ***.", 29]);
-  if (G.fire.has(k)) out.push(["ON FIRE: NOBODY CAN ENTER.", 28]);
   return { title, tc, lines: out };
 }
 function drawInfo() {
@@ -2181,13 +2144,13 @@ function drawTitle() {
   if (IMG.title && tm) {
     ctx.drawImage(IMG.title, 0, 0);
     TITLE_ITEMS.forEach((it, i) => {
-      const y = tm.menuBand.y + 7 + i * 14, sel = i === titleSel;
-      TITLE_RECTS.push([tm.menuBand.x, y - 3, tm.menuBand.w, 14]);
+      const gap = TITLE_ITEMS.length > 3 ? 15 : 18, y = tm.menuBand.y + 38 - Math.round((TITLE_ITEMS.length - 1) * gap / 2) + i * gap, sel = i === titleSel;
+      TITLE_RECTS.push([tm.menuBand.x, y - 4, tm.menuBand.w, gap]);
       textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
       if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
     });
-    text(`ARROWS + SPACE, OR CLICK. M = MUSIC ${MUS.on ? "ON" : "OFF"}`, 6, H - 10, 6, 0);
-    text("17.10.2026", W - 66, H - 10, 6, 0);
+    text(`ARROWS + SPACE, OR CLICK. M = MUSIC ${MUS.on ? "ON" : "OFF"}. I = INFO`, 6, H - 10, 6, 0);
+    { const hot = mouse.on && mouse.x > W - 46 && mouse.y > H - 14; fill(W - 44, H - 13, 40, 12, 29); fill(W - 43, H - 12, 38, 10, 0); textC("INFO", W - 24, H - 10, hot ? 26 : 7); }
     return;
   }
   if (!mapLayer) { G = { props: PROPS0.map((p) => ({ ...p })) }; buildMapLayer(); G = null; }
@@ -2204,21 +2167,21 @@ function drawTitle() {
 }
 const RULES = [
   ["", "SATURDAY 17 OCTOBER, 12:00 TO THE 23:00 CURFEW."],
-  [30, "LYCEENS WIN WITH 4 OF 7 LANDMARKS AT CURFEW, OR BEAUVAU."],
-  [23, "CRS WIN OTHERWISE, OR BY RETAKING THE LYCEE."],
-  ["", "MOVE, THEN FIRE, CAPTURE OR WAIT. ONLY FOOT UNITS CAPTURE."],
-  ["", "SHOPS, LANDMARKS AND BASES PAY OUT. BUY UNITS AT BASES."],
-  ["", "BLOCKS GIVE *** COVER, PARKS **. VANS STICK TO ROADS."],
-  ["", "CADDIE AND LACRYMO FIRE 2-3 AWAY, BUT NOT AFTER MOVING."],
-  ["", "POWER FILLS AS YOU FIGHT. WHEN FULL, USE IT FROM THE MENU."],
-  [30, "LYCEENS"],
-  ["", "FIREWORKS LEAVE THE STREET ON FIRE. NOBODY CROSSES IT."],
-  ["", "TONTON IS GASPROOF. PINK PANTHER CAPTURES IN ONE GO."],
-  ["", "POWER, APPEL TIKTOK: BARRICADES UP, EVERYONE MOVES AGAIN."],
-  [23, "CRS"],
-  ["", "WATER CANNON HOSES THEM BACK A TILE. INTO THE SEINE = GONE."],
-  ["", "TEAR GAS HITS THE NEIGHBOURS TOO. FOURGON CARRIES 2 COPS."],
-  ["", "POWER, COUVRE-FEU: GAS ON EVERY LYCEEN, NO CAPTURES."],
+  ["", ""],
+  [30, "LYCEENS WIN WITH 4 OF THE 7 LANDMARKS AT CURFEW."],
+  [23, "CRS WIN IF THEY DON'T. TAKING THE OTHER HQ WINS AT ONCE."],
+  ["", ""],
+  ["", "CLICK A UNIT, CLICK A SQUARE, THEN FIRE, CAPTURE OR WAIT."],
+  ["", "FOOT UNITS CAPTURE BUILDINGS. IT TAKES TWO TURNS."],
+  ["", "BUILDINGS PAY EVERY TURN. SPEND IT AT YOUR BASES."],
+  ["", "STAND ON BUILDINGS (***) TO TAKE LESS DAMAGE."],
+  ["", "THE POWER BAR FILLS AS YOU FIGHT. FULL? PRESS POWER!"],
+  ["", ""],
+  ["", "WATER CANNON HOSES THEM BACK. INTO THE SEINE = GONE."],
+  ["", "TEAR GAS HITS THE NEIGHBOURS TOO. TONTON DOESN'T CARE."],
+  ["", "CLICK ANYTHING TO SEE WHAT IT IS. ESC = MENU. M = MUSIC."],
+  ["", ""],
+  [5, "MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: PUBLIC DOMAIN."],
 ];
 function drawHelp() {
   const hm = IMG.helpMeta;
@@ -2230,6 +2193,36 @@ function drawHelp() {
   }
   fill(0, 0, W, H, 0);
   RULES.forEach(([c, l], i) => text(l, 14, 30 + i * 10, c === "" ? 6 : c));
+}
+// INFO: why, how it works, links.
+const INFO_LINKS = [["GITHUB.COM/B1RDMANIA/PARIS-RIOTS", "https://github.com/b1rdmania/paris-riots"], ["X @B1RDMANIA", "https://x.com/b1rdmania"]];
+let INFO_RECTS = [];
+function drawAbout() {
+  const bg = IMG["wide/seine-rain"];
+  if (bg) ctx.drawImage(bg, -48, -30); else fill(0, 0, W, H, 0);
+  box(16, 12, W - 32, H - 24);
+  text8("PARIS RIOTS: THE GAME", 30, 24, 26);
+  const rows = [
+    ["WHY", 29], ["I BUILT THIS BECAUSE I'M AN IDIOT.", 7], ["", 0],
+    ["HOW IT WORKS", 29],
+    ["THE MAP IS CENTRAL PARIS FROM OPENSTREETMAP. EVERY STREET IS REAL.", 7],
+    ["ADVANCE WARS RULES. THE STORY FOLLOWS THE RIOTS OF 17 OCTOBER 2026.", 7],
+    ["ONE PAGE, ONE CANVAS, NO LIBRARIES. HOSTED ON CLOUDFLARE.", 7],
+    ["", 0],
+    ["BUILT WITH OPUS AND CODEX, AND 10,000+ HOURS PLAYING AMIGA GAMES AS A KID.", 26],
+  ];
+  let y = 40;
+  for (const [t, c] of rows) { for (const l of t ? wrap(t, 54) : [""]) { text(l, 30, y, c); y += 9; } y += c === 7 ? 3 : 0; }
+  y += 4;
+  INFO_RECTS = [];
+  INFO_LINKS.forEach(([label, url], i) => {
+    const w = tw(label) + 12, x = i ? W - 30 - w + 6 : 36;
+    const hot = mouse.on && mouse.x >= x - 6 && mouse.x < x - 6 + w && mouse.y >= y - 3 && mouse.y < y + 10;
+    fill(x - 6, y - 3, w, 13, hot ? 3 : 2); text(label, x, y, hot ? 26 : 25);
+    INFO_RECTS.push([x - 6, y - 3, w, 13, url]);
+  });
+  text("MAP: OPENSTREETMAP CONTRIBUTORS", 30, H - 30, 5);
+  if ((frame >> 5) % 2) text("SPACE: BACK", W - 30 - tw("SPACE: BACK"), H - 30, 29);
 }
 function drawPointer() {
   if (!mouse.on || !uiDraw("pointer", mouse.x - 1, mouse.y)) return;
@@ -2245,14 +2238,15 @@ function loop() {
   else if (screen === "help") drawHelp();
   else if (screen === "card" && CARD) drawCard();
   else if (screen === "chapters") drawChapters();
+  else if (screen === "about") drawAbout();
   else if (G) {
-    if (G.over) drawOver();
+    if (G.ending) { drawMap(); drawUnits(); drawFx(); drawTop(); drawBottom(); drawEnding(); }
+    else if (G.over) drawOver();
     else if (G.handover != null) drawHandover();
     else {
       drawMap();
       if (G.reach) for (const [k] of G.reach.d) { const [x, y] = unkey(k); checker(x, y, 25, frame >> 5); }
       if (G.mode === "target") for (const t of G.targets) checker(t.x, t.y, 30);
-      if (G.mode === "pick" && G.pick) for (const [x, y] of G.pick.tiles) checker(x, y, 26);
       drawUnits();
       drawFx();
       if (human() || G.busy) drawCursor();
@@ -2264,6 +2258,7 @@ function loop() {
       if (G.banner) drawBanner();
     }
   }
+  drawFade();
   drawPointer();
   requestAnimationFrame(loop);
 }
