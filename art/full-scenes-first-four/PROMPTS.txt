@@ -1,0 +1,18 @@
+FULL PAINTINGS — ORIGINAL FOUR
+
+Generated with built-in image_gen. Reference: art/sources/brief3/scenes-first-four.png.
+Standalone expanded paintings for sharing and future use; not runtime palette-constrained and not wired into the engine.
+
+Create a full-size standalone landscape painting, 1536x1024 or similar, expanding ONE panel from the supplied 2x2 reference into its own complete image. Preserve the reference's exact beautiful Amiga/LucasArts painted pixel-art aesthetic: crisp intentional pixel clusters, rich purple-blue dusk, orange firelight, golden stone, dramatic smoky skies. This is finished game artwork, not a photograph. No collage, panel dividers, borders, UI, logos, text boxes or watermarks. Fill the whole composition with the scene, reducing the unused black pavement strip while retaining some ground. No injured people or graphic violence. 
+
+republique
+Expand the TOP LEFT reference scene: Marianne statue in a bright yellow hi-vis vest, students climbing the monumental plinth, Haussmann buildings and glowing lamps, burning kiosk to the right, rolling purple smoke and rose dusk. Keep the monument's silhouette and theatrical lighting. No lettering.
+
+capucines
+Expand the TOP RIGHT reference scene: ornate illuminated Opera Garnier with green copper dome and gold roof sculptures, boulevard barricade fire to left, silhouetted hooded student with backpack at right holding a cardboard placard high. Placard text, clearly legible: GÉNÉRATION 6-7 / REFAIT MAI 68. Rich cobalt twilight and orange firelight. Maintain original composition.
+
+louvre
+Expand the BOTTOM LEFT reference scene: luminous glass Louvre pyramid, blue evening sky and golden Louvre palace wings, crowd-control barriers and green bins barricading foreground, silhouetted visitors behind cordon, student at left holding cardboard sign reading FERMÉ. Maintain strong symmetric pyramid and warm-vs-blue lighting.
+
+velib
+Expand the BOTTOM RIGHT reference scene: a spectacular chaotic heap of green Paris rental bicycles across a boulevard, wheels and baskets clearly recognisable, orange flames behind and around the heap, towering black-purple smoke, pink dusk and symmetrical Haussmann facades and golden lamps. No characters, no text. Preserve original dramatic low angle.
