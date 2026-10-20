@@ -5,7 +5,7 @@ import osmium
 from shapely import wkb
 from shapely.geometry import box, mapping
 
-W, E, S, N = 2.2840, 2.3770, 48.8400, 48.8770
+W, E, S, N = 2.2600, 2.4010, 48.8400, 48.8770
 FRAME = box(W, S, E, N)
 fab = osmium.geom.WKBFactory()
 MAJOR = {"trunk", "primary", "secondary"}

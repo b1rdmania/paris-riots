@@ -47,12 +47,31 @@
       font: 600 1rem/1.4 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.08em; color: #f0d020; }
     .rotate img { inline-size: min(100%, 26rem); image-rendering: pixelated; }
     .rotate small { color: #b8bccc; font-weight: 400; letter-spacing: 0.02em; }
+    .rotate button {
+      font: inherit; letter-spacing: 0.06em; color: #0f0e14; background: #f0d020; border: 0; border-radius: 0;
+      min-block-size: 44px; padding-inline: 1.25rem; box-shadow: 0 0 0 2px #0f0e14, 0 0 0 4px #a88a10;
+    }
+    .rotate button:active { background: #a88a10; }
+    .rotate button:focus-visible { outline: 2px solid #f0e0b8; outline-offset: 4px; }
   }
 </style>
 </head>
 <body>
-<div class="rotate"><img src="og.jpg" alt="Paris Riots: The Game"><span>TURN YOUR PHONE SIDEWAYS</span><small>The map of Paris needs the whole screen.</small></div>
+<div class="rotate">
+  <img src="og.jpg" alt="Paris Riots: The Game">
+  <span>TURN YOUR PHONE SIDEWAYS TO PLAY</span>
+  <small>Best on a computer. Send yourself the link for later.</small>
+  <button type="button" id="sendLink">SEND ME THE LINK</button>
+</div>
 <canvas id="c"></canvas>
+<script>
+  // upright phone: share sheet if there is one, else copy the link
+  document.getElementById("sendLink").addEventListener("click", async (e) => {
+    const url = "https://couvre-feu.pages.dev", b = e.currentTarget;
+    try { if (navigator.share) { await navigator.share({ title: "Paris Riots: The Game", url }); return; } } catch { return; }
+    try { await navigator.clipboard.writeText(url); b.textContent = "LINK COPIED"; } catch { b.textContent = url; }
+  });
+</script>
 <script src="map.js"></script>
 <script src="music.js"></script>
 <script>
@@ -71,13 +90,25 @@ const PAL = [
 
 const cv = document.getElementById("c"), ctx = cv.getContext("2d");
 cv.width = W; cv.height = H; ctx.imageSmoothingEnabled = false;
+// Phones: touch wording, bigger rows, and a canvas widened to fill the screen.
+// PAD is extra scenery on each side of the 384-wide game; all game drawing happens at x 0..W.
+let TOUCH = matchMedia("(pointer: coarse)").matches, PAD = 0;
+const tapWord = (s) => (TOUCH ? s.replace(/\bCLICK\b/g, "TAP") : s);
 function fit() {
   // fit inside the body's padded box, so the canvas stays clear of the notch
   const cs = getComputedStyle(document.body), b = document.body;
   const aw = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  const s = Math.min(aw / W, ah / H);
-  const k = s >= 2 ? Math.floor(s) : s;
-  cv.style.width = W * k + "px"; cv.style.height = H * k + "px";
+  const pad = TOUCH ? Math.max(0, Math.min(96, Math.floor((aw / (ah / H) - W) / 2))) : 0;
+  if (pad !== PAD || cv.width !== W + 2 * pad) { PAD = pad; cv.width = W + 2 * PAD; cv.height = H; ctx.imageSmoothingEnabled = false; }
+  const CW = W + 2 * PAD, s = Math.min(aw / CW, ah / H);
+  const k = s >= 2 && !TOUCH ? Math.floor(s) : s;
+  cv.style.width = CW * k + "px"; cv.style.height = H * k + "px";
+}
+// a painting scaled to cover the whole canvas, side scenery included
+function cover(img, panX = 0.5, panY = 0.5) {
+  const CW = W + 2 * PAD, sc = Math.max(CW / img.width, H / img.height);
+  const w = img.width * sc, h = img.height * sc;
+  ctx.drawImage(img, -PAD - (w - CW) * panX, -(h - H) * panY, w, h);
 }
 addEventListener("resize", fit); fit();
 
@@ -937,7 +968,7 @@ function drawBattle() {
   if (B.skip || t >= B.end) { G.battle = null; B.done(); return; }
   B.parts ||= [];
   const k = t < BT.in ? t / BT.in : t > B.end - BT.out ? (B.end - t) / BT.out : 1;
-  ctx.globalAlpha = 0.7 * k; fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.7 * k; fill(-PAD, 0, W + 2 * PAD, H, 0); ctx.globalAlpha = 1;
   const y0 = 46, slide = Math.round((1 - k) * 200);
   const sides = [[B.L, 0 - slide, false], [B.R, 192 + slide, true]];
   const centre = (u) => (u === B.L ? 96 - slide : 288 + slide);
@@ -1052,7 +1083,7 @@ function drawBattle() {
   const sc = bScene(B.R) || bScene(B.L);
   const cap = sc?.caption || propAt(B.d.x, B.d.y)?.name || TNAME[terr(B.d.x, B.d.y)];
   fill(0, y0 + 132, W, 14, 0); textC(`${cap} - SAT ${hour()}:00`, W / 2, y0 + 136, 6);
-  if ((frame >> 5) % 2) text("SPACE: SKIP", W - 70, y0 + 136, 4);
+  if ((frame >> 5) % 2) text(TOUCH ? "TAP: SKIP" : "SPACE: SKIP", W - 70, y0 + 136, 4);
 }
 
 // ---------- AI ----------
@@ -1363,22 +1394,23 @@ function chaptersInput(a) {
   if (a === "back") { SFX.back(); screen = "title"; }
 }
 function drawChapters() {
-  const ch = STORY[chapSel], img = IMG[ch.art];
-  if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
+  const ch = STORY[chapSel], img = IMG[wideOf(ch.art)] || IMG[ch.art];
+  if (img) cover(img); else fill(-PAD, 0, W + 2 * PAD, H, 0);
   const y = 112;
   box(12, y, W - 24, H - y - 8);
   text8("CHOOSE A CHAPTER", 24, y + 10, 26);
   text("ALL OPEN. PLAY IN ANY ORDER.", W - 24 - tw("ALL OPEN. PLAY IN ANY ORDER."), y + 11, 5);
   CHAP_RECTS = [];
   STORY.forEach((c, i) => {
-    const ry = y + 26 + i * 12, sel = i === chapSel;
-    CHAP_RECTS.push([12, ry - 3, W - 24, 12]);
+    const ry = y + 26 + i * (TOUCH ? 15 : 12), sel = i === chapSel;
+    CHAP_RECTS.push([12, ry - 4, W - 24, TOUCH ? 15 : 12]);
     if (sel) uiDraw("selection_marker", 22, ry - 1);
     text(`${i + 1}. ${c.time.replace("SAMEDI ", "")}  ${c.title}`, 34, ry, sel ? 26 : 7);
     if (storyDone & (1 << i)) text("DONE", W - 24 - tw("DONE"), ry, 17);
   });
   text(`GOAL: ${ch.goal}`, 24, H - 24, 21);
-  if ((frame >> 5) % 2) text("SPACE: PLAY  ESC: BACK", W - 24 - tw("SPACE: PLAY  ESC: BACK"), H - 24, 29);
+  BACK_RECT = backBtn(W - 24, H - 27);
+  if (!TOUCH) text("SPACE: PLAY", W - 24 - 58 - tw("SPACE: PLAY"), H - 24, 29);
 }
 let CARD = null, FADE = 0, FADING = null, CARD_RECTS = [];
 // Fade to black, run fn, fade back in.
@@ -1386,9 +1418,9 @@ function fadeTo(fn) { if (FADING) return; FADING = { f: 0, fn }; }
 function drawFade() {
   if (FADING) {
     FADING.f++;
-    ctx.globalAlpha = Math.min(1, FADING.f / 14); fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
+    ctx.globalAlpha = Math.min(1, FADING.f / 14); fill(-PAD, 0, W + 2 * PAD, H, 0); ctx.globalAlpha = 1;
     if (FADING.f >= 14) { const fn = FADING.fn; FADING = null; fn(); FADE = 1; }
-  } else if (FADE > 0) { ctx.globalAlpha = FADE; fill(0, 0, W, H, 0); ctx.globalAlpha = 1; FADE = Math.max(0, FADE - 0.06); }
+  } else if (FADE > 0) { ctx.globalAlpha = FADE; fill(-PAD, 0, W + 2 * PAD, H, 0); ctx.globalAlpha = 1; FADE = Math.max(0, FADE - 0.06); }
 }
 function openCard(kind, i) {
   CARD = { kind, i, t: 0, f: 0, phase: kind === "intro" ? 0 : 1 }; screen = "card"; FADE = 1;
@@ -1419,9 +1451,9 @@ function drawCard() {
   CARD.f++;
   // the painting, drifting slowly (a wider copy gives the camera room)
   const wide = IMG[wideOf(k === "end" ? null : ch.art)], img = IMG[k === "end" ? "victory_lyceens" : ch.art];
-  if (wide) ctx.drawImage(wide, -Math.round(48 + 46 * Math.sin(CARD.f / 260)), -Math.round(30 + 28 * Math.cos(CARD.f / 330)));
-  else if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
-  if (k !== "intro") { ctx.globalAlpha = 0.35; fill(0, 0, W, H, 0); ctx.globalAlpha = 1; }
+  if (wide) cover(wide, 0.5 + 0.48 * Math.sin(CARD.f / 260), 0.5 + 0.46 * Math.cos(CARD.f / 330));
+  else if (img) cover(img); else fill(-PAD, 0, W + 2 * PAD, H, 0);
+  if (k !== "intro") { ctx.globalAlpha = 0.35; fill(-PAD, 0, W + 2 * PAD, H, 0); ctx.globalAlpha = 1; }
   // part card: the chapter title, big, before the diary
   if (CARD.phase === 0) {
     if (CARD.f > 130) { CARD.phase = 1; CARD.f = 1; }
@@ -1477,7 +1509,7 @@ function drawCoach() {
   if (S.beat && S.beat.f > 0) S.beat.f--;
   const beat = S.beat && S.beat.f > 0 ? S.beat.say : null;
   const st = beat || !human() ? null : ch.steps[S.step];
-  const msg = beat || (!human() ? "THE CRS ARE MOVING. WATCH THEM." : st ? st.say : `GOAL: ${ch.goal} - ${storyStatus()}`);
+  const msg = tapWord(beat || (!human() ? "THE CRS ARE MOVING. WATCH THEM." : st ? st.say : `GOAL: ${ch.goal} - ${storyStatus()}`));
   if (G.story.said !== msg) { G.story.said = msg; G.story.typed = 0; if (st) beep(988, 0.03); }
   G.story.typed = Math.min(msg.length, G.story.typed + 1.5);
   const tgt = coachTarget(st);
@@ -1600,7 +1632,7 @@ function mainMenu() {
     items: [
       ...(G.power[G.side] >= POWER_FULL ? [{ label: `POWER: ${POWER[G.side].name}`, fn: () => usePower(G.side) }] : []),
       { label: `BATTLE SCENES: ${BATTLE_MODES[battleMode]}`, blurb: "THE ZOOMED-IN FIGHTS. TURN OFF TO PLAY FASTER.", fn: () => { const i = G.menu.sel; battleMode = 1 - battleMode; try { localStorage.setItem("pr-battles", battleMode ? "off" : "on"); } catch {} mainMenu(); G.menu.sel = i; } },
-      { label: "MUSIC", blurb: "EVERY TRACK IN THE GAME. M TURNS IT ON OR OFF.", fn: () => { G.menu = null; openPlaylist("game"); } },
+      { label: "MUSIC", get blurb() { return TOUCH ? "EVERY TRACK IN THE GAME." : "EVERY TRACK IN THE GAME. M TURNS IT ON OR OFF."; }, fn: () => { G.menu = null; openPlaylist("game"); } },
       { label: "HOW TO PLAY", fn: () => { G.menu = null; helpBack = "game"; screen = "help"; } },
       { label: "QUIT TO TITLE", fn: () => { G = null; screen = "title"; } },
       { label: "BACK TO THE GAME", fn: () => { G.menu = null; } },
@@ -1630,7 +1662,7 @@ addEventListener("keydown", (e) => {
 });
 
 // Pointer: hover moves the cursor, click acts on what is under it.
-function pt(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
+function pt(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * (W + 2 * PAD) / r.width - PAD, (e.clientY - r.top) * H / r.height]; }
 let lastTile = null;
 const mouse = { x: 0, y: 0, on: false };
 cv.addEventListener("pointerleave", () => { mouse.on = false; });
@@ -1654,6 +1686,9 @@ function goFullscreen() {
 }
 const IOS_TAB = /iPhone|iPod/.test(navigator.userAgent) && !navigator.standalone;
 cv.addEventListener("pointerdown", (e) => {
+  // follow the input actually used (iPad with a trackpad, touch laptops)
+  const t = e.pointerType !== "mouse";
+  if (t !== TOUCH) { TOUCH = t; fit(); }
   unlockAudio(); goFullscreen();
   if (e.button === 2) return;
   const [px, py] = pt(e);
@@ -1674,10 +1709,13 @@ cv.addEventListener("pointerdown", (e) => {
     if (i >= 0) { titleSel = i; act("ok"); }
     return;
   }
+  const hitBack = BACK_RECT && px >= BACK_RECT[0] - 4 && px < BACK_RECT[0] + BACK_RECT[2] + 4 && py >= BACK_RECT[1] - 4 && py < BACK_RECT[1] + BACK_RECT[3] + 4;
+  if ((screen === "chapters" || screen === "playlist") && hitBack) return act("back");
   if (screen === "chapters") {
     const i = CHAP_RECTS.findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
     if (i < 0) return;
-    if (i === chapSel) act("ok"); else { chapSel = i; SFX.move(); }
+    // on a touch screen one tap plays; with a mouse the first click selects
+    if (i === chapSel || TOUCH) { chapSel = i; act("ok"); } else { chapSel = i; SFX.move(); }
     return;
   }
   if (screen === "card") { const r = CARD_RECTS.find((q) => px >= q[0] && px < q[0] + q[2] && py >= q[1] && py < q[1] + q[3]); return act(r ? r[4] : "ok"); }
@@ -1709,7 +1747,7 @@ const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
 const IMG = {};
 const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "title", "ui", "help", "victory_lyceens", "font8", "commanders", "bank/seine-rain",
   "news/republique", "news/capucines", "news/louvre", "news/velib",
-  "wide/republique", "wide/capucines", "wide/louvre", "wide/velib", "wide/seine-rain"].map((n) => new Promise((ok) => {
+  "wide/republique", "wide/capucines", "wide/louvre", "wide/velib", "wide/seine-rain", "paris-wide"].map((n) => new Promise((ok) => {
   // a dropped request gets two more tries before the game falls back to plain drawing
   const load = (tries) => { const i = new Image(); i.onload = () => { IMG[n] = i; ok(); }; i.onerror = () => (tries ? setTimeout(() => load(tries - 1), 400) : ok()); i.src = `art/${n}.png`; };
   load(2);
@@ -1837,6 +1875,11 @@ function drawProp(f, p, px, py) {
 
 // ---------- drawing ----------
 function drawMap() {
+  if (PAD && IMG["paris-wide"]) {
+    // more Paris either side, dimmed because it's off the board
+    ctx.drawImage(IMG["paris-wide"], -96, TOP);
+    ctx.globalAlpha = 0.45; fill(-PAD, TOP, PAD, MH * TS, 0); fill(W, TOP, PAD, MH * TS, 0); ctx.globalAlpha = 1;
+  }
   ctx.drawImage(mapLayer, 0, TOP);
   // the Seine shimmers
   const ph = frame >> 3;
@@ -1961,7 +2004,7 @@ function text8(s, x, y, c = 7) {
 const tw8 = (s) => norm(s).length * 8;
 const text8C = (s, cx, y, c, sh) => { const x = Math.round(cx - tw8(s) / 2); if (sh != null) text8(s, x + 1, y + 1, sh); text8(s, x, y, c); };
 function drawTop() {
-  fill(0, 0, W, TOP, 1); fill(0, TOP - 1, W, 1, 0);
+  fill(-PAD, 0, W + 2 * PAD, TOP, 1); fill(-PAD, TOP - 1, W + 2 * PAD, 1, 0);
   const s = G.side, sd = SIDES[s];
   if (!uiDraw(s ? "emblem_crs" : "emblem_lyceens", 0, 0)) { fill(4, 4, 8, 8, sd.col); fill(5, 5, 6, 2, sd.hi); }
   text(sd.name, 18, 5, 7);
@@ -1979,7 +2022,7 @@ function drawTop() {
 // small bottom-bar button in the same black-and-brass as END TURN
 function flatBtn(x, w) { fill(x, BOT + 2, w, 12, 29); fill(x + 1, BOT + 3, w - 2, 10, 0); }
 function drawBottom() {
-  fill(0, BOT, W, H - BOT, 1); fill(0, BOT, W, 1, 0);
+  fill(-PAD, BOT, W + 2 * PAD, H - BOT, 1); fill(-PAD, BOT, W + 2 * PAD, 1, 0);
   G.buttons = [];
   let info = "";
   if (G.msgT > 0) { G.msgT--; info = G.msg; }
@@ -2016,7 +2059,7 @@ function drawBottom() {
   }
 }
 function drawMenu() {
-  const m = G.menu, pad = 8, lh = 12;
+  const m = G.menu, pad = 8, lh = TOUCH ? 16 : 12;
   const w = m.wide ? 200 : Math.max(104, tw(m.title) + 2 * pad + 4), h = pad + 12 + m.items.length * lh + (m.wide ? 12 : 0) + pad - 2;
   const at = m.at;
   let x = at ? at.x * TS + 22 : G.cur.x * TS + 22, y = at ? TOP + at.y * TS - 6 : TOP + G.cur.y * TS - 6;
@@ -2124,13 +2167,13 @@ function drawTitle() {
       textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
       if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
     });
-    text(IOS_TAB ? "FULL SCREEN: SHARE > ADD TO HOME SCREEN" : "ARROWS + SPACE, OR CLICK", 6, H - 10, IOS_TAB ? 26 : 6, 0);
+    text(IOS_TAB ? "FULL SCREEN: SHARE > ADD TO HOME SCREEN" : TOUCH ? "" : "ARROWS + SPACE, OR CLICK", 6, H - 10, IOS_TAB ? 26 : 6, 0);
     { const hot = mouse.on && mouse.x > W - 46 && mouse.y > H - 14; fill(W - 44, H - 13, 40, 12, 29); fill(W - 43, H - 12, 38, 10, 0); textC("INFO", W - 24, H - 10, hot ? 26 : 7); }
     return;
   }
   if (!mapLayer) { G = { props: PROPS0.map((p) => ({ ...p })) }; buildMapLayer(); G = null; }
   ctx.drawImage(mapLayer, 0, TOP);
-  ctx.globalAlpha = 0.72; fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.72; fill(-PAD, 0, W + 2 * PAD, H, 0); ctx.globalAlpha = 1;
   textC("PARIS RIOTS", W / 2, 20, 30, 0, 3);
   textC("- THE GAME -", W / 2, 47, 26, 0, 2);
   TITLE_ITEMS.forEach((it, i) => {
@@ -2149,15 +2192,22 @@ const RULES = [
 ];
 function drawHelp() {
   const hm = IMG.helpMeta, a = hm?.textArea || { x: 14, y: 30, w: 356 };
-  if (IMG.help) ctx.drawImage(IMG.help, 0, 0); else fill(0, 0, W, H, 13);
+  if (IMG.help) ctx.drawImage(IMG.help, 0, 0); else fill(-PAD, 0, W + 2 * PAD, H, 13);
   RULES.forEach((l, i) => {
     const y = a.y + 8 + i * 26;
     text8(String(i + 1), a.x + 6, y, 30);
-    text8(l, a.x + 26, y, 0);
+    text8(tapWord(l), a.x + 26, y, 0);
   });
   text("THE PINK PANTHER TAKES ANY BUILDING IN ONE GO.", a.x + 6, a.y + 8 + 4 * 26 + 6, 30);
   text("INES TELLS YOU THE REST AS YOU PLAY.", a.x + 6, a.y + 8 + 4 * 26 + 20, 3);
-  if ((frame >> 5) % 2) text("SPACE: BACK", 200, 222, 0);
+  if ((frame >> 5) % 2) text(TOUCH ? "TAP: BACK" : "SPACE: BACK", 200, 222, 0);
+}
+// A BACK button for screens that used to need Esc. Returns its hit box.
+let BACK_RECT = null;
+function backBtn(right, y) {
+  const w = 48, x = right - w, hot = mouse.on && mouse.x >= x && mouse.x < right && mouse.y >= y && mouse.y < y + 12;
+  if (!uiDraw(hot ? "back_pressed" : "back_normal", x, y)) { fill(x, y, w, 12, 29); fill(x + 1, y + 1, w - 2, 10, 0); textC("BACK", x + w / 2, y + 3, 7); }
+  return [x, y, w, 12];
 }
 // MUSIC: every track in the game, like a playlist. Pick one to play it.
 const PLAYLIST = [
@@ -2192,12 +2242,12 @@ function playlistInput(a) {
 }
 function drawPlaylist() {
   const bg = IMG["wide/seine-rain"];
-  if (bg) ctx.drawImage(bg, -48, -30); else fill(0, 0, W, H, 0);
+  if (bg) cover(bg); else fill(-PAD, 0, W + 2 * PAD, H, 0);
   box(16, 12, W - 32, H - 24);
   text8("MUSIC", 30, 24, 26);
   text("EVERY TRACK IN THE GAME", W - 30 - tw("EVERY TRACK IN THE GAME"), 25, 5);
   PL_RECTS = [];
-  const rows = [["", `MUSIC: ${MUS.on ? "ON" : "OFF"}`, "", "OR PRESS M"], ...plTracks()];
+  const rows = [["", `MUSIC: ${MUS.on ? "ON" : "OFF"}`, "", TOUCH ? "" : "OR PRESS M"], ...plTracks()];
   rows.forEach(([k, title, artist, where], i) => {
     const y = 42 + i * 14, sel = i === plSel, playing = k && MUS.name === k;
     PL_RECTS.push([24, y - 3, W - 48, 13]);
@@ -2211,14 +2261,14 @@ function drawPlaylist() {
   const cy = H - 30, hot = mouse.on && mouse.y >= cy - 3 && mouse.y < cy + 10 && mouse.x < 30 + tw(credit) + 12;
   fill(24, cy - 3, tw(credit) + 12, 13, hot ? 3 : 2); text(credit, 30, cy, hot ? 26 : 25);
   PL_RECTS.push([24, cy - 3, tw(credit) + 12, 13, "https://wario.style"]);
-  if ((frame >> 5) % 2) text("ESC: BACK", W - 30 - tw("ESC: BACK"), cy, 29);
+  BACK_RECT = backBtn(W - 28, cy - 3);
 }
 // INFO: why, how it works, links.
 const INFO_LINKS = [["GITHUB.COM/B1RDMANIA/PARIS-RIOTS", "https://github.com/b1rdmania/paris-riots"], ["X @B1RDMANIA", "https://x.com/b1rdmania"]];
 let INFO_RECTS = [];
 function drawAbout() {
   const bg = IMG["wide/seine-rain"];
-  if (bg) ctx.drawImage(bg, -48, -30); else fill(0, 0, W, H, 0);
+  if (bg) cover(bg); else fill(-PAD, 0, W + 2 * PAD, H, 0);
   box(16, 12, W - 32, H - 24);
   text8("PARIS RIOTS: THE GAME", 30, 24, 26);
   const rows = [
@@ -2241,7 +2291,7 @@ function drawAbout() {
     INFO_RECTS.push([x - 6, y - 3, w, 13, url]);
   });
   text("MAP: OPENSTREETMAP CONTRIBUTORS", 30, H - 30, 5);
-  if ((frame >> 5) % 2) text("SPACE: BACK", W - 30 - tw("SPACE: BACK"), H - 30, 29);
+  { const l = TOUCH ? "TAP: BACK" : "SPACE: BACK"; if ((frame >> 5) % 2) text(l, W - 30 - tw(l), H - 30, 29); }
 }
 function drawPointer() {
   if (!mouse.on || !uiDraw("pointer", mouse.x - 1, mouse.y)) return;
@@ -2250,8 +2300,8 @@ function drawPointer() {
 // ---------- loop ----------
 function loop() {
   frame++;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  fill(0, 0, W, H, 0);
+  ctx.setTransform(1, 0, 0, 1, PAD, 0);
+  fill(-PAD, 0, W + 2 * PAD, H, 0);
   if (!ready) textC("LOADING PARIS...", W / 2, H / 2, 6);
   else if (screen === "title") drawTitle();
   else if (screen === "help") drawHelp();

@@ -37,7 +37,7 @@ python grid.py
 python layout.py
 ```
 
-`layout.py` writes `game/map.js`.
+`layout.py` writes `game/map.js`. `EXTRA=96 python render.py paris.json ../game/art/paris-wide.png` draws the extra Paris shown at the sides of wide phone screens.
 
 ## Credits
 
