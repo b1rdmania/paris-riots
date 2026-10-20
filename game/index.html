@@ -1,0 +1,1263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Command &amp; Couvre-feu</title>
+<meta name="description" content="Turn-based Paris riot, Saturday 17 October 2026. Play the lycéens or the CRS. Curfew at 23:00.">
+<style>
+  html, body { margin: 0; height: 100%; background: #0f0e14; }
+  body { display: grid; place-items: center; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+  canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+// One 384x240 canvas at native pixels, scaled up nearest-neighbour.
+// Map is 24x13 tiles of 16px between a 16px top bar and a 16px bottom bar.
+const W = 384, H = 240, TS = 16, MW = 24, MH = 13, TOP = 16, BOT = H - 16;
+
+// 32 fixed colours. Sprites and tiles index into this; nothing else is drawn.
+const PAL = [
+  "#0f0e14", "#1d1b26", "#2e2c3a", "#45435a", "#646680", "#8c90a8", "#b8bccc", "#ece8dc",
+  "#e070b0", "#4a3828", "#7a5c40", "#b08a60", "#d8c098", "#f0e0b8", "#1a3a2a", "#2e5e3a",
+  "#4e8a48", "#8cbc5c", "#12304a", "#1e5070", "#3a7a98", "#78b0c0", "#14204a", "#23387a",
+  "#3c5cb0", "#7a98e0", "#f0d020", "#a88a10", "#e05a20", "#ff9a30", "#b02c2c", "#c8e8a0",
+];
+
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+cv.width = W; cv.height = H; ctx.imageSmoothingEnabled = false;
+function fit() {
+  const s = Math.min(innerWidth / W, innerHeight / H);
+  const k = s >= 2 ? Math.floor(s) : s;
+  cv.style.width = W * k + "px"; cv.style.height = H * k + "px";
+}
+addEventListener("resize", fit); fit();
+
+const fill = (x, y, w, h, c) => { ctx.fillStyle = PAL[c]; ctx.fillRect(x, y, w, h); };
+
+// ---------- font (5x7, from Vex) ----------
+const GL = {
+  A: [14, 17, 17, 31, 17, 17, 17], B: [30, 17, 17, 30, 17, 17, 30], C: [14, 17, 16, 16, 16, 17, 14], D: [30, 17, 17, 17, 17, 17, 30],
+  E: [31, 16, 16, 30, 16, 16, 31], F: [31, 16, 16, 30, 16, 16, 16], G: [14, 17, 16, 23, 17, 17, 15], H: [17, 17, 17, 31, 17, 17, 17],
+  I: [31, 4, 4, 4, 4, 4, 31], J: [7, 2, 2, 2, 18, 18, 12], K: [17, 18, 20, 24, 20, 18, 17], L: [16, 16, 16, 16, 16, 16, 31],
+  M: [17, 27, 21, 21, 17, 17, 17], N: [17, 25, 25, 21, 19, 19, 17], O: [14, 17, 17, 17, 17, 17, 14], P: [30, 17, 17, 30, 16, 16, 16],
+  Q: [14, 17, 17, 17, 21, 18, 13], R: [30, 17, 17, 30, 20, 18, 17], S: [15, 16, 16, 14, 1, 1, 30], T: [31, 4, 4, 4, 4, 4, 4],
+  U: [17, 17, 17, 17, 17, 17, 14], V: [17, 17, 17, 17, 17, 10, 4], W: [17, 17, 17, 21, 21, 21, 10], X: [17, 17, 10, 4, 10, 17, 17],
+  Y: [17, 17, 10, 4, 4, 4, 4], Z: [31, 1, 2, 4, 8, 16, 31],
+  0: [14, 17, 19, 21, 25, 17, 14], 1: [4, 12, 4, 4, 4, 4, 14], 2: [14, 17, 1, 2, 4, 8, 31], 3: [31, 2, 4, 2, 1, 17, 14],
+  4: [2, 6, 10, 18, 31, 2, 2], 5: [31, 16, 30, 1, 1, 17, 14], 6: [6, 8, 16, 30, 17, 17, 14], 7: [31, 1, 2, 4, 8, 8, 8],
+  8: [14, 17, 17, 14, 17, 17, 14], 9: [14, 17, 17, 15, 1, 2, 12],
+  ".": [0, 0, 0, 0, 0, 0, 4], ",": [0, 0, 0, 0, 0, 4, 8], "?": [14, 17, 1, 2, 4, 0, 4], "'": [4, 4, 0, 0, 0, 0, 0],
+  "!": [4, 4, 4, 4, 4, 0, 4], "-": [0, 0, 0, 14, 0, 0, 0], ":": [0, 0, 4, 0, 0, 4, 0], ";": [0, 0, 4, 0, 0, 4, 8],
+  "/": [1, 1, 2, 4, 8, 16, 16], "(": [2, 4, 8, 8, 8, 4, 2], ")": [8, 4, 2, 2, 2, 4, 8], '"': [10, 10, 0, 0, 0, 0, 0],
+  "&": [12, 18, 20, 8, 21, 18, 13], "+": [0, 4, 4, 31, 4, 4, 0], "%": [24, 25, 2, 4, 8, 19, 3], " ": [],
+  "€": [7, 8, 30, 8, 30, 8, 7], "*": [0, 4, 21, 14, 21, 4, 0], ">": [8, 4, 2, 1, 2, 4, 8], "<": [2, 4, 8, 16, 8, 4, 2], "=": [0, 0, 31, 0, 31, 0, 0],
+};
+const norm = (t) => String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase()
+  .replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-");
+function text(s, x, y, c, shadow, scale = 1) {
+  s = norm(s);
+  if (shadow != null) text0(s, x + scale, y + scale, shadow, scale);
+  text0(s, x, y, c, scale);
+}
+function text0(s, x, y, c, k) {
+  ctx.fillStyle = PAL[c];
+  for (const ch of s) {
+    const g = GL[ch] || GL["?"];
+    for (let r = 0; r < g.length; r++) for (let i = 0; i < 5; i++) if (g[r] & (16 >> i)) ctx.fillRect(x + i * k, y + r * k, k, k);
+    x += 6 * k;
+  }
+}
+const tw = (s, k = 1) => (norm(s).length * 6 - 1) * k;
+const textC = (s, cx, y, c, sh, k = 1) => text(s, Math.round(cx - tw(s, k) / 2), y, c, sh, k);
+function wrap(s, max) {
+  const out = []; let line = "";
+  for (const w of norm(s).split(" ")) {
+    const n = line ? line + " " + w : w;
+    if (n.length > max && line) { out.push(line); line = w; } else line = n;
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+// ---------- sprites (16x16, facing right) ----------
+const KEY = { p: 8, k: 0, K: 2, e: 3, g: 4, G: 6, w: 7, h: 9, S: 10, m: 11, s: 12, l: 13, F: 15, f: 16, q: 17, u: 19,
+  N: 22, n: 23, b: 24, B: 25, y: 26, Y: 27, o: 28, O: 29, r: 30, c: 31 };
+const ART = {
+  lyceen: [
+    "..............k.",
+    ".....kkkkk...kSk",
+    "....krrrrrk..kSk",
+    "...krrrrrrrk.kk.",
+    "...krrrkhhhk.kr.",
+    "...krrkSSSSSkkr.",
+    "...krrkSkSkSkrk.",
+    "....krkSSSSkkrk.",
+    ".....kkkkkkkrrk.",
+    "....krrrrrrrrk..",
+    "...krrrrrrrrk...",
+    "...kSkrrrrrk....",
+    "....kbbbbbbk....",
+    "....kbbbkbbk....",
+    "...kwwwk.kwwwk..",
+    "....kkk...kkk...",
+  ],
+  bloc: [
+    "...........kkk..",
+    "..........kGGGk.",
+    ".....kkkk.kGeGk.",
+    "....kKKKKk.kkk..",
+    "...kKKKKKKk.kk..",
+    "...kKKKwkwkkKk..",
+    "...kKKKKKKkKKk..",
+    "....kKKKKkKKk...",
+    "...kKKKKKKKKk...",
+    "..kKKkKKKKKk....",
+    "..kKkKKKKKKk....",
+    "...kkKKKKKKk....",
+    "....kKKKkKKk....",
+    "....kKKk.kKKk...",
+    "...kkkk...kkkk..",
+    "................",
+  ],
+  trott: [
+    "................",
+    "......kkkkk.....",
+    ".....krrrrrk....",
+    "....krrrkSSk....",
+    "....krrkSkSk....",
+    "....krrkSSSk.kk.",
+    ".....kkkkkk..kq.",
+    "....krrrrrrk.k..",
+    "...krrrrrrSSkk..",
+    "...kSkrrrrk..k..",
+    "....kbbbbbk..k..",
+    "....kbbkbbk..k..",
+    "..kkqqqqqqqqqqk.",
+    "..kkkkkkkkkkkkk.",
+    ".kwGk......kwGk.",
+    "..kk........kk..",
+  ],
+  caddie: [
+    "..O......O......",
+    "..o..O...o...O..",
+    "..r..o...r...o..",
+    ".kkkkrkkkkkkkr..",
+    ".kGGGGGGGGGGGk..",
+    ".kGeGeGeGeGeGk..",
+    ".kGGGGGGGGGGGk.k",
+    "..kGeGeGeGeGk.kG",
+    "..kGGGGGGGGGkkGk",
+    "...kGeGeGeGk.k..",
+    "...kGGGGGGGkk...",
+    "....kkkkkkkk....",
+    "....kG....kG....",
+    "...kKKk..kKKk...",
+    "....kk....kk....",
+    "................",
+  ],
+  kangoo: [
+    "......k.........",
+    "......kyyyk.....",
+    "......kyYyk.....",
+    "......k.........",
+    "..kkkkkkkkkkk...",
+    ".kwwwwwwwwwkBk..",
+    ".kwwwwwwwwwkBBk.",
+    ".kwwwwwwwwwkBBBk",
+    ".kyyyyyyyyyyyyyk",
+    ".kwwwwwwwwwwwwwk",
+    ".kwwwwwwwwwwwwok",
+    ".kkkkkkkkkkkkkkk",
+    "..kKKk.....kKKk.",
+    "..kGGk.....kGGk.",
+    "...kk.......kk..",
+    "................",
+  ],
+  torse: [
+    "................",
+    "......kkkk......",
+    ".....khhhhk.....",
+    "....ksssssk.....",
+    "....ksskskk.....",
+    "....ksssssk.....",
+    "...kkksssskkk...",
+    "..kssssssssssk..",
+    ".kssssssssssssk.",
+    ".ksskssssssksk..",
+    "..ksssssssssssk.",
+    "..ksssssmssssk..",
+    "...kssssssssk...",
+    "....kbbbbbbk....",
+    "....kbbkkbbk....",
+    "...kkkk..kkkk...",
+  ],
+  panther: [
+    "....k....k......",
+    "...kpk..kpk.....",
+    "...kppkkppk.....",
+    "...kppppppk.....",
+    "...kpwkpwkk.....",
+    "...kppppppk.....",
+    "....kpkkpk......",
+    ".....kppk.......",
+    "....kppppk..kk..",
+    "...kpkppkpkkGGk.",
+    "...kpkppkppkGyk.",
+    "....kppppk.kGGk.",
+    ".....kppk...kk..",
+    ".....kpkpk......",
+    "....kpk.kpk.....",
+    "....kk...kk.....",
+  ],
+  lbd: [
+    "................",
+    ".....kkkkk......",
+    "....kNNNNNk.....",
+    "...kNNNNNNNk....",
+    "...kNNNkBBBkk...",
+    "...kNNkBBBBBk...",
+    "....kkkssssk....",
+    ".....ksssskkkkkk",
+    "...kkkkkkkKKKKKo",
+    "...knnnnnkkkkkk.",
+    "...knnnnnnnk....",
+    "...knnnnnnnk....",
+    "....kNNNNNk.....",
+    "....kNNkNNk.....",
+    "....kNNkkNNk....",
+    "...kkkk..kkkk...",
+  ],
+  crs: [
+    "................",
+    ".....kkkkk......",
+    "....kNNNNNk.....",
+    "...kNNNNNNNk....",
+    "...kNNNkBBBkk...",
+    "...kNNkBBBBBk...",
+    "....kkkssssk....",
+    ".....kssssk.kkk.",
+    "....kkkkkkkkGGGk",
+    "...knnnnnnnkGwGk",
+    "...knnnnnnnkGGGk",
+    "...knnnnnnnkGGGk",
+    "....kNNNNNk.kkk.",
+    "....kNNkNNk.....",
+    "....kNNkkNNk....",
+    "...kkkk..kkkk...",
+  ],
+  gm: [
+    "..........k.....",
+    ".....kkkkkKk....",
+    "....kbbbbbKk....",
+    "...kbbbbbbbk....",
+    "...kbbbkBBBkk...",
+    "...kbbkBBBBBk...",
+    "....kkkssssk....",
+    "..kkkkssssk.kkkk",
+    ".kGGGkkkkkkkGGGk",
+    ".kGwGknnnnnkGwGk",
+    ".kGGGknnnnnkGGGk",
+    ".kGGGknnnnnkGGGk",
+    "..kkkkNNNNNkkkk.",
+    "....kNNkNNk.....",
+    "....kNNkkNNk....",
+    "...kkkk..kkkk...",
+  ],
+  bravm: [
+    "................",
+    "....kkk..kkk....",
+    "...kNNNkkNNNk...",
+    "...kNBBkkNBBk...",
+    "....kskk.kskk...",
+    "...knnnkknnnk...",
+    "..knnnnknnnnnk..",
+    "..knnnnnnnnnnkk.",
+    ".kkkkkkkkkkkkGk.",
+    ".kNNNNNNNNNNNkk.",
+    "..kNNNkkkkNNNk..",
+    ".kKKKk....kKKKk.",
+    "kKkkKKk..kKkkKKk",
+    "kKkkKKk..kKkkKKk",
+    ".kKKKk....kKKKk.",
+    "................",
+  ],
+  lacrymo: [
+    "..........c.c...",
+    ".....kkkkk.ccc..",
+    "....kNNNNNk.c...",
+    "...kNNNNNNNk....",
+    "...kNNNkBBBkk...",
+    "...kNNkBBBBBk...",
+    "....kkkssssk....",
+    ".....ksssskkkkkk",
+    "....kkkkkkKKKKKk",
+    "...knnnnnkkkkkk.",
+    "...knnnnnnnk....",
+    "...knnnnnnnk....",
+    "....kNNNNNk.....",
+    "....kNNkNNk.....",
+    "....kNNkkNNk....",
+    "...kkkk..kkkk...",
+  ],
+  canon: [
+    "................",
+    "...........BB.B.",
+    "......kkkkkkBB..",
+    ".....kGGGGkk....",
+    "..kkkkkkkkkkkk..",
+    ".knnnnnnnnkBBBk.",
+    ".knnnnnnnnkBBBBk",
+    ".knnnnnnnnnnnnnk",
+    ".kwwwwwwwwwwwwwk",
+    ".knnnnnnnnnnnnnk",
+    ".knnnnnnnnnnnnbk",
+    ".kkkkkkkkkkkkkkk",
+    "..kKKk.....kKKk.",
+    "..kGGk.....kGGk.",
+    "...kk.......kk..",
+    "................",
+  ],
+};
+function mkSprite(rows, flip, dim) {
+  const c = document.createElement("canvas"); c.width = c.height = 16;
+  const x = c.getContext("2d");
+  rows.forEach((row, y) => {
+    for (let i = 0; i < 16; i++) {
+      const ch = row[i] || ".";
+      if (ch === "." || KEY[ch] == null) continue;
+      x.fillStyle = PAL[KEY[ch]]; x.fillRect(flip ? 15 - i : i, y, 1, 1);
+    }
+  });
+  if (dim) { x.globalCompositeOperation = "source-atop"; x.fillStyle = "rgba(15,14,20,0.55)"; x.fillRect(0, 0, 16, 16); }
+  return c;
+}
+const SPR = {};
+for (const k in ART) for (const f of [0, 1]) for (const d of [0, 1]) SPR[`${k}${f}${d}`] = mkSprite(ART[k], f, d);
+
+// ---------- rules data ----------
+const SIDES = [
+  { name: "GENERATION 6-7", short: "LYCEENS", col: 30, hi: 26, flag: 30 },
+  { name: "LA PREFECTURE", short: "CRS", col: 24, hi: 25, flag: 24 },
+];
+const U = {
+  lyceen: { side: 0, name: "LYCEEN", cls: "inf", cost: 750, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. FILMS EVERYTHING." },
+  bloc: { side: 0, name: "BLACK BLOC", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. THROWS PAVING STONES." },
+  trott: { side: 0, name: "TROTTINETTE", cls: "recon", cost: 4000, move: 7, mt: "scoot", r: [1, 1], blurb: "RENTED SCOOTER. RIDES THROUGH ANYTHING." },
+  torse: { side: 0, name: "TONTON TORSE NU", cls: "mech", dfn: "tank", cost: 5000, move: 3, mt: "foot", r: [1, 1], gasproof: true, blurb: "TOPLESS UNCLE. TEAR GAS DOES NOTHING." },
+  panther: { side: 0, name: "PINK PANTHER", cls: "inf", cost: 5000, move: 6, mt: "scoot", cap: true, capAll: true, r: null, one: true, blurb: "JEWEL THIEF. CAPTURES IN ONE TURN. ONLY ONE." },
+  caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 3], blurb: "FIREWORKS IN A TROLLEY. RANGE 2-3." },
+  kangoo: { side: 0, name: "GILETS JAUNES", cls: "tank", cost: 7000, move: 5, mt: "wheels", r: [1, 1], blurb: "A KANGOO OF UNCLES. NOBODY INVITED THEM." },
+  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. HAS A SHIELD." },
+  gm: { side: 1, name: "GENDARME MOBILE", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. TWO SHIELDS." },
+  bravm: { side: 1, name: "BRAV-M", cls: "recon", cost: 4000, move: 7, mt: "wheels", r: [1, 1], blurb: "TWO MEN, ONE MOTORBIKE." },
+  lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
+  lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], splash: true, blurb: "TEAR GAS. RANGE 2-3. GASSES NEIGHBOURS TOO." },
+  canon: { side: 1, name: "CANON A EAU", cls: "tank", cost: 7000, move: 5, mt: "wheels", r: [1, 1], blurb: "WATER CANNON. SPLOOSH." },
+};
+const ROSTER = [["lyceen", "bloc", "trott", "torse", "panther", "caddie", "kangoo"], ["crs", "gm", "bravm", "lbd", "lacrymo", "canon"]];
+// Base damage %, attacker class -> defender class (Advance Wars shape).
+const DMG = {
+  inf: { inf: 55, mech: 45, recon: 12, arty: 15, tank: 5 },
+  mech: { inf: 65, mech: 55, recon: 85, arty: 70, tank: 55 },
+  recon: { inf: 70, mech: 65, recon: 35, arty: 45, tank: 6 },
+  arty: { inf: 90, mech: 85, recon: 80, arty: 75, tank: 70 },
+  tank: { inf: 75, mech: 70, recon: 85, arty: 70, tank: 55 },
+  lbd: { inf: 70, mech: 60, recon: 40, arty: 50, tank: 12 },
+};
+// '#' Haussmann block, '=' boulevard, '.' place, 'T' park, '~' Seine, 'b' bridge, 'P' property.
+const COST = {
+  foot: { "#": 2, "=": 1, ".": 1, T: 1, "~": 0, b: 1, P: 1 },
+  wheels: { "#": 0, "=": 1, ".": 1, T: 2, "~": 0, b: 1, P: 1 },
+  scoot: { "#": 3, "=": 1, ".": 1, T: 1, "~": 0, b: 1, P: 1 },
+};
+const DEF = { "#": 3, "=": 0, ".": 0, T: 2, "~": 0, b: 0, P: 3 };
+const TNAME = { "#": "IMMEUBLE", "=": "BOULEVARD", ".": "PLACE", T: "JARDIN", "~": "SEINE", b: "PONT" };
+const INCOME = { hq: 1000, base: 1000, mark: 1500, shop: 1000 };
+
+// ---------- map: central Paris, west to east ----------
+const MAP = (() => {
+  const m = [...Array(MH)].map(() => Array(MW).fill("#"));
+  const rect = (x0, x1, y0, y1, c) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m[y][x] = c; };
+  rect(6, 10, 6, 6, "T"); rect(0, 1, 9, 10, "T"); rect(9, 12, 12, 12, "T"); rect(21, 22, 9, 10, "T");
+  rect(0, 23, 8, 8, "~"); rect(12, 17, 9, 10, "~"); rect(13, 16, 9, 9, "#");
+  const road = (x0, x1, y0, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) m[y][x] = m[y][x] === "~" ? "b" : "="; };
+  road(6, 21, 1, 1); road(0, 7, 3, 3); road(14, 23, 3, 3); road(0, 22, 5, 5); road(0, 23, 7, 7);
+  road(0, 11, 9, 9); road(18, 23, 9, 9); road(13, 16, 9, 9); road(0, 23, 11, 11);
+  road(1, 1, 2, 7); road(3, 3, 3, 12); road(6, 6, 0, 7); road(9, 9, 0, 5); road(11, 11, 5, 12);
+  road(14, 14, 0, 12); road(18, 18, 3, 12); road(20, 20, 0, 7); road(23, 23, 3, 12);
+  rect(0, 1, 4, 6, "."); rect(5, 6, 4, 6, "."); rect(19, 21, 1, 2, "."); rect(20, 21, 6, 7, "."); rect(13, 14, 4, 5, ".");
+  return m;
+})();
+const PROPS0 = [
+  { x: 5, y: 2, kind: "hq", owner: 1, name: "PLACE BEAUVAU", art: "beauvau" },
+  { x: 22, y: 2, kind: "hq", owner: 0, name: "LYCEE VOLTAIRE", art: "lycee" },
+  { x: 13, y: 9, kind: "base", owner: 1, name: "PREFECTURE DE POLICE", art: "prefecture" },
+  { x: 4, y: 10, kind: "base", owner: 1, name: "INVALIDES", art: "invalides" },
+  { x: 19, y: 2, kind: "base", owner: 0, name: "METRO REPUBLIQUE", art: "metro" },
+  { x: 15, y: 12, kind: "base", owner: 0, name: "SORBONNE", art: "sorbonne" },
+  { x: 13, y: 4, kind: "base", owner: -1, name: "METRO CHATELET", art: "metro" },
+  { x: 0, y: 4, kind: "mark", owner: -1, name: "ARC DE TRIOMPHE", art: "arc" },
+  { x: 8, y: 0, kind: "mark", owner: -1, name: "OPERA", art: "opera" },
+  { x: 12, y: 6, kind: "mark", owner: -1, name: "LOUVRE", art: "louvre" },
+  { x: 15, y: 4, kind: "mark", owner: -1, name: "LES HALLES", art: "halles" },
+  { x: 16, y: 6, kind: "mark", owner: -1, name: "HOTEL DE VILLE", art: "hdv" },
+  { x: 16, y: 9, kind: "mark", owner: -1, name: "NOTRE-DAME", art: "nd" },
+  { x: 0, y: 10, kind: "mark", owner: -1, name: "TOUR EIFFEL", art: "eiffel" },
+  { x: 2, y: 4, kind: "shop", owner: -1, name: "FOUQUET'S", art: "shop" },
+  { x: 4, y: 4, kind: "shop", owner: -1, name: "NIKE", art: "shop" },
+  { x: 7, y: 0, kind: "shop", owner: -1, name: "GALERIES LAFAYETTE", art: "shop" },
+  { x: 10, y: 2, kind: "shop", owner: -1, name: "APPLE STORE", art: "shop" },
+  { x: 12, y: 2, kind: "shop", owner: -1, name: "ZARA", art: "shop" },
+  { x: 13, y: 6, kind: "shop", owner: -1, name: "FNAC", art: "shop" },
+  { x: 17, y: 4, kind: "shop", owner: -1, name: "MONOPRIX", art: "shop" },
+  { x: 2, y: 6, kind: "shop", owner: -1, name: "PSG STORE", art: "shop" },
+  { x: 22, y: 4, kind: "shop", owner: -1, name: "SEPHORA", art: "shop" },
+  { x: 8, y: 10, kind: "shop", owner: -1, name: "BOULANGERIE", art: "shop" },
+  { x: 19, y: 12, kind: "shop", owner: -1, name: "KEBAB", art: "shop" },
+];
+for (const p of PROPS0) MAP[p.y][p.x] = "P";
+const LANDMARKS = PROPS0.filter((p) => p.kind === "mark").length;
+const NEED = 4; // landmarks the lycéens must hold at curfew
+
+const NEWS = [
+  "STUDENTS MARCH OVER CRUMBLING LYCEES. A CEILING FALLS IN. AGAIN.",
+  "GILETS JAUNES JOIN. NOBODY KNOWS WHO INVITED THEM.",
+  "PLACARD SPOTTED: GENERATION 6-7 REDOES MAI 68.",
+  "THE LOUVRE CLOSES. THE MONA LISA IS UNBOTHERED.",
+  "PRIME MINISTER: 'BREAKERS, THIEVES, THUGS.'",
+  "LOOTED AIR MAX ALREADY ON VINTED. VERY GOOD CONDITION.",
+  "SKI GOGGLES BANNED IN NICE. IT IS OCTOBER.",
+  "MINISTER: PSG V BARCA WILL GO AHEAD.",
+  "MACRON: 'HOW COULD FRENCH PEOPLE DO THIS TO FRANCE?'",
+  "INTERIOR MINISTER ADMITS HE UNDERESTIMATED IT.",
+  "ONE HOUR TO CURFEW. THE TABAC IS STILL OPEN.",
+];
+const START_HOUR = 12, CURFEW = 23;
+
+// ---------- sound ----------
+let AC = null;
+function beep(f = 440, d = 0.05, type = "square", vol = 0.04, slide = 0) {
+  try {
+    AC ||= new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d);
+  } catch {}
+}
+function noise(d = 0.2, vol = 0.05) {
+  try {
+    AC ||= new (window.AudioContext || window.webkitAudioContext)();
+    const n = AC.sampleRate * d, b = AC.createBuffer(1, n, AC.sampleRate), a = b.getChannelData(0);
+    for (let i = 0; i < n; i++) a[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const s = AC.createBufferSource(), g = AC.createGain(); g.gain.value = vol;
+    s.buffer = b; s.connect(g).connect(AC.destination); s.start();
+  } catch {}
+}
+const SFX = {
+  move: () => beep(660, 0.03), ok: () => beep(880, 0.05), back: () => beep(330, 0.05),
+  hit: () => noise(0.18, 0.08), cap: () => { beep(523, 0.08); setTimeout(() => beep(784, 0.1), 80); },
+  bad: () => beep(150, 0.12, "sawtooth"), turn: () => { beep(392, 0.08); setTimeout(() => beep(587, 0.12), 90); },
+};
+
+// ---------- state ----------
+let G = null, screen = "title", titleSel = 0, frame = 0;
+const key = (x, y) => y * MW + x, unkey = (k) => [k % MW, Math.floor(k / MW)];
+const inb = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
+const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const sleep = (ms) => new Promise((r) => setTimeout(r, window.__fast ? 0 : ms));
+const dist = (a, b, c, d) => Math.abs(a - c) + Math.abs(b - d);
+
+function newGame(humans) {
+  G = {
+    humans, side: 0, round: 0, funds: [2000, 2000], units: [], nextId: 1,
+    props: PROPS0.map((p) => ({ ...p, cap: 20 })), mode: "idle", cur: { x: 21, y: 3 },
+    sel: null, reach: null, from: null, menu: null, targets: [], tsel: 0, fx: [],
+    msg: "", msgT: 0, banner: null, busy: false, over: null, buttons: [],
+  };
+  const put = (t, x, y) => G.units.push({ id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false });
+  put("lyceen", 21, 3); put("lyceen", 19, 1); put("bloc", 20, 3); put("lyceen", 15, 11);
+  put("crs", 6, 3); put("crs", 4, 3); put("gm", 6, 4); put("crs", 14, 9);
+  buildMapLayer();
+  screen = "game";
+  startTurn();
+}
+const unitAt = (x, y) => G.units.find((u) => u.x === x && u.y === y);
+const propAt = (x, y) => G.props.find((p) => p.x === x && p.y === y);
+const terr = (x, y) => MAP[y][x];
+const defAt = (x, y) => { const p = terr(x, y) === "P" && propAt(x, y); return p ? (p.kind === "hq" ? 4 : 3) : DEF[terr(x, y)]; };
+const cost = (mt, x, y) => COST[mt][terr(x, y)];
+const hpD = (u) => Math.ceil(u.hp / 10);
+const human = () => G.humans[G.side];
+const hour = () => START_HOUR + G.round;
+const marksHeld = (s) => G.props.filter((p) => p.kind === "mark" && p.owner === s).length;
+function say(m, t = 150) { G.msg = norm(m); G.msgT = t; }
+
+function reach(u) {
+  const d = new Map([[key(u.x, u.y), 0]]), prev = new Map(), q = [[0, u.x, u.y]], mv = U[u.type].move, mt = U[u.type].mt;
+  while (q.length) {
+    q.sort((a, b) => a[0] - b[0]);
+    const [c, x, y] = q.shift();
+    if (c > d.get(key(x, y))) continue;
+    for (const [dx, dy] of DIRS) {
+      const nx = x + dx, ny = y + dy;
+      if (!inb(nx, ny)) continue;
+      const k = cost(mt, nx, ny); if (!k) continue;
+      const o = unitAt(nx, ny); if (o && o.side !== u.side) continue;
+      const nc = c + k; if (nc > mv) continue;
+      const kk = key(nx, ny);
+      if (!d.has(kk) || nc < d.get(kk)) { d.set(kk, nc); prev.set(kk, key(x, y)); q.push([nc, nx, ny]); }
+    }
+  }
+  for (const k of [...d.keys()]) { const [x, y] = unkey(k); const o = unitAt(x, y); if (o && o !== u) d.delete(k); }
+  return { d, prev };
+}
+function pathTo(R, sx, sy, x, y) {
+  const p = []; let k = key(x, y); const s = key(sx, sy);
+  while (k !== s && k != null) { p.unshift(unkey(k)); k = R.prev.get(k); }
+  return p;
+}
+function targetsFrom(u, x, y, moved) {
+  const t = U[u.type];
+  if (!t.r || (t.cls === "arty" && moved)) return [];
+  return G.units.filter((o) => o.side !== u.side && dist(x, y, o.x, o.y) >= t.r[0] && dist(x, y, o.x, o.y) <= t.r[1]);
+}
+function calcDmg(a, d, dx, dy, luck, ahp = a.hp, dhp = d.hp) {
+  const base = DMG[U[a.type].cls][U[d.type].dfn || U[d.type].cls];
+  const raw = (base + luck) * Math.ceil(ahp / 10) / 10 * (100 - defAt(dx, dy) * Math.ceil(dhp / 10)) / 100;
+  return Math.max(0, Math.floor(raw));
+}
+const canCounter = (d, a) => U[d.type].r && U[d.type].cls !== "arty" && dist(a.x, a.y, d.x, d.y) === 1;
+
+// ---------- quips ----------
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+function quipCapture(u, p) {
+  if (p.kind === "hq") return u.side === 0 ? "BEAUVAU HAS FALLEN. THE MINISTER IS IN A CUPBOARD." : "LYCEE RETAKEN. DOUBLE MATHS ON MONDAY.";
+  if (u.side === 0) {
+    if (p.kind === "shop") return pick([`${p.name} LOOTED. LISTED ON VINTED.`, `${p.name}: VERY GOOD CONDITION, NEVER WORN.`, `${p.name} CLEARED OUT. +€500 VINTED`]);
+    if (u.type === "panther" && p.name === "LOUVRE") return "CROWN JEWELS GONE IN SEVEN MINUTES. AGAIN.";
+    if (u.type === "panther") return `${p.name}: IN AND OUT. NOBODY SAW A THING.`;
+    if (p.name === "LOUVRE") return "LOUVRE BLOCKADED. CLOSED. AGAIN.";
+    if (p.kind === "mark") return `${p.name} BLOCKADED. SIX SEVEN!`;
+    return `${p.name} TAKEN. STUDENTS ARRIVE BY METRO.`;
+  }
+  if (p.kind === "shop") return pick([`${p.name} SECURED. STILL ON FIRE.`, `${p.name} REOPENS. NOTHING LEFT TO SELL.`]);
+  if (p.kind === "mark") return `ORDER RESTORED AT ${p.name}.`;
+  return `${p.name} SECURED.`;
+}
+const quipKO = (u) => u.side === 0 ? pick(["ARRESTED. MUM IS FURIOUS.", "ARRESTED. PHONE CONFISCATED.", "SENT HOME. GROUNDED UNTIL 2027."]) : pick(["SIGNED OFF SICK.", "GOES HOME. BACK PAIN.", "CALLED IT A DAY. OVERTIME DENIED."]);
+
+// ---------- turn flow ----------
+function startTurn() {
+  const s = G.side;
+  let inc = 0;
+  for (const p of G.props) if (p.owner === s) inc += INCOME[p.kind];
+  G.funds[s] += inc;
+  for (const u of G.units) if (u.side === s) {
+    u.done = false;
+    const p = propAt(u.x, u.y);
+    if (p && p.owner === s) u.hp = Math.min(100, u.hp + 20);
+  }
+  G.mode = "idle"; G.sel = null; G.menu = null;
+  const hq = G.props.find((p) => p.kind === "hq" && p.owner === s);
+  const lead = G.units.find((u) => u.side === s);
+  if (human()) G.cur = lead ? { x: lead.x, y: lead.y } : hq ? { x: hq.x, y: hq.y } : G.cur;
+  const sub = s === 0 ? NEWS[G.round] || "" : `INCOME €${inc}`;
+  G.banner = { title: `${SIDES[s].short} - SAT ${hour()}:00`, sub: s === 0 ? sub : `INCOME €${inc}`, col: SIDES[s].col, t: 110 };
+  SFX.turn();
+  if (!human()) runAI();
+}
+function endTurn() {
+  if (G.over) return;
+  for (const u of G.units) u.done = false;
+  G.mode = "idle"; G.menu = null; G.sel = null;
+  const other = 1 - G.side;
+  if (!G.units.some((u) => u.side === other) && G.funds[other] < 1000 && !G.props.some((p) => p.owner === other && (p.kind === "base" || p.kind === "hq"))) return gameOver(G.side, "THEY HAVE NOBODY LEFT.");
+  if (G.side === 1) {
+    G.round++;
+    if (hour() >= CURFEW) return curfew();
+  }
+  G.side = other;
+  startTurn();
+}
+function curfew() {
+  const held = marksHeld(0);
+  if (held >= NEED) gameOver(0, `LYCEENS HOLD ${held} OF ${LANDMARKS} LANDMARKS AT CURFEW. MACRON ADDRESSES THE NATION.`);
+  else gameOver(1, `LYCEENS HOLD ${held} OF ${LANDMARKS} LANDMARKS. CURFEW HOLDS. THE LOUVRE REOPENS TUESDAY.`);
+}
+function gameOver(winner, why) {
+  G.over = { winner, why }; G.busy = false; G.mode = "over"; G.banner = null;
+  SFX.cap();
+}
+
+// ---------- actions (shared by player and AI) ----------
+async function moveUnit(u, path) {
+  if (path.length && u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; u.capturing = false; }
+  for (const [x, y] of path) { u.x = x; u.y = y; SFX.move(); await sleep(human() ? 55 : 80); }
+}
+async function attack(a, d) {
+  G.busy = true;
+  const dmg = calcDmg(a, d, d.x, d.y, Math.floor(Math.random() * 10));
+  fx(a, d); SFX.hit();
+  await sleep(380);
+  d.hp -= dmg; pop(d.x, d.y, dmg);
+  if (U[a.type].splash) {
+    let own = false;
+    for (const o of G.units) if (o !== d && dist(o.x, o.y, d.x, d.y) === 1 && !U[o.type].gasproof) {
+      o.hp = Math.max(1, o.hp - 10); pop(o.x, o.y, 10); if (o.side === a.side) own = true;
+      G.fx.push({ kind: "gas", x: o.x, y: o.y, t: 0, life: 40 });
+    }
+    if (own) say("OOPS. GASSED OUR OWN LADS.");
+  }
+  if (d.hp <= 0) { await ko(d); }
+  else if (canCounter(d, a)) {
+    await sleep(250);
+    const c = calcDmg(d, a, a.x, a.y, Math.floor(Math.random() * 10));
+    fx(d, a); SFX.hit(); await sleep(300);
+    a.hp -= c; pop(a.x, a.y, c);
+    if (a.hp <= 0) await ko(a);
+  }
+  await sleep(200);
+  G.busy = false;
+  checkRout();
+}
+async function ko(u) {
+  G.fx.push({ kind: "poof", x: u.x, y: u.y, t: 0, life: 30 });
+  if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; }
+  G.units = G.units.filter((o) => o !== u);
+  say(quipKO(u)); SFX.bad();
+  await sleep(300);
+}
+function checkRout() {
+  for (const s of [0, 1]) {
+    if (G.over) return;
+    const has = G.units.some((u) => u.side === s);
+    const canBuy = G.funds[s] >= 1000 && G.props.some((p) => p.owner === s && (p.kind === "base" || p.kind === "hq"));
+    if (!has && !canBuy) gameOver(1 - s, `${SIDES[s].short} HAVE NOBODY LEFT.`);
+  }
+}
+function doCapture(u) {
+  const p = propAt(u.x, u.y);
+  p.cap -= U[u.type].capAll ? 20 : hpD(u); u.capturing = true;
+  if (p.cap <= 0) {
+    p.owner = u.side; p.cap = 20; u.capturing = false;
+    if (u.side === 0 && p.kind === "shop") G.funds[0] += 500;
+    say(quipCapture(u, p)); SFX.cap(); buildMapLayer();
+    G.fx.push({ kind: "flag", x: p.x, y: p.y, t: 0, life: 40, side: u.side });
+    if (p.kind === "hq") gameOver(u.side, quipCapture(u, p));
+  } else { say(`CAPTURING ${p.name}: ${p.cap} LEFT`); SFX.ok(); }
+}
+function buy(p, type) {
+  G.funds[G.side] -= U[type].cost;
+  G.units.push({ id: G.nextId++, type, side: G.side, x: p.x, y: p.y, hp: 100, done: true, capturing: false });
+  SFX.ok();
+}
+
+// ---------- fx ----------
+function fx(a, d) {
+  const kind = { caddie: "fireworks", lacrymo: "gas", canon: "water", bloc: "stone" }[a.type] || "hit";
+  G.fx.push({ kind: "shot", sx: a.x, sy: a.y, x: d.x, y: d.y, t: 0, life: 22, look: kind });
+  G.fx.push({ kind, x: d.x, y: d.y, t: 0, life: 40, delay: 18 });
+}
+function pop(x, y, dmg) { G.fx.push({ kind: "num", x, y, n: Math.ceil(dmg / 10), t: 0, life: 50 }); }
+
+// ---------- AI ----------
+function field(mt, goals) {
+  // Multi-source movement-cost distance from goal tiles, ignoring units.
+  const d = new Array(MW * MH).fill(Infinity), q = [];
+  for (const [x, y] of goals) { d[key(x, y)] = 0; q.push([0, x, y]); }
+  while (q.length) {
+    q.sort((a, b) => a[0] - b[0]);
+    const [c, x, y] = q.shift();
+    if (c > d[key(x, y)]) continue;
+    for (const [dx, dy] of DIRS) {
+      const nx = x + dx, ny = y + dy; if (!inb(nx, ny)) continue;
+      const k = cost(mt, x, y) || 99; // cost of leaving toward goal uses this tile
+      const nc = c + k;
+      if (nc < d[key(nx, ny)] && cost(mt, nx, ny)) { d[key(nx, ny)] = nc; q.push([nc, nx, ny]); }
+    }
+  }
+  return d;
+}
+async function runAI() {
+  G.busy = true;
+  await waitBanner();
+  const s = G.side;
+  const order = G.units.filter((u) => u.side === s).sort((a, b) => (U[b.type].cls === "arty") - (U[a.type].cls === "arty") || U[b.type].cost - U[a.type].cost);
+  for (const u of order) {
+    if (G.over) return;
+    if (!G.units.includes(u)) continue;
+    await aiUnit(u);
+    u.done = true;
+    await sleep(120);
+  }
+  if (G.over) return;
+  aiBuild();
+  await sleep(400);
+  G.busy = false;
+  endTurn();
+}
+function waitBanner() { return new Promise((r) => { const t = () => (G.banner ? setTimeout(t, 50) : r()); t(); }); }
+async function aiUnit(u) {
+  const s = u.side, t = U[u.type], R = reach(u);
+  const here = propAt(u.x, u.y);
+  if (t.cap && here && here.owner !== s && u.capturing) { G.cur = { x: u.x, y: u.y }; await sleep(150); doCapture(u); return; }
+  let best = null;
+  for (const [k] of R.d) {
+    const [x, y] = unkey(k), moved = x !== u.x || y !== u.y;
+    for (const d of targetsFrom(u, x, y, moved)) {
+      const dmg = calcDmg(u, d, d.x, d.y, 4), kill = dmg >= d.hp;
+      let v = Math.min(dmg, d.hp) * U[d.type].cost / 100 + (kill ? U[d.type].cost * 0.4 : 0);
+      if (!kill && U[d.type].cls !== "arty" && dist(x, y, d.x, d.y) === 1) {
+        const c = calcDmg(d, u, x, y, 4, d.hp - dmg, u.hp);
+        v -= Math.min(c, u.hp) * t.cost / 100 * 0.8;
+      }
+      if (d.capturing) v += 1500;
+      v += defAt(x, y) * 30;
+      if (!best || v > best.v) best = { v, x, y, act: "fire", d };
+    }
+    const p = t.cap && propAt(x, y);
+    if (p && p.owner !== s) {
+      let v = { hq: 99999, mark: 3200, base: 2600, shop: 2000 }[p.kind] + (p.owner === 1 - s ? 600 : 0);
+      if (s === 0 && p.kind === "mark") v += 800; // lycéens need landmarks
+      v *= u.hp / 100;
+      if (!best || v > best.v) best = { v, x, y, act: "cap" };
+    }
+  }
+  if (best && best.v > 150) {
+    G.cur = { x: best.x, y: best.y }; G.reach = R; await sleep(160); G.reach = null;
+    await moveUnit(u, pathTo(R, u.x, u.y, best.x, best.y));
+    if (best.act === "fire") { G.cur = { x: best.d.x, y: best.d.y }; await sleep(120); await attack(u, best.d); }
+    else doCapture(u);
+    return;
+  }
+  // Walk toward the nearest useful thing.
+  let goals;
+  if (t.cap) goals = G.props.filter((p) => p.owner !== s).sort((a, b) => dist(u.x, u.y, a.x, a.y) - dist(u.x, u.y, b.x, b.y)).slice(0, 3).map((p) => [p.x, p.y]);
+  else goals = G.units.filter((o) => o.side !== s).map((o) => [o.x, o.y]);
+  if (!goals.length) goals = G.props.filter((p) => p.owner !== s).map((p) => [p.x, p.y]);
+  if (!goals.length) return;
+  const f = field(t.mt, goals);
+  const hp0 = propAt(u.x, u.y);
+  let bx = u.x, by = u.y, bs = f[key(u.x, u.y)] + (hp0 && hp0.owner === s && (hp0.kind === "base" || hp0.kind === "hq") ? 3 : 0);
+  for (const [k] of R.d) {
+    const [x, y] = unkey(k);
+    let sc = f[k] - defAt(x, y) * 0.1;
+    if (t.cls === "arty" && G.units.some((o) => o.side !== s && dist(x, y, o.x, o.y) <= 1)) sc += 5;
+    const pp = propAt(x, y); if (pp && pp.owner === s && (pp.kind === "base" || pp.kind === "hq")) sc += 3;
+    if (sc < bs) { bs = sc; bx = x; by = y; }
+  }
+  if (bx !== u.x || by !== u.y) { G.cur = { x: bx, y: by }; await moveUnit(u, pathTo(R, u.x, u.y, bx, by)); }
+  const p = propAt(u.x, u.y);
+  if (t.cap && p && p.owner !== s) doCapture(u);
+}
+function aiBuild() {
+  const s = G.side;
+  const bases = G.props.filter((p) => p.owner === s && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y));
+  bases.sort(() => Math.random() - 0.5);
+  const [inf, mech, recon, arty, tank] = s === 0 ? ["lyceen", "bloc", "trott", "caddie", "kangoo"] : ["crs", "gm", "bravm", "lacrymo", "canon"];
+  for (const p of bases) {
+    const f = G.funds[s], mine = G.units.filter((u) => u.side === s);
+    const foot = mine.filter((u) => U[u.type].cap).length;
+    const veh = G.units.filter((u) => u.side !== s && ["tank", "recon"].includes(U[u.type].cls)).length;
+    let t = null;
+    if (foot < 4 && f >= U[inf].cost) t = inf;
+    else if (s === 0 && f >= 5000 && !G.units.some((u) => u.type === "panther") && Math.random() < 0.35) t = "panther";
+    else if (s === 0 && f >= 5000 && Math.random() < 0.25) t = "torse";
+    else if (s === 1 && f >= 4500 && Math.random() < 0.3) t = "lbd";
+    else if (veh >= 2 && f >= 3000 && Math.random() < 0.5) t = mech;
+    else if (f >= 7000 && Math.random() < 0.55) t = tank;
+    else if (f >= 6000 && Math.random() < 0.4) t = arty;
+    else if (f >= 4000 && Math.random() < 0.3) t = recon;
+    else if (f >= 3000 && Math.random() < 0.5) t = mech;
+    else if (f >= U[inf].cost) t = inf;
+    if (t && f >= U[t].cost) buy(p, t);
+  }
+}
+
+// ---------- player input ----------
+function act(a) {
+  if (screen === "title") return titleInput(a);
+  if (screen === "help") { screen = "title"; SFX.back(); return; }
+  if (!G) return;
+  if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
+  if (G.banner) { if (a === "ok") G.banner.t = Math.min(G.banner.t, 8); return; }
+  if (G.busy || !human()) return;
+  const c = G.cur;
+  const mv = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[a];
+  if (G.menu) {
+    const m = G.menu;
+    if (a === "up") { m.sel = (m.sel + m.items.length - 1) % m.items.length; SFX.move(); }
+    if (a === "down") { m.sel = (m.sel + 1) % m.items.length; SFX.move(); }
+    if (a === "ok") { const it = m.items[m.sel]; if (it.off) SFX.bad(); else { SFX.ok(); it.fn(); } }
+    if (a === "back") { SFX.back(); m.back ? m.back() : (G.menu = null); }
+    return;
+  }
+  if (G.mode === "target") {
+    if (mv) { G.tsel = (G.tsel + (a === "left" || a === "up" ? G.targets.length - 1 : 1)) % G.targets.length; const t = G.targets[G.tsel]; G.cur = { x: t.x, y: t.y }; SFX.move(); }
+    if (a === "ok") fireAt(G.targets[G.tsel]);
+    if (a === "back") { SFX.back(); G.mode = "moved"; actionMenu(); }
+    return;
+  }
+  if (mv) { c.x = Math.max(0, Math.min(MW - 1, c.x + mv[0])); c.y = Math.max(0, Math.min(MH - 1, c.y + mv[1])); SFX.move(); return; }
+  if (a === "ok") return okAt(c.x, c.y);
+  if (a === "back") {
+    if (G.mode === "move") { G.mode = "idle"; G.sel = null; G.reach = null; SFX.back(); }
+    return;
+  }
+  if (a === "end" && G.mode === "idle") endTurn();
+}
+function okAt(x, y) {
+  if (G.mode === "idle") {
+    const u = unitAt(x, y);
+    if (u && u.side === G.side && !u.done) { G.sel = u; G.reach = reach(u); G.from = { x: u.x, y: u.y }; G.mode = "move"; SFX.ok(); return; }
+    const p = propAt(x, y);
+    if (!u && p && p.owner === G.side && (p.kind === "base" || p.kind === "hq")) return buyMenu(p);
+    return mainMenu();
+  }
+  if (G.mode === "move") {
+    const u = G.sel;
+    if (!G.reach.d.has(key(x, y))) { SFX.bad(); return; }
+    G.busy = true;
+    const path = pathTo(G.reach, u.x, u.y, x, y);
+    G.reach = null;
+    moveUnit(u, path).then(() => { G.busy = false; G.mode = "moved"; actionMenu(); });
+  }
+}
+function actionMenu() {
+  const u = G.sel, moved = u.x !== G.from.x || u.y !== G.from.y;
+  const items = [];
+  const tg = targetsFrom(u, u.x, u.y, moved);
+  if (tg.length) items.push({ label: "FIRE", fn: () => { G.menu = null; G.targets = tg; G.tsel = 0; G.cur = { x: tg[0].x, y: tg[0].y }; G.mode = "target"; } });
+  const p = propAt(u.x, u.y);
+  if (U[u.type].cap && p && p.owner !== G.side) items.push({ label: "CAPTURE", fn: () => { G.menu = null; doCapture(u); finish(u); } });
+  items.push({ label: "WAIT", fn: () => { G.menu = null; finish(u); } });
+  G.menu = {
+    items, sel: 0, title: U[u.type].name, at: u,
+    back: () => { G.menu = null; if (moved && u.capturing === false) {} u.x = G.from.x; u.y = G.from.y; G.reach = reach(u); G.mode = "move"; G.cur = { x: u.x, y: u.y }; },
+  };
+}
+async function fireAt(t) {
+  const u = G.sel; G.mode = "anim"; G.targets = [];
+  if (u.capturing) { const p = propAt(u.x, u.y); if (p && (u.x !== G.from.x || u.y !== G.from.y)) { p.cap = 20; u.capturing = false; } }
+  await attack(u, t);
+  if (G.units.includes(u)) finish(u); else { G.sel = null; G.mode = "idle"; }
+}
+function finish(u) {
+  u.done = true; G.sel = null; G.mode = "idle"; G.reach = null;
+  if (G.over) return;
+  if (!G.units.some((o) => o.side === G.side && !o.done) && !G.props.some((p) => p.owner === G.side && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y) && G.funds[G.side] >= 1000)) say("EVERYONE HAS MOVED. END TURN WHEN READY.");
+}
+function buyMenu(p) {
+  const s = G.side;
+  G.menu = {
+    title: `${p.name}  €${G.funds[s]}`, sel: 0, wide: true,
+    items: ROSTER[s].map((t) => ({ label: U[t].name, right: `€${U[t].cost}`, off: U[t].cost > G.funds[s] || (U[t].one && G.units.some((u) => u.type === t)), fn: () => { buy(p, t); G.menu = null; }, blurb: U[t].blurb })),
+  };
+}
+function mainMenu() {
+  G.menu = {
+    title: `SAT ${hour()}:00`, sel: 0,
+    items: [
+      { label: "END TURN", fn: () => { G.menu = null; endTurn(); } },
+      { label: "RULES", fn: () => { G.menu = null; screen = "help"; } },
+      { label: "QUIT", fn: () => { G = null; screen = "title"; } },
+    ],
+  };
+}
+function titleInput(a) {
+  const n = TITLE_ITEMS.length;
+  if (a === "up") { titleSel = (titleSel + n - 1) % n; SFX.move(); }
+  if (a === "down") { titleSel = (titleSel + 1) % n; SFX.move(); }
+  if (a === "ok") { SFX.ok(); TITLE_ITEMS[titleSel].fn(); }
+}
+const TITLE_ITEMS = [
+  { label: "PLAY THE LYCEENS", fn: () => newGame([true, false]) },
+  { label: "PLAY THE CRS", fn: () => newGame([false, true]) },
+  { label: "TWO PLAYERS, ONE SCREEN", fn: () => newGame([true, true]) },
+  { label: "HOW TO PLAY", fn: () => { screen = "help"; } },
+];
+
+addEventListener("keydown", (e) => {
+  const a = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down", " ": "ok", Enter: "ok", z: "ok", Escape: "back", Backspace: "back", x: "back", e: "end" }[e.key];
+  if (!a) return;
+  e.preventDefault(); act(a);
+});
+
+// Pointer: hover moves the cursor, click acts on what is under it.
+function pt(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
+let lastTile = null;
+cv.addEventListener("pointermove", (e) => {
+  if (e.pointerType !== "mouse" || screen !== "game" || !G || G.busy || G.menu || !human()) return;
+  const [px, py] = pt(e);
+  if (py < TOP || py >= BOT) return;
+  const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
+  if (G.mode === "target") return;
+  if (lastTile !== key(tx, ty)) { lastTile = key(tx, ty); G.cur = { x: tx, y: ty }; }
+});
+cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
+cv.addEventListener("pointerdown", (e) => {
+  if (e.button === 2) return;
+  const [px, py] = pt(e);
+  if (screen === "title") {
+    const i = TITLE_RECTS.findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
+    if (i >= 0) { titleSel = i; act("ok"); }
+    return;
+  }
+  if (screen === "help") return act("ok");
+  if (!G) return;
+  if (G.over || G.banner) return act("ok");
+  for (const b of G.buttons) if (px >= b.x && px < b.x + b.w && py >= b.y && py < b.y + b.h) return b.fn();
+  if (G.menu) {
+    const i = (G.menuRects || []).findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
+    if (i >= 0) { G.menu.sel = i; act("ok"); } else act("back");
+    return;
+  }
+  if (py < TOP || py >= BOT || G.busy || !human()) return;
+  const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
+  if (G.mode === "target") {
+    const i = G.targets.findIndex((t) => t.x === tx && t.y === ty);
+    if (i >= 0) { G.tsel = i; fireAt(G.targets[i]); } else { act("back"); }
+    return;
+  }
+  G.cur = { x: tx, y: ty };
+  okAt(tx, ty);
+});
+
+// ---------- tile art ----------
+let mapLayer = null;
+const rnd = (x, y, i = 0) => { let h = (x * 374761393 + y * 668265263 + i * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
+function buildMapLayer() {
+  mapLayer ||= document.createElement("canvas");
+  mapLayer.width = MW * TS; mapLayer.height = MH * TS;
+  const g = mapLayer.getContext("2d");
+  const f = (x, y, w, h, c) => { g.fillStyle = PAL[c]; g.fillRect(x, y, w, h); };
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(f, x, y);
+}
+function drawTile(f, x, y) {
+  const px = x * TS, py = y * TS, t = terr(x, y);
+  if (t === "#") {
+    f(px, py, 16, 16, 12);
+    f(px, py, 16, 9, 5); f(px, py + 8, 16, 1, 4); f(px, py, 16, 1, 6);
+    for (let i = 0; i < 3; i++) if (rnd(x, y, i) > 0.4) { const dx = 1 + i * 5; f(px + dx, py + 3, 3, 3, 6); f(px + dx + 1, py + 4, 1, 2, 0); }
+    const cx = Math.floor(rnd(x, y, 7) * 12) + 2; f(px + cx, py, 2, 3, 11); f(px + cx, py, 2, 1, 28);
+    f(px, py + 9, 16, 1, 0);
+    for (const wx of [1, 6, 11]) { f(px + wx, py + 10, 3, 4, 3); f(px + wx, py + 12, 3, 1, 0); }
+    f(px, py + 15, 16, 1, 11);
+  } else if (t === "=" || t === ".") {
+    f(px, py, 16, 16, t === "." ? 4 : 2);
+    if (t === ".") { for (let i = 0; i < 16; i += 2) for (let j = (i / 2) % 2; j < 16; j += 2) f(px + j, py + i, 1, 1, 3); }
+    const L = roadish(x - 1, y), R = roadish(x + 1, y), Up = roadish(x, y - 1), D = roadish(x, y + 1);
+    if (!Up) f(px, py, 16, 2, 5); if (!D) f(px, py + 14, 16, 2, 5);
+    if (!L) f(px, py, 2, 16, 5); if (!R) f(px + 14, py, 2, 16, 5);
+    if (t === "=") {
+      if ((L || R) && !(Up && D)) { f(px + 2, py + 7, 4, 1, 6); f(px + 10, py + 7, 4, 1, 6); }
+      else if ((Up || D) && !(L && R)) { f(px + 7, py + 2, 1, 4, 6); f(px + 7, py + 10, 1, 4, 6); }
+      else { for (let i = 0; i < 4; i++) f(px + 3 + i * 3, py + 1, 2, 2, 7); }
+    }
+  } else if (t === "T") {
+    f(px, py, 16, 16, 15);
+    for (let i = 0; i < 3; i++) {
+      const tx = px + 2 + Math.floor(rnd(x, y, i) * 9), ty = py + 1 + Math.floor(rnd(x, y, i + 9) * 8);
+      f(tx + 2, ty + 5, 2, 3, 9); f(tx, ty + 1, 6, 4, 16); f(tx + 1, ty, 4, 6, 16); f(tx + 1, ty + 1, 2, 2, 17); f(tx + 1, ty + 5, 5, 1, 14);
+    }
+  } else if (t === "~") {
+    f(px, py, 16, 16, 19);
+    if (!inb(x, y - 1) || terr(x, y - 1) !== "~" && terr(x, y - 1) !== "b") f(px, py, 16, 2, 11);
+    if (!inb(x, y + 1) || terr(x, y + 1) !== "~" && terr(x, y + 1) !== "b") f(px, py + 14, 16, 2, 11);
+  } else if (t === "b") {
+    f(px, py, 16, 16, 19); f(px + 2, py, 12, 16, 11); f(px + 4, py, 8, 16, 2); f(px + 2, py, 1, 16, 12); f(px + 13, py, 1, 16, 9);
+    for (let i = 1; i < 16; i += 3) { f(px + 2, py + i, 1, 1, 0); f(px + 13, py + i, 1, 1, 0); }
+  } else if (t === "P") drawProp(f, propAt(x, y) || PROPS0.find((p) => p.x === x && p.y === y), px, py);
+}
+function drawProp(f, p, px, py) {
+  const own = p.owner == null || p.owner < 0 ? 6 : SIDES[p.owner].flag;
+  f(px, py, 16, 16, 4);
+  const a = p.art;
+  if (a === "shop") {
+    f(px + 1, py + 3, 14, 13, 13); f(px + 1, py + 3, 14, 1, 11);
+    for (let i = 0; i < 14; i += 2) { f(px + 1 + i, py + 5, 1, 3, own); f(px + 2 + i, py + 5, 1, 3, 7); }
+    f(px + 1, py + 8, 14, 1, 0);
+    f(px + 2, py + 9, 8, 6, 21); f(px + 11, py + 9, 3, 7, 9); f(px + 2, py + 9, 8, 1, 7);
+    if (p.owner === 0) { f(px + 4, py + 10, 1, 1, 0); f(px + 5, py + 11, 1, 2, 0); f(px + 7, py + 10, 1, 3, 0); f(px + 6, py + 13, 2, 1, 0); }
+  } else if (a === "arc") {
+    f(px + 2, py + 2, 12, 14, 12); f(px + 2, py + 2, 12, 2, 11); f(px + 5, py + 7, 6, 9, 0); f(px + 6, py + 6, 4, 1, 0); f(px + 2, py + 4, 12, 1, 13);
+  } else if (a === "eiffel") {
+    f(px + 7, py, 2, 4, 9); f(px + 6, py + 4, 4, 4, 9); f(px + 5, py + 8, 6, 1, 10); f(px + 4, py + 9, 2, 7, 9); f(px + 10, py + 9, 2, 7, 9); f(px + 6, py + 9, 4, 2, 9); f(px + 3, py + 15, 10, 1, 10);
+  } else if (a === "louvre") {
+    for (let i = 0; i < 7; i++) f(px + 8 - i - 1, py + 4 + i * 1.5 | 0, 2 + i * 2, 2, i % 2 ? 21 : 20);
+    f(px + 1, py + 14, 14, 2, 12); f(px + 2, py + 13, 12, 1, 7);
+  } else if (a === "opera") {
+    f(px + 1, py + 6, 14, 10, 12); f(px + 4, py + 2, 8, 4, 16); f(px + 6, py + 1, 4, 1, 17); f(px + 7, py, 2, 1, 26);
+    for (let i = 2; i < 14; i += 3) f(px + i, py + 9, 2, 7, 11); f(px + 1, py + 6, 14, 1, 26);
+  } else if (a === "nd") {
+    f(px + 1, py + 2, 5, 14, 11); f(px + 10, py + 2, 5, 14, 11); f(px + 6, py + 6, 4, 10, 12); f(px + 7, py + 8, 2, 3, 30); f(px + 6, py + 6, 4, 1, 3);
+    f(px + 2, py + 4, 1, 3, 0); f(px + 4, py + 4, 1, 3, 0); f(px + 11, py + 4, 1, 3, 0); f(px + 13, py + 4, 1, 3, 0); f(px + 7, py + 12, 2, 4, 0);
+  } else if (a === "hdv") {
+    f(px + 1, py + 5, 14, 11, 12); f(px + 1, py + 3, 14, 2, 5); f(px + 6, py + 1, 4, 4, 5); f(px + 7, py + 2, 2, 2, 7);
+    for (let i = 2; i < 14; i += 3) f(px + i, py + 7, 2, 3, 3); f(px + 6, py + 12, 4, 4, 9);
+  } else if (a === "halles") {
+    f(px + 1, py + 6, 14, 10, 15); f(px + 1, py + 4, 14, 2, 16); f(px + 3, py + 2, 10, 2, 16); f(px + 3, py + 8, 10, 6, 21); f(px + 7, py + 8, 1, 6, 15);
+  } else if (a === "metro") {
+    f(px + 3, py + 4, 2, 12, 15); f(px + 11, py + 4, 2, 12, 15); f(px + 3, py + 3, 10, 2, 15); f(px + 5, py + 5, 6, 1, 15);
+    f(px + 6, py + 1, 4, 3, 26); f(px + 7, py + 2, 2, 1, 0); f(px + 5, py + 9, 6, 7, 0); f(px + 6, py + 11, 4, 1, 3); f(px + 6, py + 13, 4, 1, 3);
+  } else {
+    // hq, prefecture, invalides, sorbonne, lycee
+    const roof = a === "invalides" ? 27 : a === "lycee" ? 30 : 5;
+    f(px + 1, py + 4, 14, 12, a === "lycee" ? 11 : 12); f(px, py + 3, 16, 2, roof);
+    if (a === "invalides" || a === "sorbonne") { f(px + 5, py, 6, 4, a === "invalides" ? 26 : 5); f(px + 7, py - 0, 2, 1, 7); }
+    for (let i = 2; i < 14; i += 4) f(px + i, py + 7, 2, 3, 3);
+    f(px + 6, py + 11, 4, 5, 22);
+    if (a === "lycee") { f(px + 3, py + 6, 1, 6, 0); f(px + 11, py + 5, 2, 1, 0); f(px + 12, py + 6, 1, 3, 0); }
+    if (p.kind === "hq") { f(px + 3, py + 12, 2, 4, 9); f(px + 11, py + 12, 2, 4, 9); }
+  }
+  // owner pennant
+  f(px + 13, py, 1, 6, 0);
+  f(px + 10, py, 3, 3, own);
+  if (p.owner === -1 || p.owner == null) f(px + 11, py + 1, 1, 1, 0);
+}
+
+// ---------- drawing ----------
+function drawMap() {
+  ctx.drawImage(mapLayer, 0, TOP);
+  // animated water
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (terr(x, y) === "~") {
+    for (let i = 0; i < 3; i++) {
+      const wx = (Math.floor(rnd(x, y, i) * 16) + Math.floor(frame / 12)) % 14, wy = 3 + i * 4;
+      fill(x * TS + wx, TOP + y * TS + wy, 2, 1, (frame >> 4) % 2 ? 20 : 21);
+    }
+  }
+  // looted shops smoulder
+  for (const p of G.props) if (p.art === "shop" && p.owner === 0) {
+    const fl = (frame >> 3) % 3;
+    fill(p.x * TS + 3 + fl, TOP + p.y * TS + 11 - fl, 2, 2 + fl, 29); fill(p.x * TS + 4 + fl, TOP + p.y * TS + 12, 1, 2, 26);
+    fill(p.x * TS + 4, TOP + p.y * TS + 2 - fl, 2, 2, 3);
+  }
+}
+function checker(x, y, c, phase = 0) {
+  ctx.fillStyle = PAL[c];
+  const px = x * TS, py = TOP + y * TS;
+  for (let j = 0; j < 16; j++) for (let i = (j + phase) % 2; i < 16; i += 2) ctx.fillRect(px + i, py + j, 1, 1);
+}
+function drawUnits() {
+  for (const u of G.units) {
+    const px = u.x * TS, py = TOP + u.y * TS;
+    const dim = u.done && u.side === G.side && !G.over;
+    const bob = !dim && u.side === G.side && (frame >> 4) % 2 ? -1 : 0;
+    ctx.drawImage(SPR[`${u.type}${u.side === 0 ? 1 : 0}${dim ? 1 : 0}`], px, py + bob);
+    fill(px, py + 15, 4, 1, SIDES[u.side].col);
+    const h = hpD(u);
+    if (h < 10) { fill(px + 10, py + 8, 6, 8, 0); text(String(h), px + 11, py + 9, 7); }
+    if (u.capturing) { fill(px, py + 8, 6, 8, 0); text("C", px + 1, py + 9, 26); }
+  }
+}
+function drawCursor() {
+  const { x, y } = G.cur, px = x * TS, py = TOP + y * TS, o = (frame >> 4) % 2;
+  const c = G.mode === "target" ? 30 : 26;
+  for (const [cx, cy, sx, sy] of [[px - o, py - o, 1, 1], [px + 15 + o, py - o, -1, 1], [px - o, py + 15 + o, 1, -1], [px + 15 + o, py + 15 + o, -1, -1]]) {
+    fill(cx, cy, 1, 1, 0);
+    for (let i = 0; i < 4; i++) { fill(cx + i * sx, cy, 1, 1, c); fill(cx, cy + i * sy, 1, 1, c); }
+  }
+}
+function drawFx() {
+  for (const e of G.fx) {
+    e.t++;
+    if (e.delay && e.t < e.delay) continue;
+    const t = e.t - (e.delay || 0), px = e.x * TS + 8, py = TOP + e.y * TS + 8;
+    if (e.kind === "shot") {
+      const k = Math.min(1, t / (e.life - 4)), sx = e.sx * TS + 8, sy = TOP + e.sy * TS + 8;
+      const x = sx + (px - sx) * k, y = sy + (py - sy) * k - Math.sin(k * Math.PI) * (dist(e.sx, e.sy, e.x, e.y) > 1 ? 18 : 3);
+      const c = { fireworks: 29, gas: 31, water: 21, stone: 6, hit: 7 }[e.look];
+      fill(x - 1, y - 1, 3, 3, c); fill(x, y, 1, 1, 7);
+    } else if (e.kind === "fireworks" || e.kind === "hit" || e.kind === "stone") {
+      const cols = e.kind === "fireworks" ? [29, 26, 30, 25, 31] : [7, 26, 6];
+      for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, r = t * (e.kind === "fireworks" ? 0.7 : 0.4); fill(px + Math.cos(a) * r, py + Math.sin(a) * r, 1, 1, cols[i % cols.length]); }
+    } else if (e.kind === "gas") {
+      for (let i = 0; i < 6; i++) { const a = i + t * 0.05, r = 3 + t * 0.15; fill(px + Math.cos(a) * r - 2, py + Math.sin(a) * r - 2, 4, 3, i % 2 ? 31 : 17); }
+    } else if (e.kind === "water") {
+      for (let i = 0; i < 12; i++) fill(px - 8 + ((i * 5 + t) % 16), py - 6 + ((i * 7 + t * 2) % 14), 1, 2, i % 3 ? 21 : 7);
+    } else if (e.kind === "poof") {
+      for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, r = t * 0.35; fill(px + Math.cos(a) * r - 1, py + Math.sin(a) * r - 1 - t * 0.1, 3, 3, i % 2 ? 6 : 4); }
+    } else if (e.kind === "num") {
+      const y = py - 10 - Math.min(t, 16) * 0.4;
+      fill(px - 7, y - 1, 15, 9, 0); text("-" + e.n, px - 6, y, 30);
+    } else if (e.kind === "flag") {
+      const c = SIDES[e.side].col;
+      for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + t * 0.1, r = 10 - t * 0.15; fill(px + Math.cos(a) * r, py + Math.sin(a) * r, 2, 2, i % 2 ? c : 26); }
+    }
+  }
+  G.fx = G.fx.filter((e) => e.t < e.life + (e.delay || 0));
+}
+function box(x, y, w, h, border = 29) {
+  fill(x, y, w, h, 0); fill(x, y, w, 1, border); fill(x, y + h - 1, w, 1, border); fill(x, y, 1, h, border); fill(x + w - 1, y, 1, h, border);
+  fill(x + 1, y + 1, w - 2, 1, 2);
+}
+function drawTop() {
+  fill(0, 0, W, TOP, 1); fill(0, TOP - 1, W, 1, 0);
+  const s = G.side, sd = SIDES[s];
+  fill(4, 4, 8, 8, sd.col); fill(5, 5, 6, 2, sd.hi);
+  text(sd.name, 16, 5, 7);
+  text(`€${G.funds[s]}`, 16 + tw(sd.name) + 10, 5, 26);
+  const clock = `SAT ${hour()}:00`;
+  text(clock, 16 + tw(sd.name) + 10 + tw(`€${G.funds[s]}`) + 12, 5, 13);
+  const lm = `LANDMARKS ${marksHeld(0)}/${LANDMARKS} - CURFEW 23:00`;
+  text(lm, W - tw(lm) - 5, 5, marksHeld(0) >= NEED ? 30 : 6);
+}
+function drawBottom() {
+  fill(0, BOT, W, H - BOT, 1); fill(0, BOT, W, 1, 0);
+  G.buttons = [];
+  let info = "";
+  if (G.msgT > 0) { G.msgT--; info = G.msg; }
+  else {
+    const { x, y } = G.cur, u = unitAt(x, y), p = propAt(x, y);
+    const d = defAt(x, y);
+    const tn = p ? p.name : TNAME[terr(x, y)];
+    info = `${tn} ${"*".repeat(d)}`;
+    if (p && p.cap < 20) info += ` CAP ${p.cap}`;
+    if (u) info = `${U[u.type].name} ${hpD(u)}/10 - ${info}`;
+    if (G.mode === "target" && G.sel) { const t = G.targets[G.tsel]; if (t) info = `HIT ${U[t.type].name} FOR ~${calcDmg(G.sel, t, t.x, t.y, 4)}%`; }
+  }
+  text(info, 5, BOT + 5, G.msgT > 0 ? 26 : 7);
+  if (human() && !G.busy && !G.over) {
+    const btn = (label, fn, x) => { const w = tw(label) + 8; fill(x - w, BOT + 2, w, 12, 3); text(label, x - w + 4, BOT + 5, 13); G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn }); return x - w - 4; };
+    let x = W - 3;
+    if (G.mode === "idle" && !G.menu) x = btn("END TURN", () => { SFX.ok(); endTurn(); }, x);
+    if (G.mode !== "idle" || G.menu) btn("BACK", () => act("back"), x);
+  }
+}
+function drawMenu() {
+  const m = G.menu;
+  const w = m.wide ? 190 : 96, lh = 12, h = 16 + m.items.length * lh + (m.wide ? 14 : 0);
+  const at = m.at;
+  let x = at ? at.x * TS + 22 : G.cur.x * TS + 22, y = at ? TOP + at.y * TS - 6 : TOP + G.cur.y * TS - 6;
+  if (m.wide) { x = (W - w) / 2; y = TOP + 30; }
+  if (x + w > W - 4) x = (at ? at.x : G.cur.x) * TS - w - 6;
+  y = Math.max(TOP + 2, Math.min(BOT - h - 2, y));
+  box(x, y, w, h);
+  text(m.title, x + 5, y + 4, 29);
+  G.menuRects = [];
+  m.items.forEach((it, i) => {
+    const iy = y + 14 + i * lh;
+    G.menuRects.push([x, iy - 2, w, lh]);
+    if (i === m.sel) { fill(x + 2, iy - 2, w - 4, lh, 3); text(">", x + 4, iy, 26); }
+    text(it.label, x + 12, iy, it.off ? 4 : i === m.sel ? 7 : 6);
+    if (it.right) text(it.right, x + w - tw(it.right) - 5, iy, it.off ? 4 : 26);
+  });
+  if (m.wide) { const b = m.items[m.sel].blurb; if (b) text(b, x + 5, y + h - 11, 21); }
+}
+function drawBanner() {
+  const b = G.banner;
+  b.t--;
+  if (window.__fast) b.t = 0;
+  const k = b.t > 100 ? (110 - b.t) / 10 : b.t < 10 ? b.t / 10 : 1;
+  const h = 46, y = Math.round(H / 2 - h / 2);
+  fill(0, y, W * k, h, 0); fill(0, y, W * k, 2, b.col); fill(0, y + h - 2, W * k, 2, b.col);
+  if (k === 1) {
+    textC(b.title, W / 2, y + 9, 7, 2, 2);
+    const lines = wrap(b.sub, 60);
+    lines.forEach((l, i) => textC(l, W / 2, y + 28 + i * 9, 26));
+  }
+  if (b.t <= 0) G.banner = null;
+}
+function drawOver() {
+  const o = G.over;
+  fill(0, 0, W, H, 0); ctx.globalAlpha = 0.25; ctx.drawImage(mapLayer, 0, TOP); ctx.globalAlpha = 1;
+  const s = SIDES[o.winner];
+  box(24, 50, W - 48, 130, s.col);
+  textC(o.winner === 0 ? "THE STREETS WIN" : "ORDER RESTORED", W / 2, 66, s.col, 0, 2);
+  textC(`${s.name} WIN`, W / 2, 90, 7);
+  wrap(o.why, 50).forEach((l, i) => textC(l, W / 2, 108 + i * 10, 13));
+  textC(`SAT ${hour()}:00  -  LANDMARKS HELD BY LYCEENS ${marksHeld(0)}/${LANDMARKS}`, W / 2, 148, 6);
+  if ((frame >> 5) % 2) textC("PRESS SPACE", W / 2, 164, 26);
+}
+
+// ---------- title & help ----------
+let TITLE_RECTS = [];
+const titleBg = (() => { const s = { x: 0 }; return s; })();
+function drawTitle() {
+  if (!mapLayer) { G = { props: PROPS0.map((p) => ({ ...p })) }; buildMapLayer(); G = null; }
+  ctx.drawImage(mapLayer, 0, TOP);
+  ctx.globalAlpha = 0.72; fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
+  // a few title-screen fires
+  for (const [x, y] of [[3, 5], [10, 1], [17, 7], [21, 3], [8, 11]]) {
+    const fl = (frame >> 3) % 3;
+    fill(x * TS + 4, TOP + y * TS + 6 - fl, 6, 6 + fl, 28); fill(x * TS + 5, TOP + y * TS + 8, 4, 4, 29); fill(x * TS + 6, TOP + y * TS + 10, 2, 2, 26);
+  }
+  textC("COMMAND &", W / 2, 22, 26, 0, 2);
+  textC("COUVRE-FEU", W / 2, 42, 30, 0, 3);
+  textC("PARIS - SATURDAY 17 OCTOBER 2026 - CURFEW 23:00", W / 2, 72, 13);
+  ctx.drawImage(SPR.lyceen10, 120, 84); ctx.drawImage(SPR.kangoo10, 138, 84); ctx.drawImage(SPR.bloc10, 102, 84);
+  ctx.drawImage(SPR.crs00, 248, 84); ctx.drawImage(SPR.canon00, 228, 84); ctx.drawImage(SPR.lacrymo00, 266, 84);
+  textC("VS", W / 2 + 4, 89, 7, 0, 1);
+  TITLE_RECTS = [];
+  TITLE_ITEMS.forEach((it, i) => {
+    const y = 116 + i * 16, w = 190, x = (W - w) / 2;
+    TITLE_RECTS.push([x, y - 4, w, 15]);
+    if (i === titleSel) { box(x, y - 4, w, 15, 26); }
+    textC(it.label, W / 2, y, i === titleSel ? 26 : 6);
+  });
+  textC("ARROWS + SPACE. ESC = BACK. OR JUST CLICK.", W / 2, 186, 4);
+  textC("NOBODY DIED. THE LOUVRE SHUT. THE AIR MAX WENT ON VINTED.", W / 2, 222, 5);
+}
+function drawHelp() {
+  fill(0, 0, W, H, 0);
+  textC("HOW TO PLAY", W / 2, 10, 26, 0, 2);
+  const L = [
+    ["", "ADVANCE WARS RULES. ONE SATURDAY IN PARIS, 12:00 TO 23:00."],
+    ["", "EACH ROUND IS ONE HOUR. THE LYCEENS MOVE FIRST."],
+    [30, "LYCEENS WIN BY HOLDING 4 OF 7 LANDMARKS AT CURFEW,"],
+    [30, "OR BY TAKING PLACE BEAUVAU."],
+    [24, "CRS WIN IF THEY DON'T, OR BY RETAKING LYCEE VOLTAIRE."],
+    ["", ""],
+    ["", "SELECT A UNIT, PICK A SQUARE, THEN FIRE, CAPTURE OR WAIT."],
+    ["", "FOOT UNITS CAPTURE: 20 POINTS, MINUS THEIR HEALTH EACH TURN."],
+    ["", "SHOPS, LANDMARKS AND BASES PAY OUT EVERY TURN."],
+    ["", "BUY UNITS ON YOUR METRO STATIONS, BASES AND HQ."],
+    ["", "VANS STICK TO ROADS AND PARKS. PEOPLE CLIMB THROUGH BLOCKS."],
+    ["", "RANGED UNITS (CADDIE, LACRYMO) CAN'T MOVE AND FIRE."],
+    ["", "TEAR GAS HITS EVERYONE NEXT TO THE TARGET. INCLUDING YOURS."],
+    ["", "PINK PANTHER CAPTURES ANYTHING IN ONE GO. TONTON IS GASPROOF."],
+    ["", "BLOCKS GIVE *** COVER. PARKS **. ROADS NONE."],
+    ["", ""],
+    ["", "KEYS: ARROWS, SPACE, ESC. E = END TURN. MOUSE OR TAP WORKS TOO."],
+  ];
+  L.forEach(([c, l], i) => text(l, 14, 34 + i * 10, c === "" ? 6 : c));
+  if ((frame >> 5) % 2) textC("PRESS SPACE", W / 2, 222, 26);
+}
+
+// ---------- loop ----------
+function loop() {
+  frame++;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  fill(0, 0, W, H, 0);
+  if (screen === "title") drawTitle();
+  else if (screen === "help") drawHelp();
+  else if (G) {
+    if (G.over) drawOver();
+    else {
+      drawMap();
+      if (G.reach) for (const [k] of G.reach.d) { const [x, y] = unkey(k); checker(x, y, 25, frame >> 5); }
+      if (G.mode === "target") for (const t of G.targets) checker(t.x, t.y, 30);
+      if (G.capturePreview) {}
+      drawUnits();
+      drawFx();
+      if (human() || G.busy) drawCursor();
+      drawTop(); drawBottom();
+      if (G.menu) drawMenu();
+      if (G.banner) drawBanner();
+    }
+  }
+  requestAnimationFrame(loop);
+}
+// Test hook: lets a headless run inspect and drive the game.
+window.__cf = { get G() { return G; }, act, newGame, endTurn, get screen() { return screen; } };
+loop();
+</script>
+</body>
+</html>
