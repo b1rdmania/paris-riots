@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "image": "victory_lyceens.png",
+  "palette": "palette.json",
+  "frames": {
+    "background": {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 240
+    }
+  },
+  "resultBand": {
+    "x": 14,
+    "y": 150,
+    "w": 356,
+    "h": 50
+  },
+  "textColor": 7,
+  "titleColor": 26,
+  "notes": "Painted ending backdrop; result text is supplied by game. Brass panel matches title and menu frame."
+}

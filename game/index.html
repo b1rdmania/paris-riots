@@ -56,6 +56,7 @@ const GL = {
   "/": [1, 1, 2, 4, 8, 16, 16], "(": [2, 4, 8, 8, 8, 4, 2], ")": [8, 4, 2, 2, 2, 4, 8], '"': [10, 10, 0, 0, 0, 0, 0],
   "&": [12, 18, 20, 8, 21, 18, 13], "+": [0, 4, 4, 31, 4, 4, 0], "%": [24, 25, 2, 4, 8, 19, 3], " ": [],
   "€": [7, 8, 30, 8, 30, 8, 7], "*": [0, 4, 21, 14, 21, 4, 0], ">": [8, 4, 2, 1, 2, 4, 8], "<": [2, 4, 8, 16, 8, 4, 2], "=": [0, 0, 31, 0, 31, 0, 0],
+  "↑": [4, 14, 21, 4, 4, 4, 4], "↓": [4, 4, 4, 4, 21, 14, 4], "→": [0, 4, 2, 31, 2, 4, 0], "←": [0, 4, 8, 31, 8, 4, 0],
 };
 const norm = (t) => String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase()
   .replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-");
@@ -232,6 +233,24 @@ const ART = {
     "....kNNkkNNk....",
     "...kkkk..kkkk...",
   ],
+  fourgon: [
+    "................",
+    "................",
+    "...........BB...",
+    "..kkkkkkkkkkkk..",
+    ".kwwwwwwwwwkBBk.",
+    ".kwkkwkkwwwkBBBk",
+    ".kwkkwkkwwwkkkkk",
+    ".kwwwwwwwwwwwwwk",
+    ".kbbbbbbbbbbbbbk",
+    ".krrrrrrrrrrrrrk",
+    ".kwwwwwwwwwwwwwk",
+    ".kkkkkkkkkkkkkkk",
+    "..kKKk.....kKKk.",
+    "..kGGk.....kGGk.",
+    "...kk.......kk..",
+    "................",
+  ],
   crs: [
     "................",
     ".....kkkkk......",
@@ -375,21 +394,22 @@ const SIDES = [
   { name: "LA PREFECTURE", short: "CRS", col: 24, hi: 25, flag: 24 },
 ];
 const U = {
-  lyceen: { side: 0, name: "LYCEEN", cls: "inf", cost: 750, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. FILMS EVERYTHING." },
-  bloc: { side: 0, name: "BLACK BLOC", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. THROWS PAVING STONES." },
+  lyceen: { side: 0, name: "LYCEEN", cls: "inf", cost: 750, move: 3, mt: "foot", cap: true, barricade: true, metro: true, r: [1, 1], blurb: "CAPTURES, BARRICADES, TAKES THE METRO." },
+  bloc: { side: 0, name: "BLACK BLOC", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, barricade: true, metro: true, r: [1, 1], blurb: "PAVING STONES. BARRICADES. METRO." },
   trott: { side: 0, name: "TROTTINETTE", cls: "recon", cost: 4000, move: 7, mt: "scoot", r: [1, 1], blurb: "RENTED SCOOTER. RIDES THROUGH ANYTHING." },
-  torse: { side: 0, name: "TONTON TORSE NU", cls: "mech", dfn: "tank", cost: 5000, move: 3, mt: "foot", r: [1, 1], gasproof: true, blurb: "TOPLESS UNCLE. TEAR GAS DOES NOTHING." },
-  panther: { side: 0, name: "PINK PANTHER", cls: "inf", cost: 5000, move: 6, mt: "scoot", cap: true, capAll: true, r: null, one: true, blurb: "JEWEL THIEF. CAPTURES IN ONE TURN. ONLY ONE." },
-  caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 3], blurb: "FIREWORKS IN A TROLLEY. RANGE 2-3." },
+  torse: { side: 0, name: "TONTON TORSE NU", cls: "mech", dfn: "tank", cost: 5000, move: 3, mt: "foot", r: [1, 1], gasproof: true, metro: true, blurb: "TOPLESS UNCLE. TEAR GAS DOES NOTHING." },
+  panther: { side: 0, name: "PINK PANTHER", cls: "inf", cost: 5000, move: 6, mt: "scoot", cap: true, capAll: true, metro: true, r: null, one: true, blurb: "JEWEL THIEF. CAPTURES IN ONE TURN. ONLY ONE." },
+  caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 4], torch: true, blurb: "FIREWORKS, RANGE 2-4. SETS THE STREET ON FIRE." },
   kangoo: { side: 0, name: "GILETS JAUNES", cls: "tank", cost: 7000, move: 5, mt: "wheels", r: [1, 1], blurb: "A KANGOO OF UNCLES. NOBODY INVITED THEM." },
-  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. HAS A SHIELD." },
-  gm: { side: 1, name: "GENDARME MOBILE", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. TWO SHIELDS." },
+  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, clear: true, board: true, r: [1, 1], blurb: "CAPTURES. CLEARS BARRICADES. RIDES IN VANS." },
+  gm: { side: 1, name: "GENDARME MOBILE", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, clear: true, board: true, r: [1, 1], blurb: "CAPTURES. TWO SHIELDS. RIDES IN VANS." },
+  fourgon: { side: 1, name: "FOURGON", cls: "recon", cost: 2500, move: 6, mt: "wheels", r: null, carry: 2, blurb: "RIOT VAN. CARRIES 2 COPS. DROPS THEM OFF." },
   bravm: { side: 1, name: "BRAV-M", cls: "recon", cost: 4000, move: 7, mt: "wheels", r: [1, 1], blurb: "TWO MEN, ONE MOTORBIKE." },
-  lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
-  lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], splash: true, blurb: "TEAR GAS. RANGE 2-3. GASSES NEIGHBOURS TOO." },
-  canon: { side: 1, name: "CANON A EAU", cls: "tank", cost: 7000, move: 5, mt: "wheels", r: [1, 1], blurb: "WATER CANNON. SPLOOSH." },
+  lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], clear: true, board: true, blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
+  lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], gas: true, board: true, blurb: "TEAR GAS CLOUD, RANGE 2-3. DRIFTS WITH THE WIND." },
+  canon: { side: 1, name: "CANON A EAU", cls: "tank", cost: 8000, move: 5, mt: "wheels", r: null, spray: true, blurb: "3-TILE JET. PUSHES. INTO THE SEINE = GONE." },
 };
-const ROSTER = [["lyceen", "bloc", "trott", "torse", "panther", "caddie", "kangoo"], ["crs", "gm", "bravm", "lbd", "lacrymo", "canon"]];
+const ROSTER = [["lyceen", "bloc", "trott", "torse", "panther", "caddie", "kangoo"], ["crs", "gm", "fourgon", "bravm", "lbd", "lacrymo", "canon"]];
 // Base damage %, attacker class -> defender class (Advance Wars shape).
 const DMG = {
   inf: { inf: 55, mech: 45, recon: 12, arty: 15, tank: 5 },
@@ -462,17 +482,19 @@ let G = null, screen = "title", titleSel = 0, frame = 0;
 const key = (x, y) => y * MW + x, unkey = (k) => [k % MW, Math.floor(k / MW)];
 const inb = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const sleep = (ms) => new Promise((r) => setTimeout(r, window.__fast ? 0 : ms));
 const dist = (a, b, c, d) => Math.abs(a - c) + Math.abs(b - d);
 
 function newGame(humans) {
   G = {
-    humans, side: 0, round: 0, funds: [2000, 5000], units: [], nextId: 1,
+    humans, side: 0, round: 0, funds: [2000, 2500], units: [], nextId: 1,
     props: PROPS0.map((p) => ({ ...p, cap: 20 })), mode: "idle", cur: { x: 21, y: 3 },
     sel: null, reach: null, from: null, menu: null, targets: [], tsel: 0, fx: [],
     msg: "", msgT: 0, banner: null, busy: false, over: null, buttons: [],
+    bar: new Set(), fire: new Map(), gas: new Map(), under: [], wind: pick(DIRS), pick: null,
   };
-  const put = (t, x, y) => G.units.push({ id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false });
+  const put = (t, x, y) => G.units.push({ id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false, cargo: [] });
   put("lyceen", 21, 3); put("lyceen", 21, 9); put("bloc", 22, 8); put("lyceen", 15, 11);
   put("crs", 9, 0); put("crs", 7, 1); put("gm", 8, 1); put("crs", 16, 7);
   buildMapLayer();
@@ -482,8 +504,18 @@ function newGame(humans) {
 const unitAt = (x, y) => G.units.find((u) => u.x === x && u.y === y);
 const propAt = (x, y) => G.props.find((p) => p.x === x && p.y === y);
 const terr = (x, y) => MAP[y][x];
-const defAt = (x, y) => { const p = terr(x, y) === "P" && propAt(x, y); return p ? (p.kind === "hq" ? 4 : 3) : DEF[terr(x, y)]; };
-const cost = (mt, x, y) => COST[mt][terr(x, y)];
+const defAt = (x, y) => {
+  if (G?.bar?.has(key(x, y))) return 3;
+  const p = terr(x, y) === "P" && propAt(x, y); return p ? (p.kind === "hq" ? 4 : 3) : DEF[terr(x, y)];
+};
+// Fire blocks everyone; a barricade stops vehicles and slows people climbing over.
+const cost = (mt, x, y) => {
+  const k = key(x, y);
+  if (G?.fire?.has(k)) return 0;
+  if (G?.bar?.has(k)) return mt === "wheels" ? 0 : 2;
+  return COST[mt][terr(x, y)];
+};
+const canBoard = (u, o) => U[u.type].board && o.type === "fourgon" && o.side === u.side && o.cargo.length < U.fourgon.carry;
 const hpD = (u) => Math.ceil(u.hp / 10);
 const human = () => G.humans[G.side];
 const hour = () => START_HOUR + G.round;
@@ -506,7 +538,7 @@ function reach(u) {
       if (!d.has(kk) || nc < d.get(kk)) { d.set(kk, nc); prev.set(kk, key(x, y)); q.push([nc, nx, ny]); }
     }
   }
-  for (const k of [...d.keys()]) { const [x, y] = unkey(k); const o = unitAt(x, y); if (o && o !== u) d.delete(k); }
+  for (const k of [...d.keys()]) { const [x, y] = unkey(k); const o = unitAt(x, y); if (o && o !== u && !canBoard(u, o)) d.delete(k); }
   return { d, prev };
 }
 function pathTo(R, sx, sy, x, y) {
@@ -527,7 +559,6 @@ function calcDmg(a, d, dx, dy, luck, ahp = a.hp, dhp = d.hp) {
 const canCounter = (d, a) => U[d.type].r && U[d.type].cls !== "arty" && dist(a.x, a.y, d.x, d.y) === 1;
 
 // ---------- quips ----------
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
 function quipCapture(u, p) {
   if (p.kind === "hq") return u.side === 0 ? "BEAUVAU HAS FALLEN. THE MINISTER IS IN A CUPBOARD." : "LYCEE RETAKEN. DOUBLE MATHS ON MONDAY.";
   if (u.side === 0) {
@@ -547,6 +578,7 @@ const quipKO = (u) => u.side === 0 ? pick(["ARRESTED. MUM IS FURIOUS.", "ARRESTE
 // ---------- turn flow ----------
 function startTurn() {
   const s = G.side;
+  tickHazards(s);
   let inc = 0;
   for (const p of G.props) if (p.owner === s) inc += INCOME[p.kind];
   G.funds[s] += inc;
@@ -562,6 +594,7 @@ function startTurn() {
   const sub = s === 0 ? NEWS[G.round] || "" : `INCOME €${inc}`;
   G.banner = { title: `${SIDES[s].short} - SAT ${hour()}:00`, sub: s === 0 ? sub : `INCOME €${inc}`, col: SIDES[s].col, t: 110 };
   SFX.turn();
+  if (human() && G.under.some((u) => u.side === s)) G.pendingSurface = true;
   if (!human()) runAI();
 }
 function endTurn() {
@@ -569,7 +602,7 @@ function endTurn() {
   for (const u of G.units) u.done = false;
   G.mode = "idle"; G.menu = null; G.sel = null;
   const other = 1 - G.side;
-  if (!G.units.some((u) => u.side === other) && G.funds[other] < 1000 && !G.props.some((p) => p.owner === other && (p.kind === "base" || p.kind === "hq"))) return gameOver(G.side, "THEY HAVE NOBODY LEFT.");
+  if (!alive(other) && G.funds[other] < 1000 && !G.props.some((p) => p.owner === other && (p.kind === "base" || p.kind === "hq"))) return gameOver(G.side, "THEY HAVE NOBODY LEFT.");
   if (G.side === 1) {
     G.round++;
     if (hour() >= CURFEW) return curfew();
@@ -599,18 +632,12 @@ async function attack(a, d) {
   const dmg = calcDmg(a, d, d.x, d.y, luck());
   const left = Math.max(0, d.hp - dmg);
   const c = left > 0 && canCounter(d, a) ? calcDmg(d, a, a.x, a.y, luck(), left, a.hp) : 0;
-  const scene = showBattle();
+  const scene = showBattle(a, d);
   if (scene) await battle(a, d, dmg, c);
   else { fx(a, d); SFX.hit(); setPose(a, "attack", 380); await sleep(380); }
   d.hp -= dmg; pop(d.x, d.y, dmg); setPose(d, "hit", 300);
-  if (U[a.type].splash) {
-    let own = false;
-    for (const o of G.units) if (o !== d && dist(o.x, o.y, d.x, d.y) === 1 && !U[o.type].gasproof) {
-      o.hp = Math.max(1, o.hp - 10); pop(o.x, o.y, 10); if (o.side === a.side) own = true;
-      G.fx.push({ kind: "gas", x: o.x, y: o.y, t: 0, life: 40 });
-    }
-    if (own) say("OOPS. GASSED OUR OWN LADS.");
-  }
+  if (U[a.type].gas) gasCloud(d.x, d.y, a.side);
+  if (U[a.type].torch) setFire(d.x, d.y);
   if (d.hp <= 0) await ko(d, scene);
   else if (c) {
     if (!scene) { await sleep(250); fx(d, a); SFX.hit(); setPose(d, "attack", 300); await sleep(300); }
@@ -621,18 +648,18 @@ async function attack(a, d) {
   G.busy = false;
   checkRout();
 }
-async function ko(u, seen) {
+async function ko(u, seen, msg) {
   if (SHEET.frames?.has(u.type) && !seen) { u.hp = 1; setPose(u, "ko", 900); await sleep(900); }
   G.fx.push({ kind: "poof", x: u.x, y: u.y, t: 0, life: 30 });
   if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; }
   G.units = G.units.filter((o) => o !== u);
-  say(quipKO(u)); SFX.bad();
+  say(msg || (u.cargo?.length ? "VAN TOWED. THE CREW GO HOME." : quipKO(u))); SFX.bad();
   await sleep(300);
 }
 function checkRout() {
   for (const s of [0, 1]) {
     if (G.over) return;
-    const has = G.units.some((u) => u.side === s);
+    const has = alive(s);
     const canBuy = G.funds[s] >= 1000 && G.props.some((p) => p.owner === s && (p.kind === "base" || p.kind === "hq"));
     if (!has && !canBuy) gameOver(1 - s, `${SIDES[s].short} HAVE NOBODY LEFT.`);
   }
@@ -650,7 +677,7 @@ function doCapture(u) {
 }
 function buy(p, type) {
   G.funds[G.side] -= U[type].cost;
-  G.units.push({ id: G.nextId++, type, side: G.side, x: p.x, y: p.y, hp: 100, done: true, capturing: false });
+  G.units.push({ id: G.nextId++, type, side: G.side, x: p.x, y: p.y, hp: 100, done: true, capturing: false, cargo: [] });
   SFX.ok();
 }
 
@@ -662,11 +689,145 @@ function fx(a, d) {
 }
 function pop(x, y, dmg) { G.fx.push({ kind: "num", x, y, n: Math.ceil(dmg / 10), t: 0, life: 50 }); }
 
+// ---------- riot mechanics: barricades, fire, gas, water cannon, Metro, vans, kettling ----------
+const alive = (s) => G.units.some((u) => u.side === s) || G.under.some((u) => u.side === s);
+const inGas = (u, x = u.x, y = u.y) => G.gas.has(key(x, y)) && !U[u.type].gasproof;
+const WIND_NAME = (w) => ({ "1,0": "→", "-1,0": "←", "0,1": "↓", "0,-1": "↑" })[w.join()];
+function setFire(x, y) {
+  if (!inb(x, y) || terr(x, y) === "~") return;
+  G.fire.set(key(x, y), 4); G.bar.delete(key(x, y));
+}
+function gasCloud(x, y, side) {
+  let own = false;
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+    if (!inb(x + dx, y + dy)) continue;
+    G.gas.set(key(x + dx, y + dy), 4);
+    const o = unitAt(x + dx, y + dy); if (o && o.side === side && !U[o.type].gasproof) own = true;
+  }
+  if (own) say("OUR LADS ARE IN THAT CLOUD.");
+  return own;
+}
+function tickHazards(s) {
+  // Fire and gas last two hours (four half-turns).
+  for (const m of [G.fire, G.gas]) for (const [k, v] of [...m]) v <= 1 ? m.delete(k) : m.set(k, v - 1);
+  if (s === 0 && G.round > 0) {
+    // Each hour the wind moves the gas one tile, then may change.
+    const moved = new Map();
+    for (const [k, v] of G.gas) { const [x, y] = unkey(k), nx = x + G.wind[0], ny = y + G.wind[1]; if (inb(nx, ny)) moved.set(key(nx, ny), Math.max(v, moved.get(key(nx, ny)) || 0)); }
+    G.gas = moved;
+    if (Math.random() < 0.4) G.wind = pick(DIRS);
+  }
+  const hurt = [];
+  for (const u of G.units) if (u.side === s) {
+    const k = key(u.x, u.y);
+    if (G.fire.has(k)) { u.hp = Math.max(1, u.hp - 20); hurt.push("BURNT"); }
+    if (inGas(u)) { u.hp = Math.max(1, u.hp - 10); hurt.push("GASSED"); }
+  }
+  if (hurt.length) say(hurt.includes("GASSED") ? `${hurt.length} UNIT${hurt.length > 1 ? "S" : ""} COUGHING IN THE GAS.` : "SOMEBODY IS STANDING IN A FIRE.");
+}
+// Water cannon: a three-tile jet. Buildings stop it. Everyone in it is hit and pushed one tile.
+function sprayLine(x, y, [dx, dy]) {
+  const t = [];
+  for (let i = 1; i <= 3; i++) { const nx = x + dx * i, ny = y + dy * i; if (!inb(nx, ny) || terr(nx, ny) === "#") break; t.push([nx, ny]); }
+  return t;
+}
+const SPRAY = { inf: 45, mech: 40, recon: 30, arty: 30, tank: 15 };
+const sprayDmg = (u, o) => Math.floor(SPRAY[U[o.type].dfn || U[o.type].cls] * hpD(u) / 10);
+async function spray(u, dir) {
+  G.busy = true;
+  const line = sprayLine(u.x, u.y, dir);
+  G.fx.push({ kind: "jet", sx: u.x, sy: u.y, dir, tiles: line, t: 0, life: 40 });
+  setPose(u, "attack", 500); noise(0.5, 0.06); beep(180, 0.4, "sawtooth", 0.03, -80);
+  await sleep(450);
+  let cleared = 0;
+  for (const [x, y] of line) { const k = key(x, y); if (G.bar.delete(k)) cleared++; G.fire.delete(k); }
+  let msg = cleared ? `BARRICADE${cleared > 1 ? "S" : ""} WASHED AWAY.` : "";
+  for (const o of line.map(([x, y]) => unitAt(x, y)).filter(Boolean).reverse()) {
+    const dmg = sprayDmg(u, o);
+    o.hp -= dmg; pop(o.x, o.y, dmg); setPose(o, "hit", 300);
+    if (o.hp <= 0) { await ko(o, true, `${U[o.type].name} HOSED DOWN. GOES HOME SOAKED.`); continue; }
+    const nx = o.x + dir[0], ny = o.y + dir[1];
+    if (o.capturing) { const p = propAt(o.x, o.y); if (p) p.cap = 20; o.capturing = false; }
+    if (inb(nx, ny) && terr(nx, ny) === "~") {
+      o.x = nx; o.y = ny; await sleep(150);
+      await ko(o, true, pick([`${U[o.type].name} SWEPT INTO THE SEINE. FISHED OUT AT CHATELET.`, `${U[o.type].name} IN THE SEINE. BATEAU MOUCHE PICKS THEM UP.`]));
+      msg = "";
+    } else if (!inb(nx, ny) || !cost("foot", nx, ny) || unitAt(nx, ny) || terr(nx, ny) === "#" && U[o.type].mt === "wheels") {
+      o.hp -= 10; pop(o.x, o.y, 10); msg = msg || "SPLAT. PINNED TO THE WALL.";
+      if (o.hp <= 0) await ko(o, true);
+    } else { o.x = nx; o.y = ny; }
+  }
+  if (msg) say(msg);
+  await sleep(250);
+  G.busy = false;
+  checkRout();
+}
+// Kettling: a lycéen boxed in on all four sides (cops, water, fire, gas, map edge) by at least two cops is arrested.
+function boxed(L) {
+  let cops = 0;
+  for (const [dx, dy] of DIRS) {
+    const x = L.x + dx, y = L.y + dy;
+    if (!inb(x, y) || terr(x, y) === "~") continue;
+    const o = unitAt(x, y);
+    if (o && o.side === 1) { cops++; continue; }
+    if (G.fire.has(key(x, y)) || inGas(L, x, y)) continue;
+    return false;
+  }
+  return cops >= 2;
+}
+async function kettleCheck() {
+  for (const L of G.units.filter((u) => u.side === 0)) {
+    if (!boxed(L)) continue;
+    G.fx.push({ kind: "flag", x: L.x, y: L.y, t: 0, life: 40, side: 1 });
+    await sleep(300);
+    await ko(L, true, `KETTLED! ${U[L.type].name} ARRESTED ON THE SPOT.`);
+  }
+}
+// The Metro: lycéens on a station they hold go underground and come up at another one next turn.
+const isStation = (p) => p && ["base", "mark", "hq"].includes(p.kind);
+const freeStations = (s) => G.props.filter((p) => p.owner === s && isStation(p) && !unitAt(p.x, p.y));
+function goUnder(u) {
+  if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; u.capturing = false; }
+  G.units = G.units.filter((o) => o !== u); G.under.push(u); u.done = true;
+  say(`${U[u.type].name} TAKES THE METRO. MIND THE GAP.`); beep(523, 0.08); setTimeout(() => beep(392, 0.12), 90);
+}
+function surface(u, p) {
+  G.under = G.under.filter((o) => o !== u);
+  u.x = p.x; u.y = p.y; u.done = false; G.units.push(u);
+  G.fx.push({ kind: "flag", x: p.x, y: p.y, t: 0, life: 40, side: 0 });
+  say(`${U[u.type].name} POPS UP AT ${p.name}.`); SFX.cap();
+}
+function surfaceMenu() {
+  const u = G.under.find((o) => o.side === G.side), st = freeStations(G.side);
+  if (!u || !st.length) { G.pendingSurface = false; if (u) say("NO FREE STATION. STILL UNDERGROUND."); return; }
+  G.cur = { x: st[0].x, y: st[0].y };
+  G.menu = {
+    title: `${U[u.type].name}: COME UP AT`, sel: 0, wide: true,
+    items: [...st.slice(0, 11).map((p) => ({ label: p.name, fn: () => { G.menu = null; surface(u, p); G.cur = { x: p.x, y: p.y }; surfaceMenu(); } })),
+      { label: "STAY UNDERGROUND", fn: () => { G.menu = null; G.pendingSurface = false; } }],
+    back: () => { G.menu = null; G.pendingSurface = false; },
+  };
+}
+// Riot vans.
+function board(u, van) {
+  G.units = G.units.filter((o) => o !== u); van.cargo.push(u); u.done = true; u.capturing = false;
+  say(`${U[u.type].name} IN THE VAN. SIRENS ON.`); beep(880, 0.1); setTimeout(() => beep(660, 0.1), 120);
+}
+const unloadTiles = (v) => DIRS.map(([dx, dy]) => [v.x + dx, v.y + dy]).filter(([x, y]) => inb(x, y) && cost("foot", x, y) && !unitAt(x, y));
+function unload(v, x, y) {
+  const c = v.cargo.shift(); c.x = x; c.y = y; c.done = true; G.units.push(c);
+  say(`${U[c.type].name} JUMPS OUT.`); SFX.ok();
+}
+function barricadeTiles(u) {
+  return DIRS.map(([dx, dy]) => [u.x + dx, u.y + dy]).filter(([x, y]) => inb(x, y) && "=b".includes(terr(x, y)) && !unitAt(x, y) && !G.bar.has(key(x, y)) && !G.fire.has(key(x, y)));
+}
+const ringTiles = (u, lo, hi, ok) => { const t = []; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const d = dist(u.x, u.y, x, y); if (d >= lo && d <= hi && ok(x, y)) t.push([x, y]); } return t; };
+
 // ---------- battle scene (Advance Wars cut-in) ----------
 const BATTLE_MODES = ["ALL", "MY TURN ONLY", "OFF"];
 let battleMode = 0;
 try { battleMode = Number(localStorage.getItem("pr-battles")) || 0; } catch {}
-const showBattle = () => !window.__fast && IMG.cutMeta && (battleMode === 0 || (battleMode === 1 && human()));
+const showBattle = (a, d) => !window.__fast && IMG.cutMeta && IMG.cutMeta.frames[`${a.type}/idle`] && IMG.cutMeta.frames[`${d.type}/idle`] && (battleMode === 0 || (battleMode === 1 && human()));
 // What flies across the gap, and what it looks like when it lands.
 const SHOT = { lyceen: ["paving_stone", "smoke"], bloc: ["paving_stone", "smoke"], caddie: ["firework", "firework"], lbd: ["rubber_bullet", "smoke"],
   lacrymo: ["teargas", "teargas"], canon: [null, "water"] };
@@ -842,12 +1003,22 @@ async function runAI() {
   G.busy = true;
   await waitBanner();
   const s = G.side;
-  const order = G.units.filter((u) => u.side === s).sort((a, b) => (U[b.type].cls === "arty") - (U[a.type].cls === "arty") || U[b.type].cost - U[a.type].cost);
+  // Come up from the Metro next to whatever is still worth taking.
+  for (const u of G.under.filter((o) => o.side === s)) {
+    const st = freeStations(s), goals = G.props.filter((p) => p.owner !== s);
+    if (!st.length || !goals.length) break;
+    const near = (p) => Math.min(...goals.map((g) => dist(p.x, p.y, g.x, g.y)));
+    st.sort((a, b) => near(a) - near(b));
+    surface(u, st[0]); G.cur = { x: st[0].x, y: st[0].y }; await sleep(250);
+  }
+  const rank = (u) => (U[u.type].cls === "arty" ? 2 : 0) - (u.type === "fourgon" ? 4 : 0);
+  const order = G.units.filter((u) => u.side === s).sort((a, b) => rank(b) - rank(a) || U[b.type].cost - U[a.type].cost);
   for (const u of order) {
     if (G.over) return;
-    if (!G.units.includes(u)) continue;
+    if (!G.units.includes(u) || u.done) continue;
     await aiUnit(u);
     u.done = true;
+    if (s === 1) await kettleCheck();
     await sleep(120);
   }
   if (G.over) return;
@@ -859,11 +1030,54 @@ async function runAI() {
 function waitBanner() { return new Promise((r) => { const t = () => (G.banner ? setTimeout(t, 50) : r()); t(); }); }
 async function aiUnit(u) {
   const s = u.side, t = U[u.type], R = reach(u);
+  if (u.type === "fourgon") return aiVan(u, R);
   const here = propAt(u.x, u.y);
-  if (t.cap && here && here.owner !== s && u.capturing) { G.cur = { x: u.x, y: u.y }; await sleep(150); doCapture(u); return; }
+  if (t.cap && here && here.owner !== s && u.capturing && !inGas(u)) { G.cur = { x: u.x, y: u.y }; await sleep(150); doCapture(u); return; }
+  const goalDist = (x, y) => Math.min(99, ...G.props.filter((p) => p.owner !== s).map((p) => dist(x, y, p.x, p.y)));
+  const enemyWheels = G.units.filter((o) => o.side !== s && U[o.type].mt === "wheels");
   let best = null;
+  const offer = (v, o) => { if (!best || v > best.v) best = { v, ...o }; };
   for (const [k] of R.d) {
     const [x, y] = unkey(k), moved = x !== u.x || y !== u.y;
+    const occ = unitAt(x, y);
+    if (occ && occ !== u) { if (canBoard(u, occ) && goalDist(x, y) > 6) offer(260, { x, y, act: "board", van: occ }); continue; }
+    if (inGas(u, x, y)) continue;
+    // water cannon: line up a jet
+    if (t.spray) for (const dir of DIRS) {
+      let v = 0;
+      for (const [lx, ly] of sprayLine(x, y, dir)) {
+        if (G.bar.has(key(lx, ly))) v += 420;
+        if (G.fire.has(key(lx, ly))) v += 80;
+        const o = unitAt(lx, ly); if (!o || o === u) continue;
+        const sign = o.side === s ? -1.2 : 1, nx = lx + dir[0], ny = ly + dir[1];
+        let gain = Math.min(sprayDmg(u, o), o.hp) * U[o.type].cost / 100;
+        if (inb(nx, ny) && terr(nx, ny) === "~") gain += U[o.type].cost * 0.7;
+        if (o.capturing) gain += 900;
+        v += sign * gain;
+      }
+      if (v > 0) offer(v, { x, y, act: "spray", dir });
+    }
+    // CRS on foot drag barricades away; lycéens build them across the path of police vehicles
+    if (t.clear) for (const [dx, dy] of DIRS) if (G.bar.has(key(x + dx, y + dy))) offer(450 + (terr(x + dx, y + dy) === "b" ? 200 : 0), { x, y, act: "clear", tx: x + dx, ty: y + dy });
+    if (t.barricade && G.bar.size < 12) for (const [bx, by] of barricadeTiles({ x, y })) {
+      if ([...G.bar].some((kk) => { const [cx, cy] = unkey(kk); return dist(cx, cy, bx, by) <= 1; })) continue;
+      const dv = Math.min(99, ...enemyWheels.map((o) => dist(o.x, o.y, bx, by)));
+      let v = dv <= 8 ? 420 - dv * 25 : 0;
+      if (terr(bx, by) === "b") v += 250;
+      if (G.props.some((p) => p.owner === s && p.kind !== "shop" && dist(p.x, p.y, bx, by) <= 1)) v += 180;
+      if (v > 0) offer(v, { x, y, act: "barricade", tx: bx, ty: by });
+    }
+    // kettle: stepping here closes the last gap around a lycéen
+    if (s === 1 && t.r) for (const [dx, dy] of DIRS) {
+      const L = unitAt(x + dx, y + dy);
+      if (!L || L.side !== 0) continue;
+      const ox = u.x, oy = u.y; u.x = x; u.y = y;
+      const shut = boxed(L); u.x = ox; u.y = oy;
+      if (shut) offer(2600, { x, y, act: "wait" });
+    }
+    // lycéens far from anything worth taking ride the Metro
+    const st = propAt(x, y);
+    if (t.metro && isStation(st) && st.owner === s && goalDist(x, y) > 6 && freeStations(s).length > 1) offer(200 + (goalDist(x, y) - 6) * 40, { x, y, act: "metro" });
     for (const d of targetsFrom(u, x, y, moved)) {
       const dmg = calcDmg(u, d, d.x, d.y, 4), kill = dmg >= d.hp;
       let v = Math.min(dmg, d.hp) * U[d.type].cost / 100 + (kill ? U[d.type].cost * 0.4 : 0);
@@ -873,10 +1087,16 @@ async function aiUnit(u) {
       }
       if (d.capturing) v += 1500;
       v += defAt(x, y) * 30;
+      if (t.gas) for (const o of G.units) if (o !== d && Math.abs(o.x - d.x) <= 1 && Math.abs(o.y - d.y) <= 1 && !U[o.type].gasproof) v += o.side === s ? -300 : 250;
+      if (t.torch && "=b".includes(terr(d.x, d.y))) v += 150;
       if (!best || v > best.v) best = { v, x, y, act: "fire", d };
     }
+    if (!moved && t.torch) for (const [fx_, fy] of ringTiles(u, 2, 4, (a, b) => "=b".includes(terr(a, b)) && !unitAt(a, b) && !G.fire.has(key(a, b)))) {
+      const near = enemyWheels.some((o) => dist(o.x, o.y, fx_, fy) <= 2);
+      if (near) offer(320 + (terr(fx_, fy) === "b" ? 150 : 0), { x, y, act: "torch", tx: fx_, ty: fy });
+    }
     const p = t.cap && propAt(x, y);
-    if (p && p.owner !== s) {
+    if (p && p.owner !== s && !inGas(u, x, y)) {
       let v = { hq: 99999, mark: 3200, base: 2600, shop: 2000 }[p.kind] + (p.owner === 1 - s ? 600 : 0);
       if (s === 0 && p.kind === "mark") v += 800; // lycéens need landmarks
       v *= u.hp / 100;
@@ -886,8 +1106,15 @@ async function aiUnit(u) {
   if (best && best.v > 150) {
     G.cur = { x: best.x, y: best.y }; G.reach = R; await sleep(160); G.reach = null;
     await moveUnit(u, pathTo(R, u.x, u.y, best.x, best.y));
-    if (best.act === "fire") { G.cur = { x: best.d.x, y: best.d.y }; await sleep(120); await attack(u, best.d); }
-    else doCapture(u);
+    const b = best;
+    if (b.act === "fire") { G.cur = { x: b.d.x, y: b.d.y }; await sleep(120); await attack(u, b.d); }
+    else if (b.act === "cap") doCapture(u);
+    else if (b.act === "spray") await spray(u, b.dir);
+    else if (b.act === "clear") { G.bar.delete(key(b.tx, b.ty)); say("BARRICADE DRAGGED AWAY."); }
+    else if (b.act === "barricade") { G.bar.add(key(b.tx, b.ty)); say("BINS, BIKES AND A CONE. BARRICADE UP."); }
+    else if (b.act === "torch") { fireworkAt(u, b.tx, b.ty); setFire(b.tx, b.ty); say("FIREWORKS. THAT STREET IS ON FIRE NOW."); await sleep(300); }
+    else if (b.act === "metro") goUnder(u);
+    else if (b.act === "board") board(u, b.van);
     return;
   }
   // Walk toward the nearest useful thing.
@@ -901,7 +1128,8 @@ async function aiUnit(u) {
   let bx = u.x, by = u.y, bs = f[key(u.x, u.y)] + (hp0 && hp0.owner === s && (hp0.kind === "base" || hp0.kind === "hq") ? 3 : 0);
   for (const [k] of R.d) {
     const [x, y] = unkey(k);
-    let sc = f[k] - defAt(x, y) * 0.1;
+    if (unitAt(x, y) && unitAt(x, y) !== u) continue;
+    let sc = f[k] - defAt(x, y) * 0.1 + (inGas(u, x, y) ? 3 : 0);
     if (t.cls === "arty" && G.units.some((o) => o.side !== s && dist(x, y, o.x, o.y) <= 1)) sc += 5;
     const pp = propAt(x, y); if (pp && pp.owner === s && (pp.kind === "base" || pp.kind === "hq")) sc += 3;
     if (sc < bs) { bs = sc; bx = x; by = y; }
@@ -909,6 +1137,24 @@ async function aiUnit(u) {
   if (bx !== u.x || by !== u.y) { G.cur = { x: bx, y: by }; await moveUnit(u, pathTo(R, u.x, u.y, bx, by)); }
   const p = propAt(u.x, u.y);
   if (t.cap && p && p.owner !== s) doCapture(u);
+}
+async function aiVan(u, R) {
+  const s = u.side;
+  const goals = (u.cargo.length ? G.props.filter((p) => p.owner !== s) : G.units.filter((o) => o.side === s && U[o.type].board)).map((o) => [o.x, o.y]);
+  if (!goals.length) return;
+  const f = field("wheels", goals);
+  let bx = u.x, by = u.y;
+  for (const [k] of R.d) { const [x, y] = unkey(k); if (unitAt(x, y) && unitAt(x, y) !== u) continue; if (f[k] < f[key(bx, by)]) { bx = x; by = y; } }
+  if (bx !== u.x || by !== u.y) { G.cur = { x: bx, y: by }; await moveUnit(u, pathTo(R, u.x, u.y, bx, by)); }
+  if (!u.cargo.length) return;
+  const near = G.props.some((p) => p.owner !== s && dist(p.x, p.y, u.x, u.y) <= 3) || G.units.some((o) => o.side !== s && dist(o.x, o.y, u.x, u.y) <= 2);
+  if (!near && f[key(u.x, u.y)] > 2) return;
+  while (u.cargo.length) {
+    const tiles = unloadTiles(u); if (!tiles.length) break;
+    const g = (x, y) => Math.min(...goals.map(([a, b]) => dist(a, b, x, y)));
+    tiles.sort((a, b) => g(...a) - g(...b));
+    unload(u, ...tiles[0]); await sleep(180);
+  }
 }
 function aiBuild() {
   const s = G.side;
@@ -921,6 +1167,7 @@ function aiBuild() {
     const veh = G.units.filter((u) => u.side !== s && ["tank", "recon"].includes(U[u.type].cls)).length;
     let t = null;
     if (foot < 4 && f >= U[inf].cost) t = inf;
+    else if (s === 1 && f >= 2500 && G.round >= 1 && !G.units.some((u) => u.type === "fourgon" && u.side === 1) && Math.random() < 0.5) t = "fourgon";
     else if (s === 0 && f >= 5000 && !G.units.some((u) => u.type === "panther") && Math.random() < 0.35) t = "panther";
     else if (s === 0 && f >= 5000 && Math.random() < 0.25) t = "torse";
     else if (s === 1 && f >= 4500 && Math.random() < 0.3) t = "lbd";
@@ -953,6 +1200,17 @@ function act(a) {
     if (a === "back") { SFX.back(); m.back ? m.back() : (G.menu = null); }
     return;
   }
+  if (G.mode === "pick") {
+    const P = G.pick;
+    if (mv) {
+      let i = P.origin ? P.tiles.findIndex(([x, y]) => x === P.origin.x + mv[0] && y === P.origin.y + mv[1]) : -1;
+      if (i < 0) i = (P.i + (a === "left" || a === "up" ? P.tiles.length - 1 : 1)) % P.tiles.length;
+      P.i = i; G.cur = { x: P.tiles[i][0], y: P.tiles[i][1] }; SFX.move();
+    }
+    if (a === "ok") { const [x, y] = P.tiles[P.i]; G.mode = "anim"; G.pick = null; SFX.ok(); P.fn(x, y); }
+    if (a === "back") { SFX.back(); G.pick = null; if (P.back) P.back(); else { G.mode = "moved"; actionMenu(); } }
+    return;
+  }
   if (G.mode === "target") {
     if (mv) { G.tsel = (G.tsel + (a === "left" || a === "up" ? G.targets.length - 1 : 1)) % G.targets.length; const t = G.targets[G.tsel]; G.cur = { x: t.x, y: t.y }; SFX.move(); }
     if (a === "ok") fireAt(G.targets[G.tsel]);
@@ -981,21 +1239,58 @@ function okAt(x, y) {
     G.busy = true;
     const path = pathTo(G.reach, u.x, u.y, x, y);
     G.reach = null;
-    moveUnit(u, path).then(() => { G.busy = false; G.mode = "moved"; actionMenu(); });
+    moveUnit(u, path).then(() => {
+      G.busy = false;
+      const van = G.units.find((o) => o !== u && o.x === u.x && o.y === u.y);
+      if (van) { board(u, van); return finish(u); }
+      G.mode = "moved"; actionMenu();
+    });
   }
 }
 function actionMenu() {
   const u = G.sel, moved = u.x !== G.from.x || u.y !== G.from.y;
   const items = [];
+  const t = U[u.type];
   const tg = targetsFrom(u, u.x, u.y, moved);
   if (tg.length) items.push({ label: "FIRE", fn: () => { G.menu = null; G.targets = tg; G.tsel = 0; G.cur = { x: tg[0].x, y: tg[0].y }; G.mode = "target"; } });
+  if (t.spray) {
+    const tiles = DIRS.filter((d) => sprayLine(u.x, u.y, d).length).map(([dx, dy]) => [u.x + dx, u.y + dy]);
+    if (tiles.length) items.push({ label: "SPRAY", fn: () => pickTiles(tiles, (x, y) => spray(u, [x - u.x, y - u.y]).then(() => G.units.includes(u) && finish(u)), (x, y) => sprayLine(u.x, u.y, [x - u.x, y - u.y]), u) });
+  }
+  if (t.torch && !moved) {
+    const tiles = ringTiles(u, 2, 4, (x, y) => terr(x, y) !== "~" && terr(x, y) !== "#" && !G.fire.has(key(x, y)));
+    if (tiles.length) items.push({ label: "TORCH", fn: () => pickTiles(tiles, (x, y) => { fireworkAt(u, x, y); setFire(x, y); say("FIREWORKS. THAT STREET IS ON FIRE NOW."); finish(u); }) });
+  }
+  if (t.gas && !moved) {
+    const tiles = ringTiles(u, 2, 3, () => true);
+    items.push({ label: "GAS", fn: () => pickTiles(tiles, (x, y) => { G.fx.push({ kind: "shot", sx: u.x, sy: u.y, x, y, t: 0, life: 22, look: "gas" }); if (!gasCloud(x, y, u.side)) say("TEAR GAS. MIND THE WIND."); finish(u); }, (x, y) => { const a = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (inb(x + dx, y + dy)) a.push([x + dx, y + dy]); return a; }) });
+  }
   const p = propAt(u.x, u.y);
-  if (U[u.type].cap && p && p.owner !== G.side) items.push({ label: "CAPTURE", fn: () => { G.menu = null; doCapture(u); finish(u); } });
+  if (t.cap && p && p.owner !== G.side) items.push({ label: inGas(u) ? "CAPTURE (GASSED)" : "CAPTURE", off: inGas(u), fn: () => { G.menu = null; doCapture(u); finish(u); } });
+  if (t.barricade && barricadeTiles(u).length) items.push({ label: "BARRICADE", fn: () => pickTiles(barricadeTiles(u), (x, y) => { G.bar.add(key(x, y)); say(pick(["BINS, BIKES AND A CONE. BARRICADE UP.", "BARRICADE UP. A VELIB WILL NEVER RIDE AGAIN."])); noise(0.2, 0.05); finish(u); }) });
+  const bars = DIRS.map(([dx, dy]) => [u.x + dx, u.y + dy]).filter(([x, y]) => inb(x, y) && G.bar.has(key(x, y)));
+  if (t.clear && bars.length) items.push({ label: "CLEAR", fn: () => pickTiles(bars, (x, y) => { G.bar.delete(key(x, y)); say("BARRICADE DRAGGED AWAY."); noise(0.2, 0.05); finish(u); }) });
+  if (t.metro && isStation(p) && p.owner === G.side) items.push({ label: "TAKE THE METRO", fn: () => { G.menu = null; goUnder(u); finish(u); } });
+  if (u.cargo?.length && unloadTiles(u).length) items.push({ label: `UNLOAD (${u.cargo.length})`, fn: () => unloadStep(u) });
   items.push({ label: "WAIT", fn: () => { G.menu = null; finish(u); } });
   G.menu = {
     items, sel: 0, title: U[u.type].name, at: u,
     back: () => { G.menu = null; if (moved && u.capturing === false) {} u.x = G.from.x; u.y = G.from.y; G.reach = reach(u); G.mode = "move"; G.cur = { x: u.x, y: u.y }; },
   };
+}
+function pickTiles(tiles, fn, preview, origin) {
+  G.menu = null; G.mode = "pick"; G.pick = { tiles, fn, preview, origin, i: 0 };
+  G.cur = { x: tiles[0][0], y: tiles[0][1] };
+}
+function unloadStep(v) {
+  const tiles = unloadTiles(v);
+  if (!v.cargo.length || !tiles.length) return finish(v);
+  pickTiles(tiles, (x, y) => { unload(v, x, y); unloadStep(v); });
+  G.pick.back = () => { G.pick = null; finish(v); };
+}
+function fireworkAt(u, x, y) {
+  G.fx.push({ kind: "shot", sx: u.x, sy: u.y, x, y, t: 0, life: 22, look: "fireworks" });
+  G.fx.push({ kind: "fireworks", x, y, t: 0, life: 40, delay: 18 }); beep(1200, 0.2, "square", 0.03, -900);
 }
 async function fireAt(t) {
   const u = G.sel; G.mode = "anim"; G.targets = [];
@@ -1004,8 +1299,9 @@ async function fireAt(t) {
   if (G.units.includes(u)) finish(u); else { G.sel = null; G.mode = "idle"; }
 }
 function finish(u) {
-  u.done = true; G.sel = null; G.mode = "idle"; G.reach = null;
+  u.done = true; G.sel = null; G.mode = "idle"; G.reach = null; G.pick = null;
   if (G.over) return;
+  if (G.side === 1) { G.busy = true; kettleCheck().then(() => { G.busy = false; checkRout(); }); }
   if (!G.units.some((o) => o.side === G.side && !o.done) && !G.props.some((p) => p.owner === G.side && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y) && G.funds[G.side] >= 1000)) say("EVERYONE HAS MOVED. END TURN WHEN READY.");
 }
 function buyMenu(p) {
@@ -1054,6 +1350,7 @@ cv.addEventListener("pointermove", (e) => {
   if (py < TOP || py >= BOT) return;
   const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
   if (G.mode === "target") return;
+  if (G.mode === "pick") { const i = G.pick.tiles.findIndex(([x, y]) => x === tx && y === ty); if (i >= 0) { G.pick.i = i; G.cur = { x: tx, y: ty }; } return; }
   if (lastTile !== key(tx, ty)) { lastTile = key(tx, ty); G.cur = { x: tx, y: ty }; }
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
@@ -1076,6 +1373,11 @@ cv.addEventListener("pointerdown", (e) => {
   }
   if (py < TOP || py >= BOT || G.busy || !human()) return;
   const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
+  if (G.mode === "pick") {
+    const i = G.pick.tiles.findIndex(([x, y]) => x === tx && y === ty);
+    if (i >= 0) { G.pick.i = i; act("ok"); } else act("back");
+    return;
+  }
   if (G.mode === "target") {
     const i = G.targets.findIndex((t) => t.x === tx && t.y === ty);
     if (i >= 0) { G.tsel = i; fireAt(G.targets[i]); } else { act("back"); }
@@ -1222,11 +1524,36 @@ function drawMap() {
     const k = WATER[i], h = (k * 2654435761) >>> 0;
     if ((h + ph) % 53 === 0) fill(k % (MW * TS), TOP + Math.floor(k / (MW * TS)), 2, 1, (h >> 3) % 3 ? 20 : 21);
   }
+  // barricades and fires
+  for (const k of G.bar) drawBarricade(...unkey(k));
+  for (const [k] of G.fire) {
+    const [x, y] = unkey(k), r = IMG.fxMeta && fxFrame("flame", (performance.now() + k * 97) % 440);
+    if (r) ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, x * TS, TOP + y * TS, 16, 16);
+    else { const fl = (frame >> 3) % 3; fill(x * TS + 4, TOP + y * TS + 6 - fl, 8, 9 + fl, 28); fill(x * TS + 6, TOP + y * TS + 9, 4, 6, 26); }
+  }
   // looted shops smoulder
   for (const p of G.props) if (p.art.startsWith("shop") && p.owner === 0) {
     const fl = (frame >> 3) % 3;
     fill(p.x * TS + 3 + fl, TOP + p.y * TS + 11 - fl, 2, 2 + fl, 29); fill(p.x * TS + 4 + fl, TOP + p.y * TS + 12, 1, 2, 26);
     fill(p.x * TS + 4, TOP + p.y * TS + 2 - fl, 2, 2, 3);
+  }
+}
+function drawBarricade(x, y) {
+  const px = x * TS, py = TOP + y * TS;
+  fill(px + 1, py + 11, 14, 4, 10); fill(px + 1, py + 11, 14, 1, 11); fill(px + 1, py + 15, 14, 1, 0);
+  fill(px + 1, py + 4, 6, 8, 15); fill(px + 1, py + 4, 6, 1, 16); fill(px + 2, py + 3, 4, 1, 0); fill(px + 1, py + 4, 1, 8, 0);
+  fill(px + 8, py + 6, 3, 3, 0); fill(px + 12, py + 6, 3, 3, 0); fill(px + 9, py + 7, 1, 1, 6); fill(px + 13, py + 7, 1, 1, 6);
+  fill(px + 10, py + 5, 3, 1, 16); fill(px + 11, py + 3, 1, 3, 6);
+  fill(px + 11, py + 9, 3, 3, 28); fill(px + 12, py + 8, 1, 1, 28); fill(px + 11, py + 10, 3, 1, 7);
+}
+function drawGas() {
+  for (const [k, v] of G.gas) {
+    const [x, y] = unkey(k);
+    ctx.globalAlpha = v >= 3 ? 0.55 : 0.35;
+    checker(x, y, 31, (frame >> 4) % 2);
+    const r = IMG.fxMeta && fxFrame("teargas", (performance.now() + k * 131) % 400);
+    if (r) ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, x * TS, TOP + y * TS, 16, 16);
+    ctx.globalAlpha = 1;
   }
 }
 function checker(x, y, c, phase = 0) {
@@ -1248,6 +1575,7 @@ function drawUnits() {
     const h = hpD(u);
     if (h < 10) { fill(px + 10, py + 8, 6, 8, 0); text(String(h), px + 11, py + 9, 7); }
     if (u.capturing) { fill(px, py + 8, 6, 8, 0); text("C", px + 1, py + 9, 26); }
+    for (let i = 0; i < (u.cargo?.length || 0); i++) { fill(px + 1 + i * 4, py, 3, 3, 0); fill(px + 2 + i * 4, py + 1, 1, 1, 25); }
   }
 }
 function drawCursor() {
@@ -1275,6 +1603,13 @@ function drawFx() {
       for (let i = 0; i < 6; i++) { const a = i + t * 0.05, r = 3 + t * 0.15; fill(px + Math.cos(a) * r - 2, py + Math.sin(a) * r - 2, 4, 3, i % 2 ? 31 : 17); }
     } else if (e.kind === "water") {
       for (let i = 0; i < 12; i++) fill(px - 8 + ((i * 5 + t) % 16), py - 6 + ((i * 7 + t * 2) % 14), 1, 2, i % 3 ? 21 : 7);
+    } else if (e.kind === "jet") {
+      const [dx, dy] = e.dir, n = Math.min(e.tiles.length * 16, t * 3);
+      const sx = e.sx * TS + 8, sy = TOP + e.sy * TS + 8;
+      for (let i = 4; i < n + 8; i += 1) {
+        const x = sx + dx * i, y = sy + dy * i, wob = ((i + t) % 5) - 2;
+        fill(x - (dy ? 2 : 0) + (dy ? wob * 0.4 : 0), y - (dx ? 2 : 0) + (dx ? wob * 0.4 : 0), dy ? 4 : 1, dx ? 4 : 1, i % 3 ? 21 : 7);
+      }
     } else if (e.kind === "poof") {
       for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2, r = t * 0.35; fill(px + Math.cos(a) * r - 1, py + Math.sin(a) * r - 1 - t * 0.1, 3, 3, i % 2 ? 6 : 4); }
     } else if (e.kind === "num") {
@@ -1297,9 +1632,11 @@ function drawTop() {
   fill(4, 4, 8, 8, sd.col); fill(5, 5, 6, 2, sd.hi);
   text(sd.name, 16, 5, 7);
   text(`€${G.funds[s]}`, 16 + tw(sd.name) + 10, 5, 26);
-  const clock = `SAT ${hour()}:00`;
-  text(clock, 16 + tw(sd.name) + 10 + tw(`€${G.funds[s]}`) + 12, 5, 13);
-  const lm = `LANDMARKS ${marksHeld(0)}/${LANDMARKS} - CURFEW 23:00`;
+  const clock = `SAT ${hour()}:00`, cx = 16 + tw(sd.name) + 10 + tw(`€${G.funds[s]}`) + 12;
+  text(clock, cx, 5, 13);
+  text(`WIND ${WIND_NAME(G.wind)}`, cx + tw(clock) + 10, 5, 31);
+  const under = G.under.filter((u) => u.side === s).length;
+  const lm = (under ? `METRO ${under} - ` : "") + `LANDMARKS ${marksHeld(0)}/${LANDMARKS}`;
   text(lm, W - tw(lm) - 5, 5, marksHeld(0) >= NEED ? 30 : 6);
 }
 function drawBottom() {
@@ -1311,7 +1648,8 @@ function drawBottom() {
     const { x, y } = G.cur, u = unitAt(x, y), p = propAt(x, y);
     const d = defAt(x, y);
     const tn = p ? p.name : TNAME[terr(x, y)];
-    info = `${tn} ${"*".repeat(d)}`;
+    const k = key(x, y);
+    info = `${tn}${G.bar.has(k) ? " + BARRICADE" : ""}${G.fire.has(k) ? " + FIRE" : ""}${G.gas.has(k) ? " + GAS" : ""} ${"*".repeat(d)}`;
     if (p && p.cap < 20) info += ` CAP ${p.cap}`;
     if (u) info = `${U[u.type].name} ${hpD(u)}/10 - ${info}`;
     if (G.mode === "target" && G.sel) { const t = G.targets[G.tsel]; if (t) info = `HIT ${U[t.type].name} FOR ~${calcDmg(G.sel, t, t.x, t.y, 4)}%`; }
@@ -1403,23 +1741,23 @@ function drawHelp() {
   fill(0, 0, W, H, 0);
   textC("HOW TO PLAY", W / 2, 10, 26, 0, 2);
   const L = [
-    ["", "ADVANCE WARS RULES. ONE SATURDAY IN PARIS, 12:00 TO 23:00."],
-    ["", "EACH ROUND IS ONE HOUR. THE LYCEENS MOVE FIRST."],
-    [30, "LYCEENS WIN BY HOLDING 4 OF 7 LANDMARKS AT CURFEW,"],
-    [30, "OR BY TAKING PLACE BEAUVAU."],
-    [24, "CRS WIN IF THEY DON'T, OR BY RETAKING LYCEE VOLTAIRE."],
+    ["", "SATURDAY 17 OCTOBER. 12:00 TO THE 23:00 CURFEW."],
+    [30, "LYCEENS WIN WITH 4 OF 7 LANDMARKS AT CURFEW, OR BEAUVAU."],
+    [24, "CRS WIN OTHERWISE, OR BY RETAKING THE LYCEE."],
+    ["", "MOVE, THEN FIRE / CAPTURE / WAIT. BASES BUILD UNITS."],
+    [30, "LYCEENS"],
+    ["", "BARRICADE: BINS ON A STREET. VANS CAN'T PASS. COVER ***."],
+    ["", "METRO: GO DOWN AT A STATION YOU HOLD, COME UP AT ANOTHER."],
+    ["", "TORCH: CADDIE FIREWORKS SET A STREET ON FIRE FOR 2 HOURS."],
+    ["", "TONTON IS GASPROOF. PINK PANTHER CAPTURES IN ONE GO."],
+    [24, "CRS"],
+    ["", "SPRAY: WATER CANNON JET, 3 TILES. PUSHES. SEINE = GONE."],
+    ["", "GAS: 3X3 CLOUD FOR 2 HOURS. DRIFTS WITH THE WIND."],
+    ["", "FOURGON: DRIVE ONTO IT TO BOARD. UNLOAD NEXT TO IT."],
+    ["", "KETTLE: BOX A LYCEEN IN ON 4 SIDES, 2+ COPS = ARRESTED."],
+    ["", "CLEAR: A COP NEXT TO A BARRICADE DRAGS IT AWAY."],
     ["", ""],
-    ["", "SELECT A UNIT, PICK A SQUARE, THEN FIRE, CAPTURE OR WAIT."],
-    ["", "FOOT UNITS CAPTURE: 20 POINTS, MINUS THEIR HEALTH EACH TURN."],
-    ["", "SHOPS, LANDMARKS AND BASES PAY OUT EVERY TURN."],
-    ["", "BUY UNITS ON YOUR METRO STATIONS, BASES AND HQ."],
-    ["", "VANS STICK TO ROADS AND PARKS. PEOPLE CLIMB THROUGH BLOCKS."],
-    ["", "RANGED UNITS (CADDIE, LACRYMO) CAN'T MOVE AND FIRE."],
-    ["", "TEAR GAS HITS EVERYONE NEXT TO THE TARGET. INCLUDING YOURS."],
-    ["", "PINK PANTHER CAPTURES ANYTHING IN ONE GO. TONTON IS GASPROOF."],
-    ["", "BLOCKS GIVE *** COVER. PARKS **. ROADS NONE."],
-    ["", ""],
-    ["", "KEYS: ARROWS, SPACE, ESC. E = END TURN. MOUSE OR TAP WORKS TOO."],
+    ["", "ARROWS, SPACE, ESC. E = END TURN. MOUSE OR TAP WORKS TOO."],
   ];
   L.forEach(([c, l], i) => text(l, 14, 34 + i * 10, c === "" ? 6 : c));
   if ((frame >> 5) % 2) textC("PRESS SPACE", W / 2, 222, 26);
@@ -1439,9 +1777,16 @@ function loop() {
       drawMap();
       if (G.reach) for (const [k] of G.reach.d) { const [x, y] = unkey(k); checker(x, y, 25, frame >> 5); }
       if (G.mode === "target") for (const t of G.targets) checker(t.x, t.y, 30);
+      if (G.mode === "pick" && G.pick) {
+        for (const [x, y] of G.pick.tiles) checker(x, y, 26);
+        const c = G.pick.tiles[G.pick.i];
+        if (G.pick.preview && c) for (const [x, y] of G.pick.preview(...c)) checker(x, y, 21, 1);
+      }
       if (G.capturePreview) {}
       drawUnits();
+      drawGas();
       drawFx();
+      if (G.pendingSurface && !G.banner && !G.menu && !G.busy && human()) surfaceMenu();
       if (human() || G.busy) drawCursor();
       drawTop(); drawBottom();
       if (G.menu) drawMenu();

@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "image": "scenes.png",
+  "palette": "palette.json",
+  "frameSize": {
+    "width": 96,
+    "height": 66
+  },
+  "frames": {
+    "republique": {
+      "x": 0,
+      "y": 0,
+      "w": 96,
+      "h": 66
+    },
+    "capucines": {
+      "x": 96,
+      "y": 0,
+      "w": 96,
+      "h": 66
+    },
+    "louvre": {
+      "x": 192,
+      "y": 0,
+      "w": 96,
+      "h": 66
+    },
+    "velib": {
+      "x": 288,
+      "y": 0,
+      "w": 96,
+      "h": 66
+    },
+    "champs": {
+      "x": 0,
+      "y": 66,
+      "w": 96,
+      "h": 66
+    },
+    "halles": {
+      "x": 96,
+      "y": 66,
+      "w": 96,
+      "h": 66
+    },
+    "rivoli_cafe": {
+      "x": 192,
+      "y": 66,
+      "w": 96,
+      "h": 66
+    },
+    "boulangerie": {
+      "x": 288,
+      "y": 66,
+      "w": 96,
+      "h": 66
+    },
+    "ile": {
+      "x": 0,
+      "y": 132,
+      "w": 96,
+      "h": 66
+    },
+    "guerre_civile": {
+      "x": 96,
+      "y": 132,
+      "w": 96,
+      "h": 66
+    },
+    "pont": {
+      "x": 192,
+      "y": 132,
+      "w": 96,
+      "h": 66
+    },
+    "jardin": {
+      "x": 288,
+      "y": 132,
+      "w": 96,
+      "h": 66
+    },
+    "beauvau": {
+      "x": 0,
+      "y": 198,
+      "w": 96,
+      "h": 66
+    },
+    "lycee": {
+      "x": 96,
+      "y": 198,
+      "w": 96,
+      "h": 66
+    }
+  },
+  "byProp": {
+    "METRO REPUBLIQUE": "republique",
+    "OPERA": "capucines",
+    "GALERIES LAFAYETTE": "capucines",
+    "APPLE STORE": "capucines",
+    "LOUVRE": "louvre",
+    "ARC DE TRIOMPHE": "champs",
+    "FOUQUET'S": "champs",
+    "NIKE": "champs",
+    "PSG STORE": "champs",
+    "SEPHORA": "champs",
+    "LES HALLES": "halles",
+    "METRO CHATELET": "halles",
+    "FNAC": "halles",
+    "ZARA": "halles",
+    "HOTEL DE VILLE": "rivoli_cafe",
+    "MONOPRIX": "rivoli_cafe",
+    "BOULANGERIE": "boulangerie",
+    "KEBAB": "boulangerie",
+    "PREFECTURE DE POLICE": "ile",
+    "NOTRE-DAME": "ile",
+    "SORBONNE": "ile",
+    "PLACE BEAUVAU": "beauvau",
+    "INVALIDES": "beauvau",
+    "LYCEE CHARLEMAGNE": "lycee"
+  },
+  "byTerrain": {
+    "=": "velib",
+    "#": "guerre_civile",
+    "b": "pont",
+    "T": "jardin"
+  },
+  "captions": {
+    "republique": "PLACE DE LA REPUBLIQUE",
+    "capucines": "BOULEVARD DES CAPUCINES",
+    "louvre": "LE LOUVRE - FERME",
+    "velib": "BOULEVARD - LES VELOS FONT BARRAGE",
+    "champs": "CHAMPS-ELYSEES",
+    "halles": "CHATELET - LES HALLES",
+    "rivoli_cafe": "RUE DE RIVOLI - LE LENDEMAIN",
+    "boulangerie": "DU PAIN, QUAND MEME",
+    "ile": "ILE DE LA CITE",
+    "guerre_civile": "INTRODUCTION A LA GUERRE CIVILE",
+    "pont": "SUR LES PONTS DE PARIS",
+    "jardin": "JARDIN DES TUILERIES",
+    "beauvau": "PLACE BEAUVAU",
+    "lycee": "LYCEE CHARLEMAGNE"
+  },
+  "notes": "Opaque 96x66 native paintings. Render 2x. Never mirror backgrounds. Last 8 rows are plain ground. Imagegen interpretations of supplied scene descriptions, with native text and palette cleanup."
+}

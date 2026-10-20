@@ -1,0 +1,20 @@
+<!doctype html><meta charset="utf-8"><title>Paris Riots — front-end art review</title>
+<h1>Paris Riots front-end art</h1>
+<p>Standalone integration preview. The game code is unchanged by this art pass. Overlaid text uses the game's 5×7 font.</p>
+<p><select id="view" aria-label="Screen"><option value="title">Title</option><option value="menu">Menu chrome</option><option value="turns">Turn banners</option><option value="victory_lyceens">Lycéens victory</option><option value="victory_crs">CRS victory</option><option value="help">How to play</option><option value="font8">Heading font</option></select> <select id="scale" aria-label="Scale"><option value="1">1×</option><option value="3" selected>3×</option></select> <a id="capture" download="front-end-preview.png">Preview PNG</a></p><canvas id="screen"></canvas>
+<script>
+const sources={},screen=document.getElementById('screen');let data,meta,ready=false;
+function text(ctx,s,x,y,color,k=1){ctx.fillStyle=data.palette[color];for(const ch of s.normalize('NFD').replace(/[\u0300-\u036f]/g,'')){const g=data.font[ch]||data.font['?'];g.forEach((row,r)=>{for(let c=0;c<5;c++)if(row&(16>>c))ctx.fillRect(x+c*k,y+r*k,k,k)});x+=6*k}}
+function centered(ctx,s,y,c=7){text(ctx,s,Math.floor((384-s.length*6+1)/2),y,c)}
+function sprite(ctx,id,x,y){const r=meta.frames[id];ctx.drawImage(sources.ui,r.x,r.y,r.w,r.h,x,y,r.w,r.h)}
+function nine(ctx,x,y,w,h){const r=meta.frames.menu_frame,src=[0,8,16],destX=[x,x+8,x+w-8],destY=[y,y+8,y+h-8],ws=[8,w-16,8],hs=[8,h-16,8];for(let yy=0;yy<3;yy++)for(let xx=0;xx<3;xx++)ctx.drawImage(sources.ui,r.x+src[xx],r.y+src[yy],8,8,destX[xx],destY[yy],ws[xx],hs[yy])}
+function draw(){if(!ready)return;const mode=document.getElementById('view').value,k=Number(document.getElementById('scale').value),c=document.createElement('canvas');c.width=384;c.height=240;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.fillStyle=data.palette[0];ctx.fillRect(0,0,384,240);
+ if(mode==='title'){ctx.drawImage(sources.title,0,0);['PLAY THE LYCEENS','PLAY THE CRS','TWO PLAYERS, ONE SCREEN','HOW TO PLAY'].forEach((s,i)=>centered(ctx,s,158+i*18,i===0?26:7));sprite(ctx,'selection_marker',108,157)}
+ else if(mode==='help'){ctx.drawImage(sources.help,0,0);data.helpRows.slice(0,16).forEach(([c,s],i)=>text(ctx,s,14,30+i*10,c===30?30:c===24?22:0));}
+ else if(mode.startsWith('victory')){ctx.drawImage(sources[mode],0,0);centered(ctx,mode==='victory_crs'?'CURFEW HOLDS.':'THE SQUARE IS OURS.',159,26);centered(ctx,'RESULT TEXT APPEARS HERE',177,7);}
+ else if(mode==='turns'){ctx.drawImage(sources.title,0,0);sprite(ctx,'turn_lyceens',0,73);text(ctx,'GENERATION 6-7',48,85,0);text(ctx,'YOUR TURN - 18:00',48,99,0);sprite(ctx,'turn_crs',0,133);text(ctx,'LA PREFECTURE',48,145,7);text(ctx,'YOUR TURN - 19:00',48,159,7);}
+ else if(mode==='menu'){ctx.drawImage(sources.title,0,0);nine(ctx,82,65,220,78);text(ctx,'ORDERS',102,79,26);text(ctx,'FIRE',112,97,7);text(ctx,'WAIT',112,115,7);sprite(ctx,'selection_marker',98,96);sprite(ctx,'pointer',221,115);sprite(ctx,'end_turn_normal',93,170);sprite(ctx,'end_turn_pressed',151,170);sprite(ctx,'back_normal',209,170);sprite(ctx,'back_pressed',267,170);}
+ else{ctx.drawImage(sources.font8,16,16);centered(ctx,'TOPAZ-INSPIRED 8X8 HEADING GLYPHS',80,7)}
+ screen.width=384*k;screen.height=240*k;const dest=screen.getContext('2d');dest.imageSmoothingEnabled=false;dest.drawImage(c,0,0,screen.width,screen.height);document.getElementById('capture').href=c.toDataURL('image/png');}
+(async()=>{data=await(await fetch('review-data3.json')).json();meta=await(await fetch('ui.json')).json();await Promise.all(['title','ui','help','victory_lyceens','victory_crs','font8'].map(async n=>{const im=new Image();im.src=n+'.png';await im.decode();sources[n]=im}));ready=true;draw()})();document.getElementById('view').onchange=draw;document.getElementById('scale').onchange=draw;
+</script>

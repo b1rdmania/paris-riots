@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "image": "ui.png",
+  "palette": "palette.json",
+  "frames": {
+    "menu_frame": {
+      "x": 0,
+      "y": 96,
+      "w": 24,
+      "h": 24,
+      "slice": {
+        "top": 8,
+        "right": 8,
+        "bottom": 8,
+        "left": 8
+      },
+      "contentPadding": 8
+    },
+    "selection_marker": {
+      "x": 24,
+      "y": 96,
+      "w": 8,
+      "h": 8
+    },
+    "pointer": {
+      "x": 32,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "hotspot": {
+        "x": 1,
+        "y": 0
+      }
+    },
+    "end_turn_normal": {
+      "x": 56,
+      "y": 96,
+      "w": 48,
+      "h": 12
+    },
+    "end_turn_pressed": {
+      "x": 56,
+      "y": 108,
+      "w": 48,
+      "h": 12
+    },
+    "back_normal": {
+      "x": 104,
+      "y": 96,
+      "w": 48,
+      "h": 12
+    },
+    "back_pressed": {
+      "x": 104,
+      "y": 108,
+      "w": 48,
+      "h": 12
+    },
+    "turn_lyceens": {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 46,
+      "textBounds": {
+        "x": 48,
+        "y": 12,
+        "w": 320,
+        "h": 24
+      },
+      "textColor": 0
+    },
+    "emblem_lyceens": {
+      "x": 160,
+      "y": 96,
+      "w": 16,
+      "h": 16
+    },
+    "turn_crs": {
+      "x": 0,
+      "y": 46,
+      "w": 384,
+      "h": 46,
+      "textBounds": {
+        "x": 48,
+        "y": 12,
+        "w": 320,
+        "h": 24
+      },
+      "textColor": 7
+    },
+    "emblem_crs": {
+      "x": 176,
+      "y": 96,
+      "w": 16,
+      "h": 16
+    }
+  },
+  "style": "black-and-brass",
+  "notes": "All coordinates native pixels; nearest-neighbour scaling only. No smoothing. Banner safe areas are local to frame."
+}

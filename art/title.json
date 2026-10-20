@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "image": "title.png",
+  "palette": "palette.json",
+  "frames": {
+    "title": {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 240
+    }
+  },
+  "menuBand": {
+    "x": 14,
+    "y": 150,
+    "w": 356,
+    "h": 76
+  },
+  "menuBaselines": [
+    158,
+    176,
+    194,
+    212
+  ],
+  "textColor": 7,
+  "selectedTextColor": 26,
+  "notes": "Baked painted PARIS RIOTS / THE GAME logo. Draw menu text only in the clear band. No runtime labels baked into band."
+}
