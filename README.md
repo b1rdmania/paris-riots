@@ -14,7 +14,7 @@ Play: https://couvre-feu.pages.dev
 | Rules | Advance Wars: move a unit, then fire, capture or wait. Each chapter has one goal. |
 | Story | Five chapters set on 17 October 2026, each with a diary card and a coach. You can play them in any order. |
 | Art | Painted with Codex in a fixed 32-colour palette. |
-| Music | Public-domain tunes from BitMidi, played on a four-channel Game Boy-style synth. |
+| Music | Ten French classics from BitMidi, played on a four-channel Game Boy-style synth from [Wario Synth](https://wario.style). The menu lists them. |
 
 The game is one page with a canvas and no libraries. It runs on Cloudflare Pages.
 
@@ -41,7 +41,9 @@ python layout.py
 
 ## Credits
 
-Map data © OpenStreetMap contributors, ODbL. Music: Offenbach, Rouget de Lisle, Degeyter and Satie, all public domain.
+Map data © OpenStreetMap contributors, ODbL.
+
+Music, as chiptune covers: Offenbach, Rouget de Lisle, Degeyter, Satie, Édith Piaf, Desireless, Serge Gainsbourg and Daft Punk. The songs belong to their writers.
 
 Built with Opus and Codex, and 10,000+ hours playing Amiga games as a kid.
 

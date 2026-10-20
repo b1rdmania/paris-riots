@@ -444,7 +444,9 @@ function pulseWave(duty) {
   return AC.createPeriodicWave(re, im);
 }
 function music(name) {
+  if (!window.MUSIC?.[name]) name = "cancan";
   MUS.want = name;
+  if (MUS.pinned) return;
   if (AC && MUS.on && MUS.name !== name) startMusic(name);
 }
 function stopMusic() {
@@ -617,7 +619,7 @@ function startTurn() {
   // the CRS move under Inès's commentary; the lycéens get a short clock banner
   G.banner = s === 1 ? null : { title: `SAT ${hour()}:00`, sub: storyStatus(), col: SIDES[0].col, t: 70, t0: 70, side: 0 };
   SFX.turn();
-  music(s ? "marseillaise" : "cancan");
+  music(s ? "marseillaise" : STORY[G.story.i].tune || "cancan");
   emit("turn", s); if (checkStory()) return;
   if (!human()) runAI();
 }
@@ -1184,7 +1186,7 @@ const propNamed = (name) => G.props.find((p) => p.name === name);
 const posOf = (u) => (u ? [u.x, u.y] : null);
 const STORY = [
   {
-    title: "RENDEZ-VOUS A REPUBLIQUE", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true,
+    title: "RENDEZ-VOUS A REPUBLIQUE", tune: "cancan", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true,
     diary: "11:58. THE CEILING IN B12 FELL IN AGAIN. ON MADAME DUVAL THIS TIME. SHE'S FINE. THE CEILING ISN'T. EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
     goal: "LOOT THE MONOPRIX",
     beats: [{ on: "turn", test: (s) => s === 1, say: "THE CRS ARE JUST WATCHING. FOR NOW." }],
@@ -1201,7 +1203,7 @@ const STORY = [
     lost: "SOMEHOW YOU GOT ARRESTED IN A MONOPRIX.",
   },
   {
-    title: "LE MUR DE BOUCLIERS", time: "SAMEDI 14:00", art: "news/capucines", round: 2,
+    title: "LE MUR DE BOUCLIERS", tune: "voyage", time: "SAMEDI 14:00", art: "news/capucines", round: 2,
     diary: "BOULEVARD DES CAPUCINES. SOMEBODY BROUGHT A PLACARD. SOMEBODY ELSE BROUGHT A BLACK BLOC. TWO CRS ARE STANDING BETWEEN US AND THE OPERA LIKE THEY OWN IT.",
     goal: "KNOCK OUT BOTH COPS BEFORE 18:00",
     beats: [
@@ -1222,7 +1224,7 @@ const STORY = [
     lost: "EVERYONE ARRESTED. MUM HAS TO COLLECT YOU FROM THE COMMISSARIAT.",
   },
   {
-    title: "LA PYRAMIDE", time: "SAMEDI 15:00", art: "news/louvre", round: 3,
+    title: "LA PYRAMIDE", tune: "vieenrose", time: "SAMEDI 15:00", art: "news/louvre", round: 3,
     diary: "THE ECOLE DU LOUVRE KIDS BARRICADED THE PYRAMID. THEN A GIRL IN A PINK CATSUIT WALKED UP AND ASKED WHERE THE CROWN JEWELS WERE. NOBODY ASKED WHY.",
     goal: "TAKE THE LOUVRE BEFORE 19:00",
     beats: [
@@ -1242,7 +1244,7 @@ const STORY = [
     lost: "THE PANTHER GOT AWAY. YOU DIDN'T.",
   },
   {
-    title: "LES VELIBS BRULENT", time: "SAMEDI 17:00", art: "news/velib", round: 5,
+    title: "LES VELIBS BRULENT", tune: "jetaime", time: "SAMEDI 17:00", art: "news/velib", round: 5,
     diary: "WE'VE GOT THE HOTEL DE VILLE. SOMEONE SET FIRE TO THE VELIBS. THEN THE WATER CANNON TURNED UP AND EVERYONE WENT VERY QUIET.",
     goal: "HOLD THE HOTEL DE VILLE UNTIL 19:00",
     beats: [
@@ -1267,7 +1269,7 @@ const STORY = [
     lost: "THE CRS TOOK THE HOTEL DE VILLE. YOUR SHOES ARE STILL WET.",
   },
   {
-    title: "COUVRE-FEU", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000],
+    title: "COUVRE-FEU", tune: "aroundtheworld", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000],
     diary: "THE PREFET SAYS CURFEW AT 23:00. THREE HOURS. IF WE HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES, THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
     goal: "HOLD 4 LANDMARKS AT THE 23:00 CURFEW",
     beats: [
@@ -1367,7 +1369,7 @@ function drawChapters() {
   text(`GOAL: ${ch.goal}`, 24, H - 24, 21);
   if ((frame >> 5) % 2) text("SPACE: PLAY  ESC: BACK", W - 24 - tw("SPACE: PLAY  ESC: BACK"), H - 24, 29);
 }
-let CARD = null, FADE = 0, FADING = null;
+let CARD = null, FADE = 0, FADING = null, CARD_RECTS = [];
 // Fade to black, run fn, fade back in.
 function fadeTo(fn) { if (FADING) return; FADING = { f: 0, fn }; }
 function drawFade() {
@@ -1379,7 +1381,7 @@ function drawFade() {
 }
 function openCard(kind, i) {
   CARD = { kind, i, t: 0, f: 0, phase: kind === "intro" ? 0 : 1 }; screen = "card"; FADE = 1;
-  music(kind === "intro" ? "gymnopedie" : kind === "lost" ? "marseillaise" : kind === "end" ? "internationale" : "cancan");
+  music({ intro: "gymnopedie", lost: "piaf", won: "onemoretime", end: "internationale" }[kind]);
   if (kind === "intro") [523, 659, 784, 1046].forEach((f, j) => setTimeout(() => beep(f, 0.18, "square", 0.035), 120 + j * 110));
 }
 function cardText() {
@@ -1436,8 +1438,20 @@ function drawCard() {
   if (done && k === "won") { const n = STORY[CARD.i + 1]; text(`NEXT: ${n.time.replace("SAMEDI ", "")} - ${n.title}`, 24, H - 36, 21); }
   if (done && k === "intro") text(`GOAL: ${ch.goal}`, 24, H - 26, 26);
   if (done && k === "end") text("MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: PUBLIC DOMAIN.", 24, H - 36, 5);
-  const go = { intro: "SPACE: PLAY", won: "SPACE: NEXT CHAPTER", lost: "SPACE: TRY AGAIN", end: "SPACE: CHAPTERS" }[k];
-  if (done && (frame >> 5) % 2) text(go, W - 24 - tw(go), H - 26 + (k === "intro" ? -10 : 0), 29);
+  // two choices: carry on, or back to the chapter list
+  CARD_RECTS = [];
+  if (done) {
+    const opts = { intro: ["PLAY", "PICK CHAPTER"], won: ["NEXT CHAPTER", "PICK CHAPTER"], lost: ["TRY AGAIN", "PICK CHAPTER"], end: [null, "PICK CHAPTER"] }[k];
+    let x = W - 22, y = H - 30 + (k === "intro" ? -12 : 0);
+    [[opts[1], "back"], [opts[0], "ok"]].forEach(([label, a]) => {
+      if (!label) return;
+      const w = tw(label) + 14; x -= w;
+      const hot = mouse.on && mouse.x >= x && mouse.x < x + w && mouse.y >= y - 3 && mouse.y < y + 10, main = a === "ok";
+      fill(x, y - 3, w, 13, main ? 29 : 3); fill(x + 1, y - 2, w - 2, 11, hot ? 3 : 0);
+      text(label, x + 7, y, main ? 26 : 7);
+      CARD_RECTS.push([x, y - 3, w, 13, a]); x -= 6;
+    });
+  }
 }
 // The coach: Inès's portrait, the current step typed out, and an arrow at the thing to click.
 function coachTarget(st) {
@@ -1474,6 +1488,7 @@ function drawCoach() {
 // ---------- player input ----------
 function act(a) {
   if (screen === "about") { if (a === "ok" || a === "back") { SFX.back(); screen = "title"; } return; }
+  if (screen === "playlist") return playlistInput(a);
   if (screen === "title") return titleInput(a);
   if (screen === "card") return cardInput(a);
   if (screen === "chapters") return chaptersInput(a);
@@ -1574,7 +1589,7 @@ function mainMenu() {
     items: [
       ...(G.power[G.side] >= POWER_FULL ? [{ label: `POWER: ${POWER[G.side].name}`, fn: () => usePower(G.side) }] : []),
       { label: `BATTLE SCENES: ${BATTLE_MODES[battleMode]}`, blurb: "THE ZOOMED-IN FIGHTS. TURN OFF TO PLAY FASTER.", fn: () => { const i = G.menu.sel; battleMode = 1 - battleMode; try { localStorage.setItem("pr-battles", battleMode ? "off" : "on"); } catch {} mainMenu(); G.menu.sel = i; } },
-      { label: `MUSIC: ${MUS.on ? "ON" : "OFF"}`, blurb: "OR PRESS M ANY TIME.", fn: () => { const i = G.menu.sel; toggleMusic(); mainMenu(); G.menu.sel = i; } },
+      { label: "MUSIC", blurb: "EVERY TRACK IN THE GAME. M TURNS IT ON OR OFF.", fn: () => { G.menu = null; openPlaylist("game"); } },
       { label: "HOW TO PLAY", fn: () => { G.menu = null; helpBack = "game"; screen = "help"; } },
       { label: "QUIT TO TITLE", fn: () => { G = null; screen = "title"; } },
       { label: "BACK TO THE GAME", fn: () => { G.menu = null; } },
@@ -1622,6 +1637,13 @@ cv.addEventListener("pointerdown", (e) => {
   if (e.button === 2) return;
   const [px, py] = pt(e);
   if (screen === "title" && px > W - 48 && py > H - 16) { SFX.ok(); screen = "about"; return; }
+  if (screen === "playlist") {
+    const i = PL_RECTS.findIndex((q) => px >= q[0] && px < q[0] + q[2] && py >= q[1] && py < q[1] + q[3]);
+    if (i < 0) return;
+    if (PL_RECTS[i][4]) return window.open(PL_RECTS[i][4], "_blank", "noopener");
+    plSel = i; act("ok"); return;
+  }
+  if (screen === "title" && px > W - 92 && px <= W - 48 && py > H - 16) { SFX.ok(); openPlaylist("title"); return; }
   if (screen === "about") {
     const r = INFO_RECTS.find((q) => px >= q[0] && px < q[0] + q[2] && py >= q[1] && py < q[1] + q[3]);
     if (r) window.open(r[4], "_blank", "noopener"); else act("ok");
@@ -1638,7 +1660,8 @@ cv.addEventListener("pointerdown", (e) => {
     if (i === chapSel) act("ok"); else { chapSel = i; SFX.move(); }
     return;
   }
-  if (screen === "help" || screen === "card") return act("ok");
+  if (screen === "card") { const r = CARD_RECTS.find((q) => px >= q[0] && px < q[0] + q[2] && py >= q[1] && py < q[1] + q[3]); return act(r ? r[4] : "ok"); }
+  if (screen === "help") return act("ok");
   if (!G) return;
   if (G.ending || G.over || G.banner || G.battle) return act("ok");
   const pad = e.pointerType === "mouse" ? 0 : 3;
@@ -2081,8 +2104,9 @@ function drawTitle() {
       textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
       if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
     });
-    text(`ARROWS + SPACE, OR CLICK. M = MUSIC ${MUS.on ? "ON" : "OFF"}. I = INFO`, 6, H - 10, 6, 0);
+    text("ARROWS + SPACE, OR CLICK", 6, H - 10, 6, 0);
     { const hot = mouse.on && mouse.x > W - 46 && mouse.y > H - 14; fill(W - 44, H - 13, 40, 12, 29); fill(W - 43, H - 12, 38, 10, 0); textC("INFO", W - 24, H - 10, hot ? 26 : 7); }
+    { const hot = mouse.on && mouse.x > W - 92 && mouse.x <= W - 48 && mouse.y > H - 14; fill(W - 90, H - 13, 42, 12, 29); fill(W - 89, H - 12, 40, 10, 0); textC("MUSIC", W - 69, H - 10, hot ? 26 : 7); }
     return;
   }
   if (!mapLayer) { G = { props: PROPS0.map((p) => ({ ...p })) }; buildMapLayer(); G = null; }
@@ -2113,7 +2137,7 @@ const RULES = [
   ["", ""],
   ["", "CLICK ANYTHING TO SEE WHAT IT IS. ESC = MENU. M = MUSIC."],
   ["", ""],
-  [5, "MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: PUBLIC DOMAIN."],
+  [5, "MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: MENU > MUSIC."],
 ];
 function drawHelp() {
   const hm = IMG.helpMeta;
@@ -2125,6 +2149,60 @@ function drawHelp() {
   }
   fill(0, 0, W, H, 0);
   RULES.forEach(([c, l], i) => text(l, 14, 30 + i * 10, c === "" ? 6 : c));
+}
+// MUSIC: every track in the game, like a playlist. Pick one to play it.
+const PLAYLIST = [
+  ["cancan", "CAN-CAN", "OFFENBACH", "TITLE, CHAPTER 1"],
+  ["voyage", "VOYAGE, VOYAGE", "DESIRELESS", "CHAPTER 2"],
+  ["vieenrose", "LA VIE EN ROSE", "EDITH PIAF", "CHAPTER 3"],
+  ["jetaime", "JE T'AIME... MOI NON PLUS", "GAINSBOURG", "CHAPTER 4"],
+  ["aroundtheworld", "AROUND THE WORLD", "DAFT PUNK", "CHAPTER 5"],
+  ["marseillaise", "LA MARSEILLAISE", "ROUGET DE LISLE", "CRS TURNS"],
+  ["gymnopedie", "GYMNOPEDIE NO.1", "SATIE", "DIARY CARDS"],
+  ["onemoretime", "ONE MORE TIME", "DAFT PUNK", "CHAPTER DONE"],
+  ["piaf", "NON, JE NE REGRETTE RIEN", "EDITH PIAF", "ARRESTED"],
+  ["internationale", "L'INTERNATIONALE", "DEGEYTER", "THE END"],
+];
+let plSel = 0, plBack = "title", PL_RECTS = [];
+const plTracks = () => PLAYLIST.filter(([k]) => window.MUSIC?.[k]);
+function openPlaylist(back) { plBack = back; plSel = 0; screen = "playlist"; FADE = 1; }
+function leavePlaylist() {
+  SFX.back(); screen = plBack; MUS.pinned = null;
+  if (MUS.on && MUS.want) { unlockAudio(); startMusic(MUS.want); }
+}
+function playlistInput(a) {
+  const n = plTracks().length + 1;
+  if (a === "up") { plSel = (plSel + n - 1) % n; SFX.move(); }
+  if (a === "down") { plSel = (plSel + 1) % n; SFX.move(); }
+  if (a === "back") leavePlaylist();
+  if (a !== "ok") return;
+  if (plSel === 0) { toggleMusic(); return; }
+  const k = plTracks()[plSel - 1][0];
+  if (!MUS.on) { MUS.on = true; try { localStorage.setItem("pr-music", "1"); } catch {} }
+  unlockAudio(); MUS.pinned = k; startMusic(k);
+}
+function drawPlaylist() {
+  const bg = IMG["wide/seine-rain"];
+  if (bg) ctx.drawImage(bg, -48, -30); else fill(0, 0, W, H, 0);
+  box(16, 12, W - 32, H - 24);
+  text8("MUSIC", 30, 24, 26);
+  text("EVERY TRACK IN THE GAME", W - 30 - tw("EVERY TRACK IN THE GAME"), 25, 5);
+  PL_RECTS = [];
+  const rows = [["", `MUSIC: ${MUS.on ? "ON" : "OFF"}`, "", "OR PRESS M"], ...plTracks()];
+  rows.forEach(([k, title, artist, where], i) => {
+    const y = 42 + i * 14, sel = i === plSel, playing = k && MUS.name === k;
+    PL_RECTS.push([24, y - 3, W - 48, 13]);
+    if (sel) fill(24, y - 3, W - 48, 13, 2);
+    if (playing) for (let b = 0; b < 3; b++) { const h = 2 + ((frame >> 3) + b * 2) % 6; fill(30 + b * 3, y + 7 - h, 2, h, 26); }
+    else if (sel) uiDraw("selection_marker", 28, y - 1);
+    text(artist ? `${title} - ${artist}` : title, 42, y, playing ? 26 : sel ? 7 : 6);
+    text(where, W - 30 - tw(where), y, 5);
+  });
+  const credit = "MADE WITH WARIO SYNTH - WARIO.STYLE";
+  const cy = H - 30, hot = mouse.on && mouse.y >= cy - 3 && mouse.y < cy + 10 && mouse.x < 30 + tw(credit) + 12;
+  fill(24, cy - 3, tw(credit) + 12, 13, hot ? 3 : 2); text(credit, 30, cy, hot ? 26 : 25);
+  PL_RECTS.push([24, cy - 3, tw(credit) + 12, 13, "https://wario.style"]);
+  if ((frame >> 5) % 2) text("ESC: BACK", W - 30 - tw("ESC: BACK"), cy, 29);
 }
 // INFO: why, how it works, links.
 const INFO_LINKS = [["GITHUB.COM/B1RDMANIA/PARIS-RIOTS", "https://github.com/b1rdmania/paris-riots"], ["X @B1RDMANIA", "https://x.com/b1rdmania"]];
@@ -2171,6 +2249,7 @@ function loop() {
   else if (screen === "card" && CARD) drawCard();
   else if (screen === "chapters") drawChapters();
   else if (screen === "about") drawAbout();
+  else if (screen === "playlist") drawPlaylist();
   else if (G) {
     if (G.ending) { drawMap(); drawUnits(); drawFx(); drawTop(); drawBottom(); drawEnding(); }
     else if (G.over) {}
