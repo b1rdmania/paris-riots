@@ -1,0 +1,13 @@
+{
+  "image": "victory_crs-review.png",
+  "status": "review-only",
+  "scale": 3,
+  "frames": {
+    "background": {
+      "x": 0,
+      "y": 0,
+      "w": 1152,
+      "h": 720
+    }
+  }
+}

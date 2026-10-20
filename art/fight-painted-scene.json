@@ -1,0 +1,13 @@
+{
+  "image": "fight-painted-scene.png",
+  "status": "live-game-evidence",
+  "frames": {
+    "capture": {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 240
+    }
+  },
+  "notes": "Review evidence only; not a runtime asset."
+}

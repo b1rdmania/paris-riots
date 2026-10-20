@@ -1,0 +1,75 @@
+{
+  "paletteSha256": "10207179b15b1501ce5344811635eb71fd881b84edacea1396db23a1c9ccd76c",
+  "offPalettePixels": 0,
+  "partialAlphaPixels": 0,
+  "files": {
+    "scenes": {
+      "width": 384,
+      "height": 264,
+      "frames": 14,
+      "offPalettePixels": 0,
+      "partialAlphaPixels": 0
+    },
+    "title": {
+      "width": 384,
+      "height": 240,
+      "frames": 1,
+      "offPalettePixels": 0,
+      "partialAlphaPixels": 0
+    },
+    "ui": {
+      "width": 384,
+      "height": 128,
+      "frames": 11,
+      "offPalettePixels": 0,
+      "partialAlphaPixels": 0
+    },
+    "victory_lyceens": {
+      "width": 384,
+      "height": 240,
+      "frames": 1,
+      "offPalettePixels": 0,
+      "partialAlphaPixels": 0
+    },
+    "victory_crs": {
+      "width": 384,
+      "height": 240,
+      "frames": 1,
+      "offPalettePixels": 0,
+      "partialAlphaPixels": 0
+    },
+    "help": {
+      "width": 384,
+      "height": 240,
+      "frames": 1,
+      "offPalettePixels": 0,
+      "partialAlphaPixels": 0
+    },
+    "font8": {
+      "width": 128,
+      "height": 32,
+      "frames": 60,
+      "offPalettePixels": 0,
+      "partialAlphaPixels": 0
+    }
+  },
+  "propertyMappings": 24,
+  "terrainMappings": [
+    "=",
+    "#",
+    "b",
+    "T"
+  ],
+  "groundBands": "all fourteen plain and opaque",
+  "safeTextAreas": "title, both results and help are uniform fills",
+  "browserChecks": {
+    "firstFour": [
+      "republique",
+      "capucines",
+      "louvre",
+      "velib"
+    ],
+    "method": "Two-player session; real __cf.attack calls; damage resolved; PNG captured during combat",
+    "frontend": "Standalone 1x/3x preview with actual 5x7 body glyphs; engine UI integration pending"
+  }
+}

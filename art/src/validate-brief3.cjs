@@ -1,0 +1,19 @@
+const {fs,path,ROOT,PAL,sharp}=require('./paint3.cjs');const crypto=require('node:crypto'),vm=require('node:vm');
+(async()=>{const report={paletteSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT,'palette.json'))).digest('hex'),offPalettePixels:0,partialAlphaPixels:0,files:{}};const allowed=new Set(PAL.map(h=>h.toLowerCase()));
+ for(const name of ['scenes','title','ui','victory_lyceens','victory_crs','help','font8']){
+  const m=JSON.parse(fs.readFileSync(path.join(ROOT,name+'.json'))),{data,info}=await sharp(path.join(ROOT,name+'.png')).ensureAlpha().raw().toBuffer({resolveWithObject:true});let off=0,partial=0;
+  for(let i=0;i<data.length;i+=4){if(data[i+3]!==0&&data[i+3]!==255)partial++;if(data[i+3]){const hex='#'+[...data.subarray(i,i+3)].map(v=>v.toString(16).padStart(2,'0')).join('');if(!allowed.has(hex))off++}}
+  if(off||partial)throw Error(name+' color/alpha');
+  for(const [id,r]of Object.entries(m.frames)){if(r.x<0||r.y<0||r.x+r.w>info.width||r.y+r.h>info.height)throw Error(name+' bounds '+id);if(name==='scenes'){if(r.w!==96||r.h!==66)throw Error('scene dimensions');let first=null;for(let y=0;y<66;y++)for(let x=0;x<96;x++){const i=((r.y+y)*info.width+r.x+x)*4;if(data[i+3]!==255)throw Error('scene opacity');if(y>=58){const val=data.subarray(i,i+4).join(',');if(first===null)first=val;if(val!==first)throw Error('ground band is not plain')}}}}
+  for(const key of ['menuBand','resultBand','textArea'])if(m[key]){const r=m[key];let first=null;for(let y=r.y;y<r.y+r.h;y++)for(let x=r.x;x<r.x+r.w;x++){const i=(y*info.width+x)*4,val=data.subarray(i,i+4).join(',');if(first===null)first=val;if(val!==first)throw Error(name+' unsafe text area')}}
+  report.files[name]={width:info.width,height:info.height,frames:Object.keys(m.frames).length,offPalettePixels:off,partialAlphaPixels:partial};
+ }
+ const m=JSON.parse(fs.readFileSync(path.join(ROOT,'scenes.json')));if(Object.keys(m.frames).length!==14)throw Error('Incomplete scene set');
+ const ctx={window:{}};vm.runInNewContext(fs.readFileSync(path.join(ROOT,'../game/map.js'),'utf8'),ctx);const propNames=new Set(ctx.window.PARIS.props.map(p=>p.name));
+ for(const [k,v]of Object.entries(m.byProp)){if(!propNames.has(k))throw Error('Unknown property '+k);if(!m.frames[v])throw Error('Unknown scene '+v)}for(const v of Object.values(m.byTerrain))if(!m.frames[v])throw Error('Unknown terrain scene');for(const text of Object.values(m.captions))if(text.length>=40||text!==text.toUpperCase())throw Error('Invalid caption');
+ for(const f of ['scenes.png','scenes.json'])if(!fs.readFileSync(path.join(ROOT,f)).equals(fs.readFileSync(path.join(ROOT,'../game/art',f))))throw Error('Stale game scene file');
+ const ui=JSON.parse(fs.readFileSync(path.join(ROOT,'ui.json')));for(const k of ['end_turn_normal','end_turn_pressed','back_normal','back_pressed'])if(ui.frames[k].w!==48||ui.frames[k].h!==12)throw Error('Button dimensions');for(const k of ['turn_lyceens','turn_crs'])if(ui.frames[k].w!==384||ui.frames[k].h!==46)throw Error('Banner dimensions');
+ const fm=JSON.parse(fs.readFileSync(path.join(ROOT,'font8.json')));for(const c of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ÉÈÀÇ')if(!fm.glyphs[c])throw Error('Missing glyph');
+ report.propertyMappings=Object.keys(m.byProp).length;report.terrainMappings=Object.keys(m.byTerrain);report.groundBands='all fourteen plain and opaque';report.safeTextAreas='title, both results and help are uniform fills';report.browserChecks={firstFour:['republique','capucines','louvre','velib'],method:'Two-player session; real __cf.attack calls; damage resolved; PNG captured during combat',frontend:'Standalone 1x/3x preview with actual 5x7 body glyphs; engine UI integration pending'};
+ fs.writeFileSync(path.join(ROOT,'validation-3.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
+})().catch(e=>{console.error(e);process.exit(1)});
