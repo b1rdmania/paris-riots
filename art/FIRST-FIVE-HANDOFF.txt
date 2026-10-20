@@ -1,0 +1,17 @@
+KLAXXON — first five units, integration candidate
+
+Installed in /Users/andy/Documents/couvre-feu/art/units.png and units.json.
+Built-in image_gen generated the artwork; deterministic packing reduced it to native size, mapped colors to the unchanged fixed palette, added index-0 silhouette outlines and binary transparency.
+
+Atlas: 128x208, eight 16x16 columns, thirteen rows.
+Available rows: 0 lyceen, 3 torse, 4 panther, 7 crs, 12 canon.
+Columns: idle0 idle1 walk0 walk1 attack0 attack1 hit ko.
+Other rows are fully transparent. Keep placeholder fallback for those IDs.
+JSON includes rectangles, availableUnits and suggested animation timings.
+Use nearest-neighbour scaling in the game. Bottom row of each cell is transparent.
+No game code or palette changes were made.
+
+Review: native silhouettes and palette validated; not yet tested in-game. Phone, cuffs and jewel details are highly abstract at 16x16. Confirm readability and overlay placement before commissioning the remaining units. Generated source is retained separately for comparison; it is not the runtime atlas.
+
+Prompt used (production specification):
+Create a production pixel-art sprite sheet for KLAXXON / Command & Couvre-feu, a slapstick Paris turn-based game with Amiga / Advance Wars readability. EXACT layout: 8 columns x 5 rows, uniform square cells, no labels, no grid lines, no background. Transparent background. Sheet aspect 8:5. Each cell represents exactly 16x16 native pixels, shown enlarged with hard square pixel edges. Extremely low-resolution chunky pixel art, not detailed illustrations. 1 native-pixel near-black #0f0e14 silhouette outline. All characters face RIGHT, full body entirely inside cell, consistent baseline and scale across each row. Reserve bottom row of each cell transparent. Eight columns in order: idle0, idle1 breathing, walk0 stride, walk1 opposite stride, attack0 windup, attack1 action, hit recoil, ko comic surrender or sitting. Five rows: 1 hooded teenage youth in red hoodie with yellow hi-vis accent, phone raised filming; attacks by thrusting phone forward, ko hands cuffed in front; 2 rotund topless middle-aged uncle with huge round belly, dark trousers, beer can, attacks by slapping belly, ko sitting grumpy; 3 Pink Panther pink feline jewel thief with long muzzle, tail and dark swag bag, sneaky tiptoe walk, attack reaches then snatches tiny gold gem, ko hands together surrender; 4 navy riot cop with blue helmet, visor and large pale blue shield, attacks by shield push, ko sits rubbing back; 5 compact navy blue water-cannon truck with wheels, pale blue windshield and rooftop nozzle pointing right, attack0 turret raises, attack1 short blue water jet staying inside cell, hit bounces, ko drooping nozzle and flat tires. Each cell contains ONLY its single unit. Same design and size across all 8 poses. Truck occupies most cell width; humans 8-11 native pixels wide x 13-14 tall. Absolutely no gore. Flat colors without gradients, antialiasing or dithering. Palette ONLY these hex colors: #0f0e14 #1d1b26 #2e2c3a #45435a #646680 #8c90a8 #b8bccc #ece8dc #e070b0 #4a3828 #7a5c40 #b08a60 #d8c098 #f0e0b8 #1a3a2a #2e5e3a #4e8a48 #8cbc5c #12304a #1e5070 #3a7a98 #78b0c0 #14204a #23387a #3c5cb0 #7a98e0 #f0d020 #a88a10 #e05a20 #ff9a30 #b02c2c #c8e8a0. No text or decorative elements, no shadows beneath sprites. Ensure precisely forty distinct poses in five rows of eight.

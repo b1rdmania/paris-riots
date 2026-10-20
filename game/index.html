@@ -336,6 +336,36 @@ function mkSprite(rows, flip, dim) {
   return c;
 }
 const SPR = {};
+// Codex sheet (art/units.json). Units it covers use its frames; the rest keep the code sprites.
+const SHEET = { frames: null, cache: {} };
+(async () => {
+  try {
+    const meta = await (await fetch("art/units.json")).json();
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = "art/units.png"; });
+    for (const id of meta.availableUnits) for (const pose of meta.frameOrder) {
+      const r = meta.frames[`${id}/${pose}`];
+      for (const f of [0, 1]) for (const d of [0, 1]) {
+        const c = document.createElement("canvas"); c.width = c.height = 16;
+        const x = c.getContext("2d");
+        if (f) { x.translate(16, 0); x.scale(-1, 1); }
+        x.drawImage(img, r.x, r.y, 16, 16, 0, 0, 16, 16);
+        if (d) { x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = "source-atop"; x.fillStyle = "rgba(15,14,20,0.55)"; x.fillRect(0, 0, 16, 16); }
+        SHEET.cache[`${id}/${pose}${f}${d}`] = c;
+      }
+    }
+    SHEET.frames = new Set(meta.availableUnits);
+  } catch {}
+})();
+function poseOf(u) {
+  const now = performance.now(), p = u.pose;
+  if (p && now < p.t0 + p.dur) {
+    if (p.name === "walk") return `walk${(frame >> 3) % 2}`;
+    if (p.name === "attack") return now - p.t0 < p.dur / 2 ? "attack0" : "attack1";
+    return p.name;
+  }
+  return `idle${(frame >> 5) % 2}`;
+}
+const setPose = (u, name, dur) => { u.pose = { name, t0: performance.now(), dur: window.__fast ? 0 : dur }; };
 for (const k in ART) for (const f of [0, 1]) for (const d of [0, 1]) SPR[`${k}${f}${d}`] = mkSprite(ART[k], f, d);
 
 // ---------- rules data ----------
@@ -598,14 +628,15 @@ function gameOver(winner, why) {
 // ---------- actions (shared by player and AI) ----------
 async function moveUnit(u, path) {
   if (path.length && u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; u.capturing = false; }
+  if (path.length) setPose(u, "walk", path.length * (human() ? 55 : 80) + 60);
   for (const [x, y] of path) { u.x = x; u.y = y; SFX.move(); await sleep(human() ? 55 : 80); }
 }
 async function attack(a, d) {
   G.busy = true;
   const dmg = calcDmg(a, d, d.x, d.y, Math.floor(Math.random() * 10));
-  fx(a, d); SFX.hit();
+  fx(a, d); SFX.hit(); setPose(a, "attack", 380);
   await sleep(380);
-  d.hp -= dmg; pop(d.x, d.y, dmg);
+  d.hp -= dmg; pop(d.x, d.y, dmg); setPose(d, "hit", 300);
   if (U[a.type].splash) {
     let own = false;
     for (const o of G.units) if (o !== d && dist(o.x, o.y, d.x, d.y) === 1 && !U[o.type].gasproof) {
@@ -618,8 +649,8 @@ async function attack(a, d) {
   else if (canCounter(d, a)) {
     await sleep(250);
     const c = calcDmg(d, a, a.x, a.y, Math.floor(Math.random() * 10));
-    fx(d, a); SFX.hit(); await sleep(300);
-    a.hp -= c; pop(a.x, a.y, c);
+    fx(d, a); SFX.hit(); setPose(d, "attack", 300); await sleep(300);
+    a.hp -= c; pop(a.x, a.y, c); setPose(a, "hit", 300);
     if (a.hp <= 0) await ko(a);
   }
   await sleep(200);
@@ -627,6 +658,7 @@ async function attack(a, d) {
   checkRout();
 }
 async function ko(u) {
+  if (SHEET.frames?.has(u.type)) { u.hp = 1; setPose(u, "ko", 900); await sleep(900); }
   G.fx.push({ kind: "poof", x: u.x, y: u.y, t: 0, life: 30 });
   if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; }
   G.units = G.units.filter((o) => o !== u);
@@ -1049,8 +1081,12 @@ function drawUnits() {
   for (const u of G.units) {
     const px = u.x * TS, py = TOP + u.y * TS;
     const dim = u.done && u.side === G.side && !G.over;
-    const bob = !dim && u.side === G.side && (frame >> 4) % 2 ? -1 : 0;
-    ctx.drawImage(SPR[`${u.type}${u.side === 0 ? 1 : 0}${dim ? 1 : 0}`], px, py + bob);
+    const fl = u.side === 0 ? 1 : 0;
+    if (SHEET.frames?.has(u.type)) ctx.drawImage(SHEET.cache[`${u.type}/${poseOf(u)}${fl}${dim ? 1 : 0}`], px, py);
+    else {
+      const bob = !dim && u.side === G.side && (frame >> 4) % 2 ? -1 : 0;
+      ctx.drawImage(SPR[`${u.type}${fl}${dim ? 1 : 0}`], px, py + bob);
+    }
     fill(px, py + 15, 4, 1, SIDES[u.side].col);
     const h = hpD(u);
     if (h < 10) { fill(px + 10, py + 8, 6, 8, 0); text(String(h), px + 11, py + 9, 7); }

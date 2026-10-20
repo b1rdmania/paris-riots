@@ -1,0 +1,20 @@
+{
+  "frames": 40,
+  "dimensions": [
+    128,
+    208
+  ],
+  "opaquePixels": 4550,
+  "offPalettePixels": 0,
+  "alpha": "binary",
+  "emptyRows": [
+    1,
+    2,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11
+  ]
+}

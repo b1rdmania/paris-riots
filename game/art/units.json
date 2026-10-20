@@ -1,0 +1,623 @@
+{
+  "version": 1,
+  "status": "integration-candidate",
+  "image": "units.png",
+  "palette": "palette.json",
+  "frameSize": {
+    "width": 16,
+    "height": 16
+  },
+  "sheet": {
+    "width": 128,
+    "height": 208,
+    "columns": 8,
+    "rows": 13
+  },
+  "availableUnits": [
+    "lyceen",
+    "torse",
+    "panther",
+    "crs",
+    "canon"
+  ],
+  "unavailableRows": [
+    1,
+    2,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11
+  ],
+  "frameOrder": [
+    "idle0",
+    "idle1",
+    "walk0",
+    "walk1",
+    "attack0",
+    "attack1",
+    "hit",
+    "ko"
+  ],
+  "frames": {
+    "lyceen/idle0": {
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lyceen/idle1": {
+      "x": 16,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lyceen/walk0": {
+      "x": 32,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lyceen/walk1": {
+      "x": 48,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lyceen/attack0": {
+      "x": 64,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lyceen/attack1": {
+      "x": 80,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lyceen/hit": {
+      "x": 96,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "lyceen/ko": {
+      "x": 112,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/idle0": {
+      "x": 0,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/idle1": {
+      "x": 16,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/walk0": {
+      "x": 32,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/walk1": {
+      "x": 48,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/attack0": {
+      "x": 64,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/attack1": {
+      "x": 80,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/hit": {
+      "x": 96,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "torse/ko": {
+      "x": 112,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/idle0": {
+      "x": 0,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/idle1": {
+      "x": 16,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/walk0": {
+      "x": 32,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/walk1": {
+      "x": 48,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/attack0": {
+      "x": 64,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/attack1": {
+      "x": 80,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/hit": {
+      "x": 96,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "panther/ko": {
+      "x": 112,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/idle0": {
+      "x": 0,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/idle1": {
+      "x": 16,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/walk0": {
+      "x": 32,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/walk1": {
+      "x": 48,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/attack0": {
+      "x": 64,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/attack1": {
+      "x": 80,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/hit": {
+      "x": 96,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "crs/ko": {
+      "x": 112,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/idle0": {
+      "x": 0,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/idle1": {
+      "x": 16,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/walk0": {
+      "x": 32,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/walk1": {
+      "x": 48,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/attack0": {
+      "x": 64,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/attack1": {
+      "x": 80,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/hit": {
+      "x": 96,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "canon/ko": {
+      "x": 112,
+      "y": 192,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    }
+  },
+  "notes": "Only rows 0,3,4,7,12 supplied. Other rows are transparent; use existing placeholders for unavailable units. Right-facing. Bottom pixel row transparent. Nearest-neighbour scaling only.",
+  "animations": {
+    "lyceen/idle": {
+      "frames": [
+        "lyceen/idle0",
+        "lyceen/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "lyceen/walk": {
+      "frames": [
+        "lyceen/walk0",
+        "lyceen/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "lyceen/attack": {
+      "frames": [
+        "lyceen/attack0",
+        "lyceen/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "lyceen/hit": {
+      "frames": [
+        "lyceen/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "lyceen/ko": {
+      "frames": [
+        "lyceen/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "torse/idle": {
+      "frames": [
+        "torse/idle0",
+        "torse/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "torse/walk": {
+      "frames": [
+        "torse/walk0",
+        "torse/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "torse/attack": {
+      "frames": [
+        "torse/attack0",
+        "torse/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "torse/hit": {
+      "frames": [
+        "torse/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "torse/ko": {
+      "frames": [
+        "torse/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "panther/idle": {
+      "frames": [
+        "panther/idle0",
+        "panther/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "panther/walk": {
+      "frames": [
+        "panther/walk0",
+        "panther/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "panther/attack": {
+      "frames": [
+        "panther/attack0",
+        "panther/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "panther/hit": {
+      "frames": [
+        "panther/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "panther/ko": {
+      "frames": [
+        "panther/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "crs/idle": {
+      "frames": [
+        "crs/idle0",
+        "crs/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "crs/walk": {
+      "frames": [
+        "crs/walk0",
+        "crs/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "crs/attack": {
+      "frames": [
+        "crs/attack0",
+        "crs/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "crs/hit": {
+      "frames": [
+        "crs/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "crs/ko": {
+      "frames": [
+        "crs/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    },
+    "canon/idle": {
+      "frames": [
+        "canon/idle0",
+        "canon/idle1"
+      ],
+      "durationsMs": [
+        500,
+        500
+      ],
+      "loop": true
+    },
+    "canon/walk": {
+      "frames": [
+        "canon/walk0",
+        "canon/walk1"
+      ],
+      "durationsMs": [
+        140,
+        140
+      ],
+      "loop": true
+    },
+    "canon/attack": {
+      "frames": [
+        "canon/attack0",
+        "canon/attack1"
+      ],
+      "durationsMs": [
+        180,
+        180
+      ],
+      "loop": false
+    },
+    "canon/hit": {
+      "frames": [
+        "canon/hit"
+      ],
+      "durationsMs": [
+        220
+      ],
+      "loop": false
+    },
+    "canon/ko": {
+      "frames": [
+        "canon/ko"
+      ],
+      "durationsMs": [
+        800
+      ],
+      "loop": false
+    }
+  }
+}
