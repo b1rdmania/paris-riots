@@ -595,9 +595,13 @@ async function moveUnit(u, path) {
 }
 async function attack(a, d) {
   G.busy = true;
-  const dmg = calcDmg(a, d, d.x, d.y, Math.floor(Math.random() * 10));
-  fx(a, d); SFX.hit(); setPose(a, "attack", 380);
-  await sleep(380);
+  const luck = () => Math.floor(Math.random() * 10);
+  const dmg = calcDmg(a, d, d.x, d.y, luck());
+  const left = Math.max(0, d.hp - dmg);
+  const c = left > 0 && canCounter(d, a) ? calcDmg(d, a, a.x, a.y, luck(), left, a.hp) : 0;
+  const scene = showBattle();
+  if (scene) await battle(a, d, dmg, c);
+  else { fx(a, d); SFX.hit(); setPose(a, "attack", 380); await sleep(380); }
   d.hp -= dmg; pop(d.x, d.y, dmg); setPose(d, "hit", 300);
   if (U[a.type].splash) {
     let own = false;
@@ -607,20 +611,18 @@ async function attack(a, d) {
     }
     if (own) say("OOPS. GASSED OUR OWN LADS.");
   }
-  if (d.hp <= 0) { await ko(d); }
-  else if (canCounter(d, a)) {
-    await sleep(250);
-    const c = calcDmg(d, a, a.x, a.y, Math.floor(Math.random() * 10));
-    fx(d, a); SFX.hit(); setPose(d, "attack", 300); await sleep(300);
+  if (d.hp <= 0) await ko(d, scene);
+  else if (c) {
+    if (!scene) { await sleep(250); fx(d, a); SFX.hit(); setPose(d, "attack", 300); await sleep(300); }
     a.hp -= c; pop(a.x, a.y, c); setPose(a, "hit", 300);
-    if (a.hp <= 0) await ko(a);
+    if (a.hp <= 0) await ko(a, scene);
   }
   await sleep(200);
   G.busy = false;
   checkRout();
 }
-async function ko(u) {
-  if (SHEET.frames?.has(u.type)) { u.hp = 1; setPose(u, "ko", 900); await sleep(900); }
+async function ko(u, seen) {
+  if (SHEET.frames?.has(u.type) && !seen) { u.hp = 1; setPose(u, "ko", 900); await sleep(900); }
   G.fx.push({ kind: "poof", x: u.x, y: u.y, t: 0, life: 30 });
   if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; }
   G.units = G.units.filter((o) => o !== u);
@@ -659,6 +661,164 @@ function fx(a, d) {
   G.fx.push({ kind, x: d.x, y: d.y, t: 0, life: 40, delay: 18 });
 }
 function pop(x, y, dmg) { G.fx.push({ kind: "num", x, y, n: Math.ceil(dmg / 10), t: 0, life: 50 }); }
+
+// ---------- battle scene (Advance Wars cut-in) ----------
+const BATTLE_MODES = ["ALL", "MY TURN ONLY", "OFF"];
+let battleMode = 0;
+try { battleMode = Number(localStorage.getItem("pr-battles")) || 0; } catch {}
+const showBattle = () => !window.__fast && IMG.cutMeta && (battleMode === 0 || (battleMode === 1 && human()));
+// What flies across the gap, and what it looks like when it lands.
+const SHOT = { lyceen: ["paving_stone", "smoke"], bloc: ["paving_stone", "smoke"], caddie: ["firework", "firework"], lbd: ["rubber_bullet", "smoke"],
+  lacrymo: ["teargas", "teargas"], canon: [null, "water"] };
+const BT = { in: 260, idle: 260, atk: 630, fly: 320, drop: 420, gap: 220, ko: 900, hold: 420, out: 220 };
+function battle(a, d, dmg, c) {
+  // Lycéens always stand on the right, as on the map; CRS on the left.
+  const L = a.side === 1 ? a : d, R = a.side === 1 ? d : a;
+  const t1 = BT.in + BT.idle, hit1 = t1 + BT.atk * 0.55 + (SHOT[a.type]?.[0] ? BT.fly : 0);
+  const kill1 = d.hp - dmg <= 0, kill2 = c > 0 && a.hp - c <= 0;
+  const t2 = hit1 + BT.drop + BT.gap, hit2 = t2 + BT.atk * 0.55 + (SHOT[d.type]?.[0] ? BT.fly : 0);
+  const end = (kill1 ? hit1 + BT.drop + BT.ko : c ? hit2 + BT.drop + (kill2 ? BT.ko : 0) : hit1 + BT.drop) + BT.hold;
+  return new Promise((done) => {
+    G.battle = { L, R, a, d, dmg, c, t0: performance.now(), t1, hit1, t2, hit2, kill1, kill2, end, done, hp: { [a.id]: a.hp, [d.id]: d.hp }, sfx: {} };
+  });
+}
+function bScene(u) {
+  // A painted scene for this spot (art/scenes.json), else a backdrop from the terrain.
+  const p = propAt(u.x, u.y), meta = IMG.sceneMeta;
+  if (meta && IMG.scenes) {
+    const key = (p && meta.byProp?.[p.name]) || meta.byTile?.[`${u.x},${u.y}`] || meta.byTerrain?.[terr(u.x, u.y)];
+    if (key && meta.frames[key]) return { img: IMG.scenes, r: meta.frames[key], caption: meta.captions?.[key] };
+  }
+  return null;
+}
+function drawBackdrop(x0, y0, u) {
+  const w = 192, h = 132, sc = bScene(u);
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+  if (sc) { ctx.drawImage(sc.img, sc.r.x, sc.r.y, sc.r.w, sc.r.h, x0, y0, w, h); ctx.restore(); return; }
+  const hr = hour(), night = hr >= 20, dusk = hr >= 18 && !night;
+  fill(x0, y0, w, h, night ? 22 : dusk ? 29 : 21);
+  fill(x0, y0 + 40, w, 30, night ? 1 : dusk ? 28 : 25);
+  const t = terr(u.x, u.y), p = propAt(u.x, u.y);
+  const seed = (i) => rnd(u.x, u.y, i);
+  if (t === "b" || t === "~") {
+    // the far bank and the river
+    for (let i = 0; i < 6; i++) { const bx = x0 + i * 34, bh = 30 + seed(i) * 14; fill(bx, y0 + 74 - bh, 32, bh, 12); fill(bx, y0 + 74 - bh, 32, 6, 5); }
+    fill(x0, y0 + 74, w, 30, 19); for (let i = 0; i < 18; i++) fill(x0 + seed(i + 9) * w, y0 + 78 + seed(i + 30) * 24, 6, 1, 20);
+    fill(x0, y0 + 104, w, 4, 11); for (let i = 0; i < w; i += 6) fill(x0 + i, y0 + 96, 2, 8, 12); fill(x0, y0 + 95, w, 2, 12);
+  } else {
+    // a row of Haussmann buildings: zinc mansard, dormers, limestone, balconies
+    for (let i = 0; i < 4; i++) {
+      const bx = x0 + i * 50 - 6, top = y0 + 6 + seed(i) * 14;
+      fill(bx, top, 48, 16, 4); fill(bx + 2, top - 2, 44, 2, 5);
+      for (let k = 0; k < 4; k++) fill(bx + 5 + k * 11, top + 4, 5, 8, night && seed(i * 9 + k) < 0.5 ? 26 : 3);
+      fill(bx, top + 16, 48, y0 + 112 - top - 16, 12); fill(bx, top + 16, 48, 2, 11);
+      for (let r = 0; r < 4; r++) {
+        const wy = top + 22 + r * 20; if (wy > y0 + 96) break;
+        for (let k = 0; k < 4; k++) fill(bx + 5 + k * 11, wy, 6, 12, night && seed(i * 31 + r * 7 + k) < 0.4 ? 26 : 3);
+        if (r % 2 === 0) fill(bx + 2, wy + 12, 44, 2, 0);
+      }
+      fill(bx + 47, top, 2, y0 + 112 - top, 11);
+    }
+    if (p && IMG.props && IMG.propsMeta) {
+      // the landmark itself, big, in the middle of the street
+      const art = p.art.startsWith("shop") && p.owner === 0 ? "shop_looted" : p.art, r = IMG.propsMeta.frames[art];
+      if (r) ctx.drawImage(IMG.props, r.x, r.y, 16, 24, x0 + 60, y0 + 16, 64, 96);
+    }
+    if (t === "T") for (let i = 0; i < 7; i++) { const tx = x0 + i * 30 + seed(i + 50) * 10, ty = y0 + 56 + seed(i + 60) * 16; fill(tx + 9, ty + 20, 4, 36, 9); fill(tx, ty, 22, 24, 16); fill(tx + 3, ty + 3, 8, 8, 17); fill(tx, ty + 20, 22, 4, 15); }
+  }
+  // the ground they stand on
+  const ground = { T: 12, b: 11 }[t] ?? 2;
+  fill(x0, y0 + 108, w, h - 108, ground); fill(x0, y0 + 108, w, 2, t === "T" ? 15 : 5);
+  if (ground === 2) for (let i = 8; i < w; i += 40) fill(x0 + i, y0 + 120, 16, 2, 6);
+  ctx.restore();
+}
+function cutFrame(u, attacking, t) {
+  const m = IMG.cutMeta, anim = m.animations[`${u.type}/attack`];
+  if (!attacking || t < 0) return m.frames[`${u.type}/idle`];
+  let acc = 0;
+  for (let i = 0; i < anim.frames.length; i++) { acc += anim.durationsMs[i]; if (t < acc) return m.frames[anim.frames[i]]; }
+  return m.frames[anim.frames.at(-1)];
+}
+function fxFrame(name, t) {
+  const m = IMG.fxMeta, anim = m?.animations[name]; if (!anim) return null;
+  let acc = 0;
+  for (let i = 0; i < anim.frames.length; i++) { acc += anim.durationsMs[i]; if (t < acc) return m.frames[anim.frames[i]]; }
+  return null;
+}
+function drawFx2(name, t, cx, cy, flip) {
+  const r = fxFrame(name, t); if (!r) return;
+  ctx.save(); ctx.translate(cx, cy); if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, -16, -16, 32, 32); ctx.restore();
+}
+function drawBattle() {
+  const B = G.battle, now = performance.now(), t = now - B.t0;
+  if (B.skip || t >= B.end) { G.battle = null; B.done(); return; }
+  const k = t < BT.in ? t / BT.in : t > B.end - BT.out ? (B.end - t) / BT.out : 1;
+  ctx.globalAlpha = 0.7 * k; fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
+  const y0 = 46, slide = Math.round((1 - k) * 200);
+  const sides = [[B.L, 0 - slide, false], [B.R, 192 + slide, true]];
+  // sound cues
+  const cue = (name, at, f) => { if (t >= at && !B.sfx[name]) { B.sfx[name] = 1; f(); } };
+  cue("a", B.t1, () => beep(220, 0.08, "square", 0.05, 220));
+  cue("h1", B.hit1, () => SFX.hit());
+  if (B.c) { cue("b", B.t2, () => beep(220, 0.08, "square", 0.05, 220)); cue("h2", B.hit2, () => SFX.hit()); }
+  if (B.kill1 || B.kill2) cue("ko", (B.kill1 ? B.hit1 : B.hit2) + BT.drop, () => SFX.bad());
+  for (const [u, x0, flip] of sides) {
+    const isA = u === B.a;
+    drawBackdrop(x0, y0, u);
+    // HP: drops after each hit lands
+    const hit = isA ? B.hit2 : B.hit1, loss = isA ? B.c : B.dmg, start = B.hp[u.id];
+    const f = loss && t > hit ? Math.min(1, (t - hit) / BT.drop) : 0;
+    const hp = Math.max(0, start - loss * f), hpd = Math.ceil(hp / 10);
+    // the squad: attacker animates at t1, defender counters at t2
+    const myT = isA ? t - B.t1 : t - B.t2, attacking = isA || (B.c > 0);
+    const r = cutFrame(u, attacking && myT >= 0 && myT < BT.atk + 300, myT);
+    const melee = !SHOT[u.type]?.[0] && U[u.type].cls !== "arty";
+    let lunge = melee && myT > 0 && myT < BT.atk ? Math.sin(myT / BT.atk * Math.PI) * 28 : 0;
+    let shake = t > hit && t < hit + 260 && loss ? ((t >> 5) % 2 ? 3 : -3) : 0;
+    const gone = (isA ? B.kill2 : B.kill1) && t > hit + BT.drop;
+    const sink = gone ? Math.min(1, (t - hit - BT.drop) / 500) : 0;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, 192, 132); ctx.clip();
+    ctx.globalAlpha = 1 - sink * 0.85;
+    const px = x0 + (flip ? -lunge : lunge) + shake, py = y0 + 132 - 128 - 4 + sink * 30;
+    if (flip) { ctx.translate(px + 192, py); ctx.scale(-1, 1); ctx.drawImage(IMG["battle-cutins"], r.x, r.y, 96, 64, 0, 0, 192, 128); }
+    else ctx.drawImage(IMG["battle-cutins"], r.x, r.y, 96, 64, px, py, 192, 128);
+    ctx.restore();
+    // impact on this side
+    const shooter = isA ? B.d : B.a, shot = SHOT[shooter.type];
+    const impact = shot ? shot[1] : "smoke";
+    if (loss && t > hit - 40) drawFx2(impact, t - hit + 40, x0 + 96, y0 + 84, flip);
+    if (gone) {
+      const stamp = u.side === 0 ? "ARRESTED!" : "SIGNED OFF!";
+      const sw = tw(stamp, 2) + 12;
+      fill(x0 + 96 - sw / 2, y0 + 50, sw, 22, 30); fill(x0 + 96 - sw / 2 + 2, y0 + 52, sw - 4, 18, 0);
+      textC(stamp, x0 + 96, y0 + 55, 7, null, 2);
+    }
+    // header: name, HP, bar
+    const s = SIDES[u.side];
+    fill(x0, y0 - 18, 192, 18, 0); fill(x0, y0 - 18, 192, 2, s.col);
+    text(U[u.type].name, x0 + 6, y0 - 12, 7);
+    const hx = x0 + 120;
+    for (let i = 0; i < 10; i++) fill(hx + i * 5, y0 - 12, 4, 7, i < hpd ? (hpd <= 3 ? 30 : s.hi) : 2);
+    text(String(hpd), x0 + 176, y0 - 12, 26);
+    if (loss && t > hit && t < hit + 900) { const dy = Math.min(14, (t - hit) / 40); fill(x0 + 84, y0 + 20 - dy, 26, 11, 0); text(`-${Math.ceil(loss / 10)}`, x0 + 88, y0 + 22 - dy, 30); }
+  }
+  // projectiles crossing the gap
+  for (const [u, at, from] of [[B.a, B.t1 + BT.atk * 0.55, B.a === B.L ? 0 : 1], [B.d, B.t2 + BT.atk * 0.55, B.d === B.L ? 0 : 1]]) {
+    const shot = SHOT[u.type]?.[0]; if (!shot || (u === B.d && !B.c)) continue;
+    const q = (t - at) / BT.fly; if (q < 0 || q > 1) continue;
+    const xA = from === 0 ? 150 : 234, xB = from === 0 ? 292 : 92;
+    const x = xA + (xB - xA) * q, y = y0 + 70 - Math.sin(q * Math.PI) * (U[u.type].cls === "arty" ? 50 : 16);
+    drawFx2(shot, (t - at) % 400, x, y, from === 1);
+  }
+  // divider and footer
+  fill(191, y0 - 18, 2, 150, 0);
+  const sc = bScene(B.R) || bScene(B.L);
+  const cap = sc?.caption || propAt(B.d.x, B.d.y)?.name || TNAME[terr(B.d.x, B.d.y)];
+  fill(0, y0 + 132, W, 14, 0); textC(`${cap} - SAT ${hour()}:00`, W / 2, y0 + 136, 6);
+  if ((frame >> 5) % 2) text("SPACE: SKIP", W - 70, y0 + 136, 4);
+}
 
 // ---------- AI ----------
 function field(mt, goals) {
@@ -780,6 +940,7 @@ function act(a) {
   if (screen === "help") { screen = "title"; SFX.back(); return; }
   if (!G) return;
   if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
+  if (G.battle) { if (a === "ok" || a === "back") G.battle.skip = true; return; }
   if (G.banner) { if (a === "ok") G.banner.t = Math.min(G.banner.t, 8); return; }
   if (G.busy || !human()) return;
   const c = G.cur;
@@ -859,6 +1020,7 @@ function mainMenu() {
     title: `SAT ${hour()}:00`, sel: 0,
     items: [
       { label: "END TURN", fn: () => { G.menu = null; endTurn(); } },
+      { label: `BATTLES: ${BATTLE_MODES[battleMode]}`, fn: () => { battleMode = (battleMode + 1) % 3; try { localStorage.setItem("pr-battles", battleMode); } catch {} mainMenu(); G.menu.sel = 1; } },
       { label: "RULES", fn: () => { G.menu = null; screen = "help"; } },
       { label: "QUIT", fn: () => { G = null; screen = "title"; } },
     ],
@@ -905,7 +1067,7 @@ cv.addEventListener("pointerdown", (e) => {
   }
   if (screen === "help") return act("ok");
   if (!G) return;
-  if (G.over || G.banner) return act("ok");
+  if (G.over || G.banner || G.battle) return act("ok");
   for (const b of G.buttons) if (px >= b.x && px < b.x + b.w && py >= b.y && py < b.y + b.h) return b.fn();
   if (G.menu) {
     const i = (G.menuRects || []).findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
@@ -928,10 +1090,12 @@ let mapLayer = null;
 const rnd = (x, y, i = 0) => { let h = (x * 374761393 + y * 668265263 + i * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
 const IMG = {};
-const ASSETS = Promise.all(["paris", "props"].map((n) => new Promise((ok) => {
+const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes"].map((n) => new Promise((ok) => {
   const i = new Image(); i.onload = () => { IMG[n] = i; ok(); }; i.onerror = () => ok(); i.src = `art/${n}.png`;
 }))).then(async () => {
-  try { IMG.propsMeta = await (await fetch("art/props.json")).json(); } catch {}
+  for (const [k, f] of [["propsMeta", "props"], ["cutMeta", "battle-cutins"], ["fxMeta", "fx"], ["sceneMeta", "scenes"]]) {
+    try { IMG[k] = await (await fetch(`art/${f}.json`)).json(); } catch {}
+  }
   waterPixels();
 });
 let WATER = [];
@@ -1281,6 +1445,7 @@ function loop() {
       if (human() || G.busy) drawCursor();
       drawTop(); drawBottom();
       if (G.menu) drawMenu();
+      if (G.battle) drawBattle();
       if (G.banner) drawBanner();
     }
   }
@@ -1289,7 +1454,7 @@ function loop() {
 let ready = false;
 ASSETS.then(() => { mapLayer = null; G = null; ready = true; });
 // Test hook: lets a headless run inspect and drive the game.
-window.__cf = { get G() { return G; }, act, newGame, endTurn, get screen() { return screen; } };
+window.__cf = { get G() { return G; }, act, newGame, endTurn, attack, get screen() { return screen; } };
 loop();
 </script>
 </body>

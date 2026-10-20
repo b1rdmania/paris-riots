@@ -1,0 +1,449 @@
+{
+  "version": 2,
+  "status": "integration-candidate",
+  "image": "fx.png",
+  "palette": "palette.json",
+  "frameSize": {
+    "width": 16,
+    "height": 16
+  },
+  "sheet": {
+    "width": 64,
+    "height": 144,
+    "columns": 4,
+    "rows": 9
+  },
+  "frames": {
+    "firework/0": {
+      "x": 0,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "firework/1": {
+      "x": 16,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "firework/2": {
+      "x": 32,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "firework/3": {
+      "x": 48,
+      "y": 0,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "teargas/0": {
+      "x": 0,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "teargas/1": {
+      "x": 16,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "teargas/2": {
+      "x": 32,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "teargas/3": {
+      "x": 48,
+      "y": 16,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "water/0": {
+      "x": 0,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "water/1": {
+      "x": 16,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "water/2": {
+      "x": 32,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "water/3": {
+      "x": 48,
+      "y": 32,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "rubber_bullet/0": {
+      "x": 0,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "rubber_bullet/1": {
+      "x": 16,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "rubber_bullet/2": {
+      "x": 32,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "rubber_bullet/3": {
+      "x": 48,
+      "y": 48,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "paving_stone/0": {
+      "x": 0,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "paving_stone/1": {
+      "x": 16,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "paving_stone/2": {
+      "x": 32,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "paving_stone/3": {
+      "x": 48,
+      "y": 64,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "flame/0": {
+      "x": 0,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "flame/1": {
+      "x": 16,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "flame/2": {
+      "x": 32,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "flame/3": {
+      "x": 48,
+      "y": 80,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "smoke/0": {
+      "x": 0,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "smoke/1": {
+      "x": 16,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "smoke/2": {
+      "x": 32,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "smoke/3": {
+      "x": 48,
+      "y": 96,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag/0": {
+      "x": 0,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag/1": {
+      "x": 16,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag/2": {
+      "x": 32,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag/3": {
+      "x": 48,
+      "y": 112,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag_crs/0": {
+      "x": 0,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag_crs/1": {
+      "x": 16,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag_crs/2": {
+      "x": 32,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    },
+    "capture_flag_crs/3": {
+      "x": 48,
+      "y": 128,
+      "w": 16,
+      "h": 16,
+      "width": 16,
+      "height": 16
+    }
+  },
+  "animations": {
+    "firework": {
+      "frames": [
+        "firework/0",
+        "firework/1",
+        "firework/2",
+        "firework/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": false
+    },
+    "teargas": {
+      "frames": [
+        "teargas/0",
+        "teargas/1",
+        "teargas/2",
+        "teargas/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": true
+    },
+    "water": {
+      "frames": [
+        "water/0",
+        "water/1",
+        "water/2",
+        "water/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": false
+    },
+    "rubber_bullet": {
+      "frames": [
+        "rubber_bullet/0",
+        "rubber_bullet/1",
+        "rubber_bullet/2",
+        "rubber_bullet/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": false
+    },
+    "paving_stone": {
+      "frames": [
+        "paving_stone/0",
+        "paving_stone/1",
+        "paving_stone/2",
+        "paving_stone/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": false
+    },
+    "flame": {
+      "frames": [
+        "flame/0",
+        "flame/1",
+        "flame/2",
+        "flame/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": true
+    },
+    "smoke": {
+      "frames": [
+        "smoke/0",
+        "smoke/1",
+        "smoke/2",
+        "smoke/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": true
+    },
+    "capture_flag": {
+      "frames": [
+        "capture_flag/0",
+        "capture_flag/1",
+        "capture_flag/2",
+        "capture_flag/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": false
+    },
+    "capture_flag_crs": {
+      "frames": [
+        "capture_flag_crs/0",
+        "capture_flag_crs/1",
+        "capture_flag_crs/2",
+        "capture_flag_crs/3"
+      ],
+      "durationsMs": [
+        100,
+        100,
+        100,
+        140
+      ],
+      "loop": false
+    }
+  },
+  "teamVariants": {
+    "capture_flag": {
+      "0": "capture_flag",
+      "1": "capture_flag_crs"
+    }
+  }
+}
