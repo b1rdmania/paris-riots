@@ -6,6 +6,13 @@
 <title>Paris Riots: The Game</title>
 <meta name="description" content="Turn-based. Five chapters. Curfew at 23:00.">
 <meta name="theme-color" content="#0f0e14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Paris Riots">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://couvre-feu.pages.dev/">
 <meta property="og:title" content="Paris Riots: The Game">
@@ -29,6 +36,10 @@
   }
   canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
   .rotate { display: none; }
+  /* on touch screens keep the bottom bar clear of the home indicator even when Safari reports no inset */
+  @media (pointer: coarse) and (orientation: landscape) {
+    body { padding-block-end: max(env(safe-area-inset-bottom, 0px), 14px); }
+  }
   /* the board needs the width: on a phone held upright, ask for landscape */
   @media (orientation: portrait) and (pointer: coarse) {
     canvas { display: none; }
@@ -1425,7 +1436,7 @@ function drawCard() {
   }
   // the diary slides up and types
   CARD.t = Math.min(cardText().length, CARD.t + 1.2);
-  const nLines = Math.min(6, wrap(cardText(), 55).length) + (k === "won" ? 2 : 0), h = 62 + nLines * 10;
+  const nLines = Math.min(6, wrap(cardText(), 55).length) + ({ won: 3, lost: 1, end: 1, intro: 2 }[k] || 0), h = 62 + nLines * 10;
   const slide = k === "intro" ? Math.max(0, 1 - CARD.f / 14) : 0, y = H - 8 - h + Math.round(slide * (h + 10));
   box(12, y, W - 24, h);
   const head = k === "intro" ? `CHAPITRE ${CARD.i + 1} / ${STORY.length}` : k === "won" ? `CHAPITRE ${CARD.i + 1} - DONE` : k === "lost" ? "ARRESTED" : "THE END";
@@ -1435,14 +1446,14 @@ function drawCard() {
   if (k === "intro" || k === "end") text("DIARY OF INES, 16", W - 24 - tw("DIARY OF INES, 16"), y + 25, 5);
   const done = CARD.t >= cardText().length;
   wrap(cardText().slice(0, Math.floor(CARD.t)), 55).slice(0, 6).forEach((l, j) => text(l, 24, y + 40 + j * 10, 12));
-  if (done && k === "won") { const n = STORY[CARD.i + 1]; text(`NEXT: ${n.time.replace("SAMEDI ", "")} - ${n.title}`, 24, H - 36, 21); }
-  if (done && k === "intro") text(`GOAL: ${ch.goal}`, 24, H - 26, 26);
-  if (done && k === "end") text("MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: PUBLIC DOMAIN.", 24, H - 36, 5);
+  if (done && k === "won") { const n = STORY[CARD.i + 1]; text(`NEXT: ${n.time.replace("SAMEDI ", "")} - ${n.title}`, 24, H - 44, 21); }
+  if (done && k === "intro") text(`GOAL: ${ch.goal}`, 24, H - 42, 26);
+  if (done && k === "end") text("MAP: OPENSTREETMAP CONTRIBUTORS.", 24, H - 24, 5);
   // two choices: carry on, or back to the chapter list
   CARD_RECTS = [];
   if (done) {
     const opts = { intro: ["PLAY", "PICK CHAPTER"], won: ["NEXT CHAPTER", "PICK CHAPTER"], lost: ["TRY AGAIN", "PICK CHAPTER"], end: [null, "PICK CHAPTER"] }[k];
-    let x = W - 22, y = H - 30 + (k === "intro" ? -12 : 0);
+    let x = W - 22, y = H - 24;
     [[opts[1], "back"], [opts[0], "ok"]].forEach(([label, a]) => {
       if (!label) return;
       const w = tw(label) + 14; x -= w;
@@ -1633,8 +1644,17 @@ cv.addEventListener("pointermove", (e) => {
   if (lastTile !== key(tx, ty)) { lastTile = key(tx, ty); G.cur = { x: tx, y: ty }; }
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
+let triedFull = false;
+function goFullscreen() {
+  if (triedFull || !matchMedia("(pointer: coarse)").matches) return;
+  triedFull = true;
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req || document.fullscreenElement) return;
+  try { Promise.resolve(req.call(el)).then(() => screen.orientation?.lock?.("landscape")).catch(() => {}); } catch {}
+}
+const IOS_TAB = /iPhone|iPod/.test(navigator.userAgent) && !navigator.standalone;
 cv.addEventListener("pointerdown", (e) => {
-  unlockAudio();
+  unlockAudio(); goFullscreen();
   if (e.button === 2) return;
   const [px, py] = pt(e);
   if (screen === "title" && px > W - 48 && py > H - 16) { SFX.ok(); screen = "about"; return; }
@@ -2104,7 +2124,7 @@ function drawTitle() {
       textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
       if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
     });
-    text("ARROWS + SPACE, OR CLICK", 6, H - 10, 6, 0);
+    text(IOS_TAB ? "FULL SCREEN: SHARE > ADD TO HOME SCREEN" : "ARROWS + SPACE, OR CLICK", 6, H - 10, IOS_TAB ? 26 : 6, 0);
     { const hot = mouse.on && mouse.x > W - 46 && mouse.y > H - 14; fill(W - 44, H - 13, 40, 12, 29); fill(W - 43, H - 12, 38, 10, 0); textC("INFO", W - 24, H - 10, hot ? 26 : 7); }
     return;
   }
