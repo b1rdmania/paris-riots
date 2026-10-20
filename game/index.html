@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Command &amp; Couvre-feu</title>
+<title>Paris Riots - The Game</title>
 <meta name="description" content="Turn-based Paris riot, Saturday 17 October 2026. Play the lycéens or the CRS. Curfew at 23:00.">
 <style>
   html, body { margin: 0; height: 100%; background: #0f0e14; }
@@ -1218,9 +1218,9 @@ function drawTitle() {
     const fl = (frame >> 3) % 3;
     fill(x * TS + 4, TOP + y * TS + 6 - fl, 6, 6 + fl, 28); fill(x * TS + 5, TOP + y * TS + 8, 4, 4, 29); fill(x * TS + 6, TOP + y * TS + 10, 2, 2, 26);
   }
-  textC("COMMAND &", W / 2, 22, 26, 0, 2);
-  textC("COUVRE-FEU", W / 2, 42, 30, 0, 3);
-  textC("PARIS - SATURDAY 17 OCTOBER 2026 - CURFEW 23:00", W / 2, 72, 13);
+  textC("PARIS RIOTS", W / 2, 20, 30, 0, 3);
+  textC("- THE GAME -", W / 2, 47, 26, 0, 2);
+  textC("SATURDAY 17 OCTOBER 2026 - CURFEW 23:00", W / 2, 72, 13);
   const spr = (t, f) => SHEET.frames?.has(t) ? SHEET.cache[`${t}/idle${(frame >> 5) % 2}${f}0`] : SPR[`${t}${f}0`];
   ["torse", "lyceen", "panther", "kangoo"].forEach((t, i) => ctx.drawImage(spr(t, 1), 96 + i * 18, 84));
   ["canon", "crs", "lbd", "lacrymo"].forEach((t, i) => ctx.drawImage(spr(t, 0), 222 + i * 18, 84));
