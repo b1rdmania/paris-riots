@@ -1,6 +1,6 @@
 # Paris Riots: The Game
 
-A turn-based game on a pixel map of central Paris. Play the lycéens or the CRS. Curfew is at 23:00.
+A turn-based story game on a pixel map of central Paris. You play the lycéens through five chapters. Curfew is at 23:00.
 
 Play: https://couvre-feu.pages.dev
 
@@ -11,8 +11,8 @@ Play: https://couvre-feu.pages.dev
 | Part | Source |
 | --- | --- |
 | Map | OpenStreetMap streets, water and parks for central Paris, drawn as pixel art by `data/render.py`. The game grid comes from the same render, so the rules match the picture. |
-| Rules | Advance Wars: move a unit, then fire, capture or wait. Hold 4 of 7 landmarks at curfew to win as the lycéens. |
-| Story | Five chapters set on 17 October 2026, with a diary card before each one. |
+| Rules | Advance Wars: move a unit, then fire, capture or wait. Each chapter has one goal. |
+| Story | Five chapters set on 17 October 2026, each with a diary card and a coach. You can play them in any order. |
 | Art | Painted with Codex in a fixed 32-colour palette. |
 | Music | Public-domain tunes from BitMidi, played on a four-channel Game Boy-style synth. |
 

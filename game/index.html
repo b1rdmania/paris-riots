@@ -4,18 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Paris Riots: The Game</title>
-<meta name="description" content="Turn-based. Pick a side. Curfew at 23:00.">
+<meta name="description" content="Turn-based. Five chapters. Curfew at 23:00.">
 <meta name="theme-color" content="#0f0e14">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://couvre-feu.pages.dev/">
 <meta property="og:title" content="Paris Riots: The Game">
-<meta property="og:description" content="Turn-based. Pick a side. Curfew at 23:00.">
+<meta property="og:description" content="Turn-based. Five chapters. Curfew at 23:00.">
 <meta property="og:image" content="https://couvre-feu.pages.dev/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Paris Riots: The Game">
-<meta name="twitter:description" content="Turn-based. Pick a side. Curfew at 23:00.">
+<meta name="twitter:description" content="Turn-based. Five chapters. Curfew at 23:00.">
 <meta name="twitter:image" content="https://couvre-feu.pages.dev/og.jpg">
 <style>
   html { background-color: #0f0e14; overscroll-behavior-y: none; }
@@ -411,22 +411,7 @@ const PROPS0 = window.PARIS.props;
 const LANDMARKS = PROPS0.filter((p) => p.kind === "mark").length;
 const NEED = 4; // landmarks the lycéens must hold at curfew
 
-const NEWS = [
-  "STUDENTS MARCH OVER CRUMBLING LYCEES. A CEILING FALLS IN. AGAIN.",
-  "GILETS JAUNES JOIN. NOBODY KNOWS WHO INVITED THEM.",
-  "PLACARD SPOTTED: GENERATION 6-7 REDOES MAI 68.",
-  "THE LOUVRE CLOSES. THE MONA LISA IS UNBOTHERED.",
-  "PRIME MINISTER: 'BREAKERS, THIEVES, THUGS.'",
-  "LOOTED AIR MAX ALREADY ON VINTED. VERY GOOD CONDITION.",
-  "SKI GOGGLES BANNED IN NICE. IT IS OCTOBER.",
-  "MINISTER: PSG V BARCA WILL GO AHEAD.",
-  "MACRON: 'HOW COULD FRENCH PEOPLE DO THIS TO FRANCE?'",
-  "INTERIOR MINISTER ADMITS HE UNDERESTIMATED IT.",
-  "ONE HOUR TO CURFEW. THE TABAC IS STILL OPEN.",
-];
 const START_HOUR = 12, CURFEW = 23;
-// Full-screen news flashes for the hours with a painting (index = round, as NEWS).
-const NEWS_ART = { 0: "news/republique", 2: "news/capucines", 3: "news/louvre", 5: "news/velib" };
 
 // ---------- sound ----------
 let AC = null;
@@ -539,18 +524,13 @@ function newGame(humans, ch) {
     props: PROPS0.map((p) => ({ ...p, cap: 20 })), mode: "idle", cur: { x: 21, y: 3 },
     sel: null, reach: null, from: null, menu: null, targets: [], tsel: 0, fx: [],
     msg: "", msgT: 0, banner: null, busy: false, over: null, buttons: [],
-    power: [0, 0], noCap: -1, handover: null,
+    power: [0, 0], noCap: -1,
   };
   const put = (t, x, y) => { const u = { id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false }; G.units.push(u); return u; };
-  if (ch) {
-    G.story = { i: STORY.indexOf(ch), step: 0, typed: 0, said: "" };
-    G.round = ch.round; G.funds = ch.funds || [0, 0]; G.noBuy = !ch.buy;
-    const own = (name, side) => { G.props.find((p) => p.name === name).owner = side; };
-    ch.setup(put, own);
-  } else {
-    put("lyceen", 21, 3); put("lyceen", 21, 9); put("bloc", 22, 8); put("lyceen", 15, 11);
-    put("crs", 9, 0); put("crs", 7, 1); put("lbd", 8, 1); put("crs", 16, 7);
-  }
+  G.story = { i: STORY.indexOf(ch), step: 0, typed: 0, said: "" };
+  G.round = ch.round; G.funds = ch.funds || [0, 0]; G.noBuy = !ch.buy;
+  const own = (name, side) => { G.props.find((p) => p.name === name).owner = side; };
+  ch.setup(put, own);
   buildMapLayer();
   screen = "game";
   startTurn();
@@ -634,15 +614,11 @@ function startTurn() {
   const hq = G.props.find((p) => p.kind === "hq" && p.owner === s);
   const lead = G.units.find((u) => u.side === s);
   if (human()) G.cur = lead ? { x: lead.x, y: lead.y } : hq ? { x: hq.x, y: hq.y } : G.cur;
-  const sub = s === 0 ? NEWS[G.round] || "" : `INCOME €${inc}`;
-  G.banner = { title: `${SIDES[s].short} - SAT ${hour()}:00`, sub: s === 0 ? sub : `INCOME €${inc}`, col: SIDES[s].col, t: 110, side: s };
-  if (G.story) { if (s === 1) G.banner = null; else Object.assign(G.banner, { title: `SAT ${hour()}:00`, sub: storyStatus(), t: 70, t0: 70 }); }
-  const art = !G.story && s === 0 && NEWS_ART[G.round];
-  if (art && IMG[art]) Object.assign(G.banner, { news: art, t: 220 });
-  if (G.humans[0] && G.humans[1]) G.handover = s;
+  // the CRS move under Inès's commentary; the lycéens get a short clock banner
+  G.banner = s === 1 ? null : { title: `SAT ${hour()}:00`, sub: storyStatus(), col: SIDES[0].col, t: 70, t0: 70, side: 0 };
   SFX.turn();
   music(s ? "marseillaise" : "cancan");
-  if (G.story) { emit("turn", s); if (checkStory()) return; }
+  emit("turn", s); if (checkStory()) return;
   if (!human()) runAI();
 }
 function endTurn() {
@@ -659,18 +635,8 @@ function endTurn() {
   G.side = other;
   startTurn();
 }
-function curfew() {
-  const held = marksHeld(0);
-  if (G.story) return storyEnd(held >= NEED);
-  if (held >= NEED) gameOver(0, `LYCEENS HOLD ${held} OF ${LANDMARKS} LANDMARKS AT CURFEW. MACRON ADDRESSES THE NATION.`);
-  else gameOver(1, `LYCEENS HOLD ${held} OF ${LANDMARKS} LANDMARKS. CURFEW HOLDS. THE LOUVRE REOPENS TUESDAY.`);
-}
-function gameOver(winner, why) {
-  if (G.story) return storyEnd(winner === 0);
-  music(winner === 0 ? "internationale" : "marseillaise");
-  G.over = { winner, why }; G.busy = false; G.mode = "over"; G.banner = null;
-  SFX.cap();
-}
+function curfew() { storyEnd(marksHeld(0) >= NEED); }
+function gameOver(winner) { storyEnd(winner === 0); }
 
 // ---------- actions (shared by player and AI) ----------
 async function moveUnit(u, path) {
@@ -1515,7 +1481,6 @@ function act(a) {
   if (!G) return;
   if (G.ending) { if (a === "ok") G.ending.skip = true; return; }
   if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
-  if (G.handover != null) { if (a === "ok") { G.handover = null; SFX.ok(); } return; }
   if (G.battle) { if (a === "ok" || a === "back") G.battle.skip = true; return; }
   if (G.banner) { if (a === "ok") G.banner.t = Math.min(G.banner.t, 8); return; }
   if (G.busy || !human()) return;
@@ -1621,20 +1586,11 @@ function titleInput(a) {
   if (a === "up") { titleSel = (titleSel + n - 1) % n; SFX.move(); }
   if (a === "down") { titleSel = (titleSel + 1) % n; SFX.move(); }
   if (a === "ok") { SFX.ok(); TITLE_ITEMS[titleSel].fn(); }
-  if (a === "back" && TITLE_ITEMS === FREE_ITEMS) { SFX.back(); TITLE_ITEMS = MAIN_ITEMS; titleSel = 1; }
 }
-const MAIN_ITEMS = [
-  { label: "STORY - START HERE", fn: () => fadeTo(openChapters) },
-  { label: "FREE PLAY", fn: () => { TITLE_ITEMS = FREE_ITEMS; titleSel = 0; } },
+const TITLE_ITEMS = [
+  { label: "PLAY", fn: () => fadeTo(openChapters) },
   { label: "HOW TO PLAY", fn: () => { screen = "help"; } },
 ];
-const FREE_ITEMS = [
-  { label: "PLAY THE LYCEENS", fn: () => fadeTo(() => newGame([true, false])) },
-  { label: "PLAY THE CRS", fn: () => fadeTo(() => newGame([false, true])) },
-  { label: "TWO PLAYERS, ONE SCREEN", fn: () => fadeTo(() => newGame([true, true])) },
-  { label: "BACK", fn: () => { TITLE_ITEMS = MAIN_ITEMS; titleSel = 1; } },
-];
-let TITLE_ITEMS = MAIN_ITEMS;
 
 addEventListener("keydown", (e) => {
   unlockAudio();
@@ -1684,7 +1640,7 @@ cv.addEventListener("pointerdown", (e) => {
   }
   if (screen === "help" || screen === "card") return act("ok");
   if (!G) return;
-  if (G.ending || G.over || G.banner || G.battle || G.handover != null) return act("ok");
+  if (G.ending || G.over || G.banner || G.battle) return act("ok");
   const pad = e.pointerType === "mouse" ? 0 : 3;
   for (const b of G.buttons) if (px >= b.x - pad && px < b.x + b.w + pad && py >= b.y - pad && py < b.y + b.h + pad) return b.fn();
   if (G.menu) {
@@ -1708,8 +1664,7 @@ let mapLayer = null;
 const rnd = (x, y, i = 0) => { let h = (x * 374761393 + y * 668265263 + i * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
 const IMG = {};
-const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "title", "ui", "help", "victory_lyceens", "victory_crs", "font8", "commanders",
-  "bank/seine-rain", "bank/metro-last-train", "bank/students-afterglow-results", "bank/cafe-morning-after-results",
+const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "title", "ui", "help", "victory_lyceens", "font8", "commanders", "bank/seine-rain",
   "news/republique", "news/capucines", "news/louvre", "news/velib",
   "wide/republique", "wide/capucines", "wide/louvre", "wide/velib", "wide/seine-rain"].map((n) => new Promise((ok) => {
   // a dropped request gets two more tries before the game falls back to plain drawing
@@ -1717,7 +1672,7 @@ const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "
   load(2);
 }))).then(async () => {
   for (const [k, f] of [["propsMeta", "props"], ["cutMeta", "battle-cutins"], ["fxMeta", "fx"], ["sceneMeta", "scenes"], ["uiMeta", "ui"], ["font8Meta", "font8"],
-    ["titleMeta", "title"], ["helpMeta", "help"], ["vicMeta0", "victory_lyceens"], ["vicMeta1", "victory_crs"], ["comMeta", "commanders"]]) {
+    ["titleMeta", "title"], ["helpMeta", "help"], ["comMeta", "commanders"]]) {
     for (let t = 0; t < 3 && !IMG[k]; t++) { try { IMG[k] = await (await fetch(`art/${f}.json`)).json(); } catch { await new Promise((r) => setTimeout(r, 400)); } }
   }
   waterPixels();
@@ -1996,7 +1951,7 @@ function drawBottom() {
     if (G.mode === "target" && G.sel) { const t = G.targets[G.tsel]; if (t) info = `HIT ${U[t.type].name} FOR ~${calcDmg(G.sel, t, t.x, t.y, 4)}%`; }
   }
   text(info, 5, BOT + 5, G.msgT > 0 ? 26 : 7);
-  if (human() && !G.busy && !G.over && G.handover == null) {
+  if (human() && !G.busy && !G.over) {
     const hover = (x, w) => mouse.on && mouse.x >= x && mouse.x < x + w && mouse.y >= BOT + 2 && mouse.y < BOT + 14;
     const btn = (name, label, fn, x) => {
       const w = 48;
@@ -2071,29 +2026,6 @@ function drawBanner() {
   }
   if (b.t <= 0) G.banner = null;
 }
-function drawHandover() {
-  const img = IMG[G.handover === 0 ? "bank/seine-rain" : "bank/metro-last-train"];
-  if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
-  box(40, 150, W - 80, 52);
-  text8C(`PASS IT TO THE ${SIDES[G.handover].short}`, W / 2, 162, 26);
-  textC(`SAT ${hour()}:00. NO PEEKING.`, W / 2, 176, 7);
-  if ((frame >> 5) % 2) textC("PRESS SPACE", W / 2, 188, 29);
-}
-function drawOver() {
-  const o = G.over, s = SIDES[o.winner];
-  if (!o.bg) {
-    o.bg = pick(o.winner === 0 ? [["victory_lyceens", "vicMeta0"], ["bank/students-afterglow-results", null]] : [["victory_crs", "vicMeta1"], ["bank/cafe-morning-after-results", null]]);
-  }
-  const img = IMG[o.bg[0]], band = o.bg[1] && IMG[o.bg[1]] ? IMG[o.bg[1]].resultBand : { x: 12, y: 157, w: 360, h: 36 };
-  if (img) ctx.drawImage(img, 0, 0); else { fill(0, 0, W, H, 0); box(24, 140, W - 48, 70); }
-  const cx = band.x + band.w / 2, lines = wrap(o.why, Math.floor((band.w - 8) / 6)).slice(0, band.h > 40 ? 3 : 2);
-  text8C(o.winner === 0 ? "THE STREETS WIN" : "ORDER RESTORED", cx, band.y + 3, 26);
-  lines.forEach((l, i) => textC(l, cx, band.y + 14 + i * 9, 7));
-  const foot = `${s.name} WIN - LANDMARKS HELD BY LYCEENS ${marksHeld(0)}/${LANDMARKS}`;
-  fill(0, H - 14, W, 14, 0); textC(foot, W / 2, H - 11, 6);
-  if ((frame >> 5) % 2) text("SPACE", W - 34, H - 11, 26);
-}
-
 // What is on a square: unit, building, ground. Shown when you click anything you can't act on.
 function infoFor(x, y) {
   const u = unitAt(x, y), p = propAt(x, y), k = key(x, y), out = [];
@@ -2167,18 +2099,18 @@ function drawTitle() {
 }
 const RULES = [
   ["", "SATURDAY 17 OCTOBER, 12:00 TO THE 23:00 CURFEW."],
-  ["", ""],
-  [30, "LYCEENS WIN WITH 4 OF THE 7 LANDMARKS AT CURFEW."],
-  [23, "CRS WIN IF THEY DON'T. TAKING THE OTHER HQ WINS AT ONCE."],
+  ["", "FIVE CHAPTERS. EACH ONE HAS ONE GOAL. INES SHOWS YOU HOW."],
   ["", ""],
   ["", "CLICK A UNIT, CLICK A SQUARE, THEN FIRE, CAPTURE OR WAIT."],
   ["", "FOOT UNITS CAPTURE BUILDINGS. IT TAKES TWO TURNS."],
-  ["", "BUILDINGS PAY EVERY TURN. SPEND IT AT YOUR BASES."],
   ["", "STAND ON BUILDINGS (***) TO TAKE LESS DAMAGE."],
   ["", "THE POWER BAR FILLS AS YOU FIGHT. FULL? PRESS POWER!"],
+  ["", "IN CHAPTER 5 YOU CAN BUY MORE KIDS AT YOUR BASES."],
   ["", ""],
-  ["", "WATER CANNON HOSES THEM BACK. INTO THE SEINE = GONE."],
+  ["", "THE WATER CANNON HOSES YOU BACK. INTO THE SEINE = GONE."],
   ["", "TEAR GAS HITS THE NEIGHBOURS TOO. TONTON DOESN'T CARE."],
+  ["", "THE PINK PANTHER TAKES ANY BUILDING IN ONE GO."],
+  ["", ""],
   ["", "CLICK ANYTHING TO SEE WHAT IT IS. ESC = MENU. M = MUSIC."],
   ["", ""],
   [5, "MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: PUBLIC DOMAIN."],
@@ -2241,8 +2173,7 @@ function loop() {
   else if (screen === "about") drawAbout();
   else if (G) {
     if (G.ending) { drawMap(); drawUnits(); drawFx(); drawTop(); drawBottom(); drawEnding(); }
-    else if (G.over) drawOver();
-    else if (G.handover != null) drawHandover();
+    else if (G.over) {}
     else {
       drawMap();
       if (G.reach) for (const [k] of G.reach.d) { const [x, y] = unkey(k); checker(x, y, 25, frame >> 5); }
