@@ -6,13 +6,11 @@
 <title>Paris Riots: The Game</title>
 <meta name="description" content="Turn-based. Five chapters. Curfew at 23:00.">
 <meta name="theme-color" content="#0f0e14">
-<link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Paris Riots">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://couvre-feu.pages.dev/">
 <meta property="og:title" content="Paris Riots: The Game">
@@ -35,37 +33,37 @@
     touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
   }
   canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
-  .rotate { display: none; }
-  /* on touch screens keep the bottom bar clear of the home indicator even when Safari reports no inset */
-  @media (pointer: coarse) and (orientation: landscape) {
-    body { padding-block-end: max(env(safe-area-inset-bottom, 0px), 14px); }
-  }
-  /* the board needs the width: on a phone held upright, ask for landscape */
-  @media (orientation: portrait) and (pointer: coarse) {
+  .phone { display: none; }
+  /* phones and tablets: the game needs a full screen and a mouse, so it is desktop only */
+  @media (hover: none) and (pointer: coarse) {
     canvas { display: none; }
-    .rotate { display: grid; gap: 1.25rem; justify-items: center; box-sizing: border-box; inline-size: 100%; padding-inline: 1.5rem; text-align: center;
-      font: 600 1rem/1.4 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.08em; color: #f0d020; }
-    .rotate img { inline-size: min(100%, 26rem); image-rendering: pixelated; }
-    .rotate small { color: #b8bccc; font-weight: 400; letter-spacing: 0.02em; }
-    .rotate button {
-      font: inherit; letter-spacing: 0.06em; color: #0f0e14; background: #f0d020; border: 0; border-radius: 0;
-      min-block-size: 44px; padding-inline: 1.25rem; box-shadow: 0 0 0 2px #0f0e14, 0 0 0 4px #a88a10;
+    .phone {
+      display: grid; gap: 1rem; justify-items: center; align-content: center; box-sizing: border-box; inline-size: 100%; padding: 1rem;
+      text-align: center; color: #f0d020; font: 400 0.95rem/1.5 "Silkscreen", ui-monospace, Menlo, monospace; letter-spacing: 0.04em;
     }
-    .rotate button:active { background: #a88a10; }
-    .rotate button:focus-visible { outline: 2px solid #f0e0b8; outline-offset: 4px; }
+    .phone img { inline-size: min(100%, 34rem); max-block-size: 46dvh; object-fit: contain; image-rendering: pixelated; }
+    .phone .band {
+      box-sizing: border-box; inline-size: min(100%, 34rem); display: grid; gap: 1rem; justify-items: center; padding: 1.25rem 1rem;
+      background: #0f0e14; border: 2px solid #a88a10; box-shadow: inset 0 0 0 2px #0f0e14, inset 0 0 0 4px #574735;
+    }
+    .phone p { margin: 0; }
+    .phone button { font: inherit; letter-spacing: 0.06em; color: #0f0e14; background: #f0d020; border: 0; border-radius: 0; min-block-size: 44px; padding-inline: 1.25rem; }
+    .phone button:active { background: #a88a10; }
+    .phone button:focus-visible { outline: 2px solid #f0e0b8; outline-offset: 4px; }
   }
 </style>
 </head>
 <body>
-<div class="rotate">
+<div class="phone">
   <img src="og.jpg" alt="Paris Riots: The Game">
-  <span>TURN YOUR PHONE SIDEWAYS TO PLAY</span>
-  <small>Best on a computer. Send yourself the link for later.</small>
-  <button type="button" id="sendLink">SEND ME THE LINK</button>
+  <div class="band">
+    <p>SORRY, THIS WORKS BEST ON DESKTOP ONLY.</p>
+    <button type="button" id="sendLink">SEND ME THE LINK</button>
+  </div>
 </div>
 <canvas id="c"></canvas>
 <script>
-  // upright phone: share sheet if there is one, else copy the link
+  // share sheet if there is one, else copy the link
   document.getElementById("sendLink").addEventListener("click", async (e) => {
     const url = "https://couvre-feu.pages.dev", b = e.currentTarget;
     try { if (navigator.share) { await navigator.share({ title: "Paris Riots: The Game", url }); return; } } catch { return; }
@@ -76,6 +74,7 @@
 <script src="music.js"></script>
 <script>
 "use strict";
+const PHONE = matchMedia("(hover: none) and (pointer: coarse)").matches;
 // One 384x240 canvas at native pixels, scaled up nearest-neighbour.
 // Map is 24x13 tiles of 16px between a 16px top bar and a 16px bottom bar.
 const W = 384, H = 240, TS = 16, MW = 24, MH = 13, TOP = 16, BOT = H - 16;
@@ -98,7 +97,7 @@ function fit() {
   // fit inside the body's padded box, so the canvas stays clear of the notch
   const cs = getComputedStyle(document.body), b = document.body;
   const aw = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  const pad = TOUCH ? Math.max(0, Math.min(96, Math.floor((aw / (ah / H) - W) / 2))) : 0;
+  const pad = 0;
   if (pad !== PAD || cv.width !== W + 2 * pad) { PAD = pad; cv.width = W + 2 * PAD; cv.height = H; ctx.imageSmoothingEnabled = false; }
   const CW = W + 2 * PAD, s = Math.min(aw / CW, ah / H);
   const k = s >= 2 && !TOUCH ? Math.floor(s) : s;
@@ -1676,20 +1675,11 @@ cv.addEventListener("pointermove", (e) => {
   if (lastTile !== key(tx, ty)) { lastTile = key(tx, ty); G.cur = { x: tx, y: ty }; }
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
-let triedFull = false;
-function goFullscreen() {
-  if (triedFull || !matchMedia("(pointer: coarse)").matches) return;
-  triedFull = true;
-  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
-  if (!req || document.fullscreenElement) return;
-  try { Promise.resolve(req.call(el)).then(() => screen.orientation?.lock?.("landscape")).catch(() => {}); } catch {}
-}
-const IOS_TAB = /iPhone|iPod/.test(navigator.userAgent) && !navigator.standalone;
 cv.addEventListener("pointerdown", (e) => {
   // follow the input actually used (iPad with a trackpad, touch laptops)
   const t = e.pointerType !== "mouse";
   if (t !== TOUCH) { TOUCH = t; fit(); }
-  unlockAudio(); goFullscreen();
+  unlockAudio();
   if (e.button === 2) return;
   const [px, py] = pt(e);
   if (screen === "title" && px > W - 48 && py > H - 16) { SFX.ok(); screen = "about"; return; }
@@ -1745,9 +1735,9 @@ let mapLayer = null;
 const rnd = (x, y, i = 0) => { let h = (x * 374761393 + y * 668265263 + i * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
 const IMG = {};
-const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "title", "ui", "help", "victory_lyceens", "font8", "commanders", "bank/seine-rain",
+const ASSETS = PHONE ? new Promise(() => {}) : Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "title", "ui", "help", "victory_lyceens", "font8", "commanders", "bank/seine-rain",
   "news/republique", "news/capucines", "news/louvre", "news/velib",
-  "wide/republique", "wide/capucines", "wide/louvre", "wide/velib", "wide/seine-rain", "paris-wide"].map((n) => new Promise((ok) => {
+  "wide/republique", "wide/capucines", "wide/louvre", "wide/velib", "wide/seine-rain"].map((n) => new Promise((ok) => {
   // a dropped request gets two more tries before the game falls back to plain drawing
   const load = (tries) => { const i = new Image(); i.onload = () => { IMG[n] = i; ok(); }; i.onerror = () => (tries ? setTimeout(() => load(tries - 1), 400) : ok()); i.src = `art/${n}.png`; };
   load(2);
@@ -1875,11 +1865,6 @@ function drawProp(f, p, px, py) {
 
 // ---------- drawing ----------
 function drawMap() {
-  if (PAD && IMG["paris-wide"]) {
-    // more Paris either side, dimmed because it's off the board
-    ctx.drawImage(IMG["paris-wide"], -96, TOP);
-    ctx.globalAlpha = 0.45; fill(-PAD, TOP, PAD, MH * TS, 0); fill(W, TOP, PAD, MH * TS, 0); ctx.globalAlpha = 1;
-  }
   ctx.drawImage(mapLayer, 0, TOP);
   // the Seine shimmers
   const ph = frame >> 3;
@@ -2167,7 +2152,7 @@ function drawTitle() {
       textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
       if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
     });
-    text(IOS_TAB ? "FULL SCREEN: SHARE > ADD TO HOME SCREEN" : TOUCH ? "" : "ARROWS + SPACE, OR CLICK", 6, H - 10, IOS_TAB ? 26 : 6, 0);
+    text(TOUCH ? "" : "ARROWS + SPACE, OR CLICK", 6, H - 10, 6, 0);
     { const hot = mouse.on && mouse.x > W - 46 && mouse.y > H - 14; fill(W - 44, H - 13, 40, 12, 29); fill(W - 43, H - 12, 38, 10, 0); textC("INFO", W - 24, H - 10, hot ? 26 : 7); }
     return;
   }
@@ -2335,7 +2320,7 @@ let ready = false;
 ASSETS.then(() => { mapLayer = null; G = null; ready = true; });
 // Test hook: lets a headless run inspect and drive the game.
 window.__cf = { get G() { return G; }, act, newGame, endTurn, attack, openCard, openChapters, STORY, get CARD() { return CARD; }, get screen() { return screen; } };
-loop();
+if (!PHONE) loop();
 </script>
 </body>
 </html>

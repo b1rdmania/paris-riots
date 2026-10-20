@@ -16,7 +16,7 @@ Play: https://couvre-feu.pages.dev
 | Art | Painted with Codex in a fixed 32-colour palette. |
 | Music | Ten French classics from BitMidi, played on a four-channel Game Boy-style synth from [Wario Synth](https://wario.style). The menu lists them. |
 
-The game is one page with a canvas and no libraries. It runs on Cloudflare Pages.
+The game is one page with a canvas and no libraries. It runs on Cloudflare Pages. It needs a desktop browser.
 
 ## Run it
 
@@ -37,7 +37,7 @@ python grid.py
 python layout.py
 ```
 
-`layout.py` writes `game/map.js`. `EXTRA=96 python render.py paris.json ../game/art/paris-wide.png` draws the extra Paris shown at the sides of wide phone screens.
+`layout.py` writes `game/map.js`.
 
 ## Credits
 
