@@ -2120,34 +2120,23 @@ function drawTitle() {
     textC(it.label, W / 2, y, i === titleSel ? 26 : 6);
   });
 }
+// How to play: four steps. Inès teaches the rest in the game.
 const RULES = [
-  ["", "SATURDAY 17 OCTOBER, 12:00 TO THE 23:00 CURFEW."],
-  ["", "FIVE CHAPTERS. EACH ONE HAS ONE GOAL. INES SHOWS YOU HOW."],
-  ["", ""],
-  ["", "CLICK A UNIT, CLICK A SQUARE, THEN FIRE, CAPTURE OR WAIT."],
-  ["", "FOOT UNITS CAPTURE BUILDINGS. IT TAKES TWO TURNS."],
-  ["", "STAND ON BUILDINGS (***) TO TAKE LESS DAMAGE."],
-  ["", "THE POWER BAR FILLS AS YOU FIGHT. FULL? PRESS POWER!"],
-  ["", "IN CHAPTER 5 YOU CAN BUY MORE KIDS AT YOUR BASES."],
-  ["", ""],
-  ["", "THE WATER CANNON HOSES YOU BACK. INTO THE SEINE = GONE."],
-  ["", "TEAR GAS HITS THE NEIGHBOURS TOO. TONTON DOESN'T CARE."],
-  ["", "THE PINK PANTHER TAKES ANY BUILDING IN ONE GO."],
-  ["", ""],
-  ["", "CLICK ANYTHING TO SEE WHAT IT IS. ESC = MENU. M = MUSIC."],
-  ["", ""],
-  [5, "MAP: OPENSTREETMAP CONTRIBUTORS. MUSIC: MENU > MUSIC."],
+  "CLICK ONE OF YOUR KIDS.",
+  "CLICK WHERE TO GO.",
+  "PICK FIRE, CAPTURE OR WAIT.",
+  "CLICK END TURN.",
 ];
 function drawHelp() {
-  const hm = IMG.helpMeta;
-  if (IMG.help && hm) {
-    ctx.drawImage(IMG.help, 0, 0);
-    RULES.forEach(([c, l], i) => text(l, hm.textArea.x, hm.textArea.y + i * hm.lineHeight, c === "" ? hm.textColor : c));
-    if ((frame >> 5) % 2) text("SPACE: BACK", 200, 222, 0);
-    return;
-  }
-  fill(0, 0, W, H, 0);
-  RULES.forEach(([c, l], i) => text(l, 14, 30 + i * 10, c === "" ? 6 : c));
+  const hm = IMG.helpMeta, a = hm?.textArea || { x: 14, y: 30, w: 356 };
+  if (IMG.help) ctx.drawImage(IMG.help, 0, 0); else fill(0, 0, W, H, 13);
+  RULES.forEach((l, i) => {
+    const y = a.y + 8 + i * 26;
+    text8(String(i + 1), a.x + 6, y, 30);
+    text8(l, a.x + 26, y, 0);
+  });
+  text("INES TELLS YOU THE REST AS YOU PLAY.", a.x + 6, a.y + 8 + 4 * 26 + 6, 3);
+  if ((frame >> 5) % 2) text("SPACE: BACK", 200, 222, 0);
 }
 // MUSIC: every track in the game, like a playlist. Pick one to play it.
 const PLAYLIST = [
