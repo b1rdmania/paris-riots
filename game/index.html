@@ -394,20 +394,20 @@ const SIDES = [
   { name: "LA PREFECTURE", short: "CRS", col: 24, hi: 25, flag: 24 },
 ];
 const U = {
-  lyceen: { side: 0, name: "LYCEEN", cls: "inf", cost: 750, move: 3, mt: "foot", cap: true, barricade: true, metro: true, r: [1, 1], blurb: "CAPTURES, BARRICADES, TAKES THE METRO." },
-  bloc: { side: 0, name: "BLACK BLOC", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, barricade: true, metro: true, r: [1, 1], blurb: "PAVING STONES. BARRICADES. METRO." },
+  lyceen: { side: 0, name: "LYCEEN", cls: "inf", cost: 750, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. FILMS EVERYTHING." },
+  bloc: { side: 0, name: "BLACK BLOC", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. THROWS PAVING STONES." },
   trott: { side: 0, name: "TROTTINETTE", cls: "recon", cost: 4000, move: 7, mt: "scoot", r: [1, 1], blurb: "RENTED SCOOTER. RIDES THROUGH ANYTHING." },
-  torse: { side: 0, name: "TONTON TORSE NU", cls: "mech", dfn: "tank", cost: 5000, move: 3, mt: "foot", r: [1, 1], gasproof: true, metro: true, blurb: "TOPLESS UNCLE. TEAR GAS DOES NOTHING." },
-  panther: { side: 0, name: "PINK PANTHER", cls: "inf", cost: 5000, move: 6, mt: "scoot", cap: true, capAll: true, metro: true, r: null, one: true, blurb: "JEWEL THIEF. CAPTURES IN ONE TURN. ONLY ONE." },
-  caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 4], torch: true, blurb: "FIREWORKS, RANGE 2-4. SETS THE STREET ON FIRE." },
+  torse: { side: 0, name: "TONTON TORSE NU", cls: "mech", dfn: "tank", cost: 5000, move: 3, mt: "foot", r: [1, 1], gasproof: true, blurb: "TOPLESS UNCLE. TEAR GAS DOES NOTHING." },
+  panther: { side: 0, name: "PINK PANTHER", cls: "inf", cost: 5000, move: 6, mt: "scoot", cap: true, capAll: true, r: null, one: true, blurb: "JEWEL THIEF. CAPTURES IN ONE TURN. ONLY ONE." },
+  caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 3], burn: true, blurb: "FIREWORKS, RANGE 2-3. LEAVES THE STREET ON FIRE." },
   kangoo: { side: 0, name: "GILETS JAUNES", cls: "tank", cost: 7000, move: 5, mt: "wheels", r: [1, 1], blurb: "A KANGOO OF UNCLES. NOBODY INVITED THEM." },
-  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, clear: true, board: true, r: [1, 1], blurb: "CAPTURES. CLEARS BARRICADES. RIDES IN VANS." },
-  gm: { side: 1, name: "GENDARME MOBILE", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, clear: true, board: true, r: [1, 1], blurb: "CAPTURES. TWO SHIELDS. RIDES IN VANS." },
+  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, board: true, r: [1, 1], blurb: "CAPTURES. RIDES IN VANS." },
+  gm: { side: 1, name: "GENDARME MOBILE", cls: "mech", cost: 3000, move: 2, mt: "foot", cap: true, board: true, r: [1, 1], blurb: "CAPTURES. TWO SHIELDS. RIDES IN VANS." },
   fourgon: { side: 1, name: "FOURGON", cls: "recon", cost: 2500, move: 6, mt: "wheels", r: null, carry: 2, blurb: "RIOT VAN. CARRIES 2 COPS. DROPS THEM OFF." },
   bravm: { side: 1, name: "BRAV-M", cls: "recon", cost: 4000, move: 7, mt: "wheels", r: [1, 1], blurb: "TWO MEN, ONE MOTORBIKE." },
-  lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], clear: true, board: true, blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
-  lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], gas: true, board: true, blurb: "TEAR GAS CLOUD, RANGE 2-3. DRIFTS WITH THE WIND." },
-  canon: { side: 1, name: "CANON A EAU", cls: "tank", cost: 8000, move: 5, mt: "wheels", r: null, spray: true, blurb: "3-TILE JET. PUSHES. INTO THE SEINE = GONE." },
+  lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], board: true, blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
+  lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], splash: true, board: true, blurb: "TEAR GAS, RANGE 2-3. GASSES THE NEIGHBOURS TOO." },
+  canon: { side: 1, name: "CANON A EAU", cls: "tank", cost: 8000, move: 5, mt: "wheels", r: [1, 1], push: true, blurb: "HOSES THEM BACK A TILE. INTO THE SEINE = GONE." },
 };
 const ROSTER = [["lyceen", "bloc", "trott", "torse", "panther", "caddie", "kangoo"], ["crs", "gm", "fourgon", "bravm", "lbd", "lacrymo", "canon"]];
 // Base damage %, attacker class -> defender class (Advance Wars shape).
@@ -449,6 +449,8 @@ const NEWS = [
   "ONE HOUR TO CURFEW. THE TABAC IS STILL OPEN.",
 ];
 const START_HOUR = 12, CURFEW = 23;
+// Full-screen news flashes for the hours with a painting (index = round, as NEWS).
+const NEWS_ART = { 0: "news/republique", 2: "news/capucines", 3: "news/louvre", 5: "news/velib" };
 
 // ---------- sound ----------
 let AC = null;
@@ -492,7 +494,7 @@ function newGame(humans) {
     props: PROPS0.map((p) => ({ ...p, cap: 20 })), mode: "idle", cur: { x: 21, y: 3 },
     sel: null, reach: null, from: null, menu: null, targets: [], tsel: 0, fx: [],
     msg: "", msgT: 0, banner: null, busy: false, over: null, buttons: [],
-    bar: new Set(), fire: new Map(), gas: new Map(), under: [], wind: pick(DIRS), pick: null,
+    bar: new Map(), fire: new Map(), pick: null, power: [0, 0], noCap: -1, handover: null,
   };
   const put = (t, x, y) => G.units.push({ id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false, cargo: [] });
   put("lyceen", 21, 3); put("lyceen", 21, 9); put("bloc", 22, 8); put("lyceen", 15, 11);
@@ -592,9 +594,11 @@ function startTurn() {
   const lead = G.units.find((u) => u.side === s);
   if (human()) G.cur = lead ? { x: lead.x, y: lead.y } : hq ? { x: hq.x, y: hq.y } : G.cur;
   const sub = s === 0 ? NEWS[G.round] || "" : `INCOME €${inc}`;
-  G.banner = { title: `${SIDES[s].short} - SAT ${hour()}:00`, sub: s === 0 ? sub : `INCOME €${inc}`, col: SIDES[s].col, t: 110 };
+  G.banner = { title: `${SIDES[s].short} - SAT ${hour()}:00`, sub: s === 0 ? sub : `INCOME €${inc}`, col: SIDES[s].col, t: 110, side: s };
+  const art = s === 0 && NEWS_ART[G.round];
+  if (art && IMG[art]) Object.assign(G.banner, { news: art, t: 220 });
+  if (G.humans[0] && G.humans[1]) G.handover = s;
   SFX.turn();
-  if (human() && G.under.some((u) => u.side === s)) G.pendingSurface = true;
   if (!human()) runAI();
 }
 function endTurn() {
@@ -631,13 +635,22 @@ async function attack(a, d) {
   const luck = () => Math.floor(Math.random() * 10);
   const dmg = calcDmg(a, d, d.x, d.y, luck());
   const left = Math.max(0, d.hp - dmg);
-  const c = left > 0 && canCounter(d, a) ? calcDmg(d, a, a.x, a.y, luck(), left, a.hp) : 0;
+  const c = left > 0 && canCounter(d, a) && !U[a.type].push ? calcDmg(d, a, a.x, a.y, luck(), left, a.hp) : 0;
+  charge(a.side, dmg / 2); charge(d.side, dmg); charge(d.side, c / 2); charge(a.side, c);
   const scene = showBattle(a, d);
   if (scene) await battle(a, d, dmg, c);
   else { fx(a, d); SFX.hit(); setPose(a, "attack", 380); await sleep(380); }
   d.hp -= dmg; pop(d.x, d.y, dmg); setPose(d, "hit", 300);
-  if (U[a.type].gas) gasCloud(d.x, d.y, a.side);
-  if (U[a.type].torch) setFire(d.x, d.y);
+  if (U[a.type].splash) {
+    let own = false;
+    for (const o of G.units) if (o !== d && dist(o.x, o.y, d.x, d.y) === 1 && !U[o.type].gasproof) {
+      o.hp = Math.max(1, o.hp - 10); pop(o.x, o.y, 10); if (o.side === a.side) own = true;
+      G.fx.push({ kind: "gas", x: o.x, y: o.y, t: 0, life: 40 });
+    }
+    if (own) say("OOPS. GASSED OUR OWN LADS.");
+  }
+  if (U[a.type].burn) setFire(d.x, d.y);
+  if (U[a.type].push && d.hp > 0) await push(a, d);
   if (d.hp <= 0) await ko(d, scene);
   else if (c) {
     if (!scene) { await sleep(250); fx(d, a); SFX.hit(); setPose(d, "attack", 300); await sleep(300); }
@@ -689,126 +702,36 @@ function fx(a, d) {
 }
 function pop(x, y, dmg) { G.fx.push({ kind: "num", x, y, n: Math.ceil(dmg / 10), t: 0, life: 50 }); }
 
-// ---------- riot mechanics: barricades, fire, gas, water cannon, Metro, vans, kettling ----------
-const alive = (s) => G.units.some((u) => u.side === s) || G.under.some((u) => u.side === s);
-const inGas = (u, x = u.x, y = u.y) => G.gas.has(key(x, y)) && !U[u.type].gasproof;
-const WIND_NAME = (w) => ({ "1,0": "→", "-1,0": "←", "0,1": "↓", "0,-1": "↑" })[w.join()];
+// ---------- riot rules: fire, the water cannon push, vans, commander powers ----------
+const alive = (s) => G.units.some((u) => u.side === s);
 function setFire(x, y) {
   if (!inb(x, y) || terr(x, y) === "~") return;
   G.fire.set(key(x, y), 4); G.bar.delete(key(x, y));
 }
-function gasCloud(x, y, side) {
-  let own = false;
-  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-    if (!inb(x + dx, y + dy)) continue;
-    G.gas.set(key(x + dx, y + dy), 4);
-    const o = unitAt(x + dx, y + dy); if (o && o.side === side && !U[o.type].gasproof) own = true;
-  }
-  if (own) say("OUR LADS ARE IN THAT CLOUD.");
-  return own;
-}
 function tickHazards(s) {
-  // Fire and gas last two hours (four half-turns).
-  for (const m of [G.fire, G.gas]) for (const [k, v] of [...m]) v <= 1 ? m.delete(k) : m.set(k, v - 1);
-  if (s === 0 && G.round > 0) {
-    // Each hour the wind moves the gas one tile, then may change.
-    const moved = new Map();
-    for (const [k, v] of G.gas) { const [x, y] = unkey(k), nx = x + G.wind[0], ny = y + G.wind[1]; if (inb(nx, ny)) moved.set(key(nx, ny), Math.max(v, moved.get(key(nx, ny)) || 0)); }
-    G.gas = moved;
-    if (Math.random() < 0.4) G.wind = pick(DIRS);
+  // Fires and barricades last two hours (four half-turns).
+  for (const m of [G.fire, G.bar]) for (const [k, v] of [...m]) v <= 1 ? m.delete(k) : m.set(k, v - 1);
+  let burnt = 0;
+  for (const u of G.units) if (u.side === s && G.fire.has(key(u.x, u.y))) { u.hp = Math.max(1, u.hp - 20); burnt++; }
+  if (burnt) say("SOMEBODY IS STANDING IN A FIRE.");
+}
+// Water cannon: whatever it hits goes one tile straight back. The Seine takes them out of the game.
+async function push(a, d) {
+  const nx = d.x + Math.sign(d.x - a.x), ny = d.y + Math.sign(d.y - a.y);
+  if (d.capturing) { const p = propAt(d.x, d.y); if (p) p.cap = 20; d.capturing = false; }
+  G.fx.push({ kind: "water", x: d.x, y: d.y, t: 0, life: 30 });
+  if (inb(nx, ny) && terr(nx, ny) === "~") {
+    d.x = nx; d.y = ny; await sleep(150);
+    return ko(d, true, pick([`${U[d.type].name} SWEPT INTO THE SEINE. FISHED OUT AT CHATELET.`, `${U[d.type].name} IN THE SEINE. A BATEAU MOUCHE PICKS THEM UP.`]));
   }
-  const hurt = [];
-  for (const u of G.units) if (u.side === s) {
-    const k = key(u.x, u.y);
-    if (G.fire.has(k)) { u.hp = Math.max(1, u.hp - 20); hurt.push("BURNT"); }
-    if (inGas(u)) { u.hp = Math.max(1, u.hp - 10); hurt.push("GASSED"); }
+  if (!inb(nx, ny) || !cost(U[d.type].mt, nx, ny) || unitAt(nx, ny)) {
+    d.hp -= 10; pop(d.x, d.y, 10); say("SPLAT. PINNED TO THE WALL.");
+    if (d.hp <= 0) await ko(d, true);
+    return;
   }
-  if (hurt.length) say(hurt.includes("GASSED") ? `${hurt.length} UNIT${hurt.length > 1 ? "S" : ""} COUGHING IN THE GAS.` : "SOMEBODY IS STANDING IN A FIRE.");
+  d.x = nx; d.y = ny; await sleep(120);
 }
-// Water cannon: a three-tile jet. Buildings stop it. Everyone in it is hit and pushed one tile.
-function sprayLine(x, y, [dx, dy]) {
-  const t = [];
-  for (let i = 1; i <= 3; i++) { const nx = x + dx * i, ny = y + dy * i; if (!inb(nx, ny) || terr(nx, ny) === "#") break; t.push([nx, ny]); }
-  return t;
-}
-const SPRAY = { inf: 45, mech: 40, recon: 30, arty: 30, tank: 15 };
-const sprayDmg = (u, o) => Math.floor(SPRAY[U[o.type].dfn || U[o.type].cls] * hpD(u) / 10);
-async function spray(u, dir) {
-  G.busy = true;
-  const line = sprayLine(u.x, u.y, dir);
-  G.fx.push({ kind: "jet", sx: u.x, sy: u.y, dir, tiles: line, t: 0, life: 40 });
-  setPose(u, "attack", 500); noise(0.5, 0.06); beep(180, 0.4, "sawtooth", 0.03, -80);
-  await sleep(450);
-  let cleared = 0;
-  for (const [x, y] of line) { const k = key(x, y); if (G.bar.delete(k)) cleared++; G.fire.delete(k); }
-  let msg = cleared ? `BARRICADE${cleared > 1 ? "S" : ""} WASHED AWAY.` : "";
-  for (const o of line.map(([x, y]) => unitAt(x, y)).filter(Boolean).reverse()) {
-    const dmg = sprayDmg(u, o);
-    o.hp -= dmg; pop(o.x, o.y, dmg); setPose(o, "hit", 300);
-    if (o.hp <= 0) { await ko(o, true, `${U[o.type].name} HOSED DOWN. GOES HOME SOAKED.`); continue; }
-    const nx = o.x + dir[0], ny = o.y + dir[1];
-    if (o.capturing) { const p = propAt(o.x, o.y); if (p) p.cap = 20; o.capturing = false; }
-    if (inb(nx, ny) && terr(nx, ny) === "~") {
-      o.x = nx; o.y = ny; await sleep(150);
-      await ko(o, true, pick([`${U[o.type].name} SWEPT INTO THE SEINE. FISHED OUT AT CHATELET.`, `${U[o.type].name} IN THE SEINE. BATEAU MOUCHE PICKS THEM UP.`]));
-      msg = "";
-    } else if (!inb(nx, ny) || !cost("foot", nx, ny) || unitAt(nx, ny) || terr(nx, ny) === "#" && U[o.type].mt === "wheels") {
-      o.hp -= 10; pop(o.x, o.y, 10); msg = msg || "SPLAT. PINNED TO THE WALL.";
-      if (o.hp <= 0) await ko(o, true);
-    } else { o.x = nx; o.y = ny; }
-  }
-  if (msg) say(msg);
-  await sleep(250);
-  G.busy = false;
-  checkRout();
-}
-// Kettling: a lycéen boxed in on all four sides (cops, water, fire, gas, map edge) by at least two cops is arrested.
-function boxed(L) {
-  let cops = 0;
-  for (const [dx, dy] of DIRS) {
-    const x = L.x + dx, y = L.y + dy;
-    if (!inb(x, y) || terr(x, y) === "~") continue;
-    const o = unitAt(x, y);
-    if (o && o.side === 1) { cops++; continue; }
-    if (G.fire.has(key(x, y)) || inGas(L, x, y)) continue;
-    return false;
-  }
-  return cops >= 2;
-}
-async function kettleCheck() {
-  for (const L of G.units.filter((u) => u.side === 0)) {
-    if (!boxed(L)) continue;
-    G.fx.push({ kind: "flag", x: L.x, y: L.y, t: 0, life: 40, side: 1 });
-    await sleep(300);
-    await ko(L, true, `KETTLED! ${U[L.type].name} ARRESTED ON THE SPOT.`);
-  }
-}
-// The Metro: lycéens on a station they hold go underground and come up at another one next turn.
-const isStation = (p) => p && ["base", "mark", "hq"].includes(p.kind);
-const freeStations = (s) => G.props.filter((p) => p.owner === s && isStation(p) && !unitAt(p.x, p.y));
-function goUnder(u) {
-  if (u.capturing) { const p = propAt(u.x, u.y); if (p) p.cap = 20; u.capturing = false; }
-  G.units = G.units.filter((o) => o !== u); G.under.push(u); u.done = true;
-  say(`${U[u.type].name} TAKES THE METRO. MIND THE GAP.`); beep(523, 0.08); setTimeout(() => beep(392, 0.12), 90);
-}
-function surface(u, p) {
-  G.under = G.under.filter((o) => o !== u);
-  u.x = p.x; u.y = p.y; u.done = false; G.units.push(u);
-  G.fx.push({ kind: "flag", x: p.x, y: p.y, t: 0, life: 40, side: 0 });
-  say(`${U[u.type].name} POPS UP AT ${p.name}.`); SFX.cap();
-}
-function surfaceMenu() {
-  const u = G.under.find((o) => o.side === G.side), st = freeStations(G.side);
-  if (!u || !st.length) { G.pendingSurface = false; if (u) say("NO FREE STATION. STILL UNDERGROUND."); return; }
-  G.cur = { x: st[0].x, y: st[0].y };
-  G.menu = {
-    title: `${U[u.type].name}: COME UP AT`, sel: 0, wide: true,
-    items: [...st.slice(0, 11).map((p) => ({ label: p.name, fn: () => { G.menu = null; surface(u, p); G.cur = { x: p.x, y: p.y }; surfaceMenu(); } })),
-      { label: "STAY UNDERGROUND", fn: () => { G.menu = null; G.pendingSurface = false; } }],
-    back: () => { G.menu = null; G.pendingSurface = false; },
-  };
-}
-// Riot vans.
+// Riot vans: drive a cop onto the van to board; unload onto a free tile next to it.
 function board(u, van) {
   G.units = G.units.filter((o) => o !== u); van.cargo.push(u); u.done = true; u.capturing = false;
   say(`${U[u.type].name} IN THE VAN. SIRENS ON.`); beep(880, 0.1); setTimeout(() => beep(660, 0.1), 120);
@@ -818,16 +741,45 @@ function unload(v, x, y) {
   const c = v.cargo.shift(); c.x = x; c.y = y; c.done = true; G.units.push(c);
   say(`${U[c.type].name} JUMPS OUT.`); SFX.ok();
 }
-function barricadeTiles(u) {
-  return DIRS.map(([dx, dy]) => [u.x + dx, u.y + dy]).filter(([x, y]) => inb(x, y) && "=b".includes(terr(x, y)) && !unitAt(x, y) && !G.bar.has(key(x, y)) && !G.fire.has(key(x, y)));
+// Commander powers: the meter fills as you deal and take damage. One big move per charge.
+const POWER = [
+  { name: "APPEL TIKTOK", who: "LA DELEGUEE", portrait: "la_deleguee", line: "IT WENT VIRAL. BARRICADES UP. EVERYONE MOVES AGAIN." },
+  { name: "COUVRE-FEU ANTICIPE", who: "LE PREFET", portrait: "le_prefet", line: "GAS ON EVERY LYCEEN. NO CAPTURES NEXT TURN." },
+];
+const POWER_FULL = 300;
+const charge = (s, n) => { G.power[s] = Math.min(POWER_FULL, G.power[s] + n); };
+async function usePower(s) {
+  const was = G.busy;
+  G.power[s] = 0; G.busy = true; G.menu = null;
+  G.banner = { title: POWER[s].name, sub: POWER[s].line, col: SIDES[s].col, t: 110, side: s, power: true };
+  noise(0.4, 0.06); SFX.turn();
+  await waitBanner();
+  if (s === 0) {
+    for (const u of G.units.filter((o) => o.side === 0)) {
+      for (const [dx, dy] of DIRS) {
+        const x = u.x + dx, y = u.y + dy;
+        if (inb(x, y) && "=b".includes(terr(x, y)) && !unitAt(x, y) && !G.fire.has(key(x, y))) G.bar.set(key(x, y), 4);
+      }
+      u.done = false;
+    }
+    say("BINS, BIKES AND CONES ON EVERY CORNER.");
+  } else {
+    for (const u of G.units.filter((o) => o.side === 0)) {
+      if (!U[u.type].gasproof) { u.hp = Math.max(1, u.hp - 10); pop(u.x, u.y, 10); }
+      G.fx.push({ kind: "gas", x: u.x, y: u.y, t: 0, life: 70 });
+    }
+    G.noCap = G.round + 1;
+    say("EVERY LYCEEN IS COUGHING. NO CAPTURES NEXT TURN.");
+  }
+  G.busy = was;
 }
-const ringTiles = (u, lo, hi, ok) => { const t = []; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const d = dist(u.x, u.y, x, y); if (d >= lo && d <= hi && ok(x, y)) t.push([x, y]); } return t; };
+const noCapture = () => G.side === 0 && G.noCap === G.round;
 
 // ---------- battle scene (Advance Wars cut-in) ----------
 const BATTLE_MODES = ["ALL", "MY TURN ONLY", "OFF"];
 let battleMode = 0;
 try { battleMode = Number(localStorage.getItem("pr-battles")) || 0; } catch {}
-const showBattle = (a, d) => !window.__fast && IMG.cutMeta && IMG.cutMeta.frames[`${a.type}/idle`] && IMG.cutMeta.frames[`${d.type}/idle`] && (battleMode === 0 || (battleMode === 1 && human()));
+const showBattle = (a, d) => !window.__fast && IMG.cutMeta && IMG["battle-cutins"] && IMG.cutMeta.frames[`${a.type}/idle`] && IMG.cutMeta.frames[`${d.type}/idle`] && (battleMode === 0 || (battleMode === 1 && human()));
 // What flies across the gap, and what it looks like when it lands.
 const SHOT = { lyceen: ["paving_stone", "smoke"], bloc: ["paving_stone", "smoke"], caddie: ["firework", "firework"], lbd: ["rubber_bullet", "smoke"],
   lacrymo: ["teargas", "teargas"], canon: [null, "water"] };
@@ -907,7 +859,7 @@ function fxFrame(name, t) {
   return null;
 }
 function drawFx2(name, t, cx, cy, flip) {
-  const r = fxFrame(name, t); if (!r) return;
+  const r = fxFrame(name, t); if (!r || !IMG.fx) return;
   ctx.save(); ctx.translate(cx, cy); if (flip) ctx.scale(-1, 1);
   ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, -16, -16, 32, 32); ctx.restore();
 }
@@ -1003,104 +955,64 @@ async function runAI() {
   G.busy = true;
   await waitBanner();
   const s = G.side;
-  // Come up from the Metro next to whatever is still worth taking.
-  for (const u of G.under.filter((o) => o.side === s)) {
-    const st = freeStations(s), goals = G.props.filter((p) => p.owner !== s);
-    if (!st.length || !goals.length) break;
-    const near = (p) => Math.min(...goals.map((g) => dist(p.x, p.y, g.x, g.y)));
-    st.sort((a, b) => near(a) - near(b));
-    surface(u, st[0]); G.cur = { x: st[0].x, y: st[0].y }; await sleep(250);
-  }
-  const rank = (u) => (U[u.type].cls === "arty" ? 2 : 0) - (u.type === "fourgon" ? 4 : 0);
-  const order = G.units.filter((u) => u.side === s).sort((a, b) => rank(b) - rank(a) || U[b.type].cost - U[a.type].cost);
-  for (const u of order) {
-    if (G.over) return;
-    if (!G.units.includes(u) || u.done) continue;
-    await aiUnit(u);
-    u.done = true;
-    if (s === 1) await kettleCheck();
-    await sleep(120);
-  }
+  if (s === 1 && G.power[1] >= POWER_FULL) { await usePower(1); G.busy = true; }
+  await aiPass(s);
   if (G.over) return;
+  // The lycéens fire their power after moving, so everyone gets a second go.
+  if (s === 0 && G.power[0] >= POWER_FULL) { await usePower(0); G.busy = true; await aiPass(s); if (G.over) return; }
   aiBuild();
   await sleep(400);
   G.busy = false;
   endTurn();
 }
+async function aiPass(s) {
+  const rank = (u) => (U[u.type].cls === "arty" ? 2 : 0) - (u.type === "fourgon" ? 4 : 0);
+  const order = G.units.filter((u) => u.side === s && !u.done).sort((a, b) => rank(b) - rank(a) || U[b.type].cost - U[a.type].cost);
+  for (const u of order) {
+    if (G.over) return;
+    if (!G.units.includes(u) || u.done) continue;
+    await aiUnit(u);
+    u.done = true;
+    await sleep(120);
+  }
+}
 function waitBanner() { return new Promise((r) => { const t = () => (G.banner ? setTimeout(t, 50) : r()); t(); }); }
 async function aiUnit(u) {
   const s = u.side, t = U[u.type], R = reach(u);
   if (u.type === "fourgon") return aiVan(u, R);
+  const noCap = s === 0 && G.noCap === G.round;
   const here = propAt(u.x, u.y);
-  if (t.cap && here && here.owner !== s && u.capturing && !inGas(u)) { G.cur = { x: u.x, y: u.y }; await sleep(150); doCapture(u); return; }
+  if (t.cap && here && here.owner !== s && u.capturing && !noCap) { G.cur = { x: u.x, y: u.y }; await sleep(150); doCapture(u); return; }
   const goalDist = (x, y) => Math.min(99, ...G.props.filter((p) => p.owner !== s).map((p) => dist(x, y, p.x, p.y)));
-  const enemyWheels = G.units.filter((o) => o.side !== s && U[o.type].mt === "wheels");
   let best = null;
   const offer = (v, o) => { if (!best || v > best.v) best = { v, ...o }; };
   for (const [k] of R.d) {
     const [x, y] = unkey(k), moved = x !== u.x || y !== u.y;
     const occ = unitAt(x, y);
     if (occ && occ !== u) { if (canBoard(u, occ) && goalDist(x, y) > 6) offer(260, { x, y, act: "board", van: occ }); continue; }
-    if (inGas(u, x, y)) continue;
-    // water cannon: line up a jet
-    if (t.spray) for (const dir of DIRS) {
-      let v = 0;
-      for (const [lx, ly] of sprayLine(x, y, dir)) {
-        if (G.bar.has(key(lx, ly))) v += 420;
-        if (G.fire.has(key(lx, ly))) v += 80;
-        const o = unitAt(lx, ly); if (!o || o === u) continue;
-        const sign = o.side === s ? -1.2 : 1, nx = lx + dir[0], ny = ly + dir[1];
-        let gain = Math.min(sprayDmg(u, o), o.hp) * U[o.type].cost / 100;
-        if (inb(nx, ny) && terr(nx, ny) === "~") gain += U[o.type].cost * 0.7;
-        if (o.capturing) gain += 900;
-        v += sign * gain;
-      }
-      if (v > 0) offer(v, { x, y, act: "spray", dir });
-    }
-    // CRS on foot drag barricades away; lycéens build them across the path of police vehicles
-    if (t.clear) for (const [dx, dy] of DIRS) if (G.bar.has(key(x + dx, y + dy))) offer(450 + (terr(x + dx, y + dy) === "b" ? 200 : 0), { x, y, act: "clear", tx: x + dx, ty: y + dy });
-    if (t.barricade && G.bar.size < 12) for (const [bx, by] of barricadeTiles({ x, y })) {
-      if ([...G.bar].some((kk) => { const [cx, cy] = unkey(kk); return dist(cx, cy, bx, by) <= 1; })) continue;
-      const dv = Math.min(99, ...enemyWheels.map((o) => dist(o.x, o.y, bx, by)));
-      let v = dv <= 8 ? 420 - dv * 25 : 0;
-      if (terr(bx, by) === "b") v += 250;
-      if (G.props.some((p) => p.owner === s && p.kind !== "shop" && dist(p.x, p.y, bx, by) <= 1)) v += 180;
-      if (v > 0) offer(v, { x, y, act: "barricade", tx: bx, ty: by });
-    }
-    // kettle: stepping here closes the last gap around a lycéen
-    if (s === 1 && t.r) for (const [dx, dy] of DIRS) {
-      const L = unitAt(x + dx, y + dy);
-      if (!L || L.side !== 0) continue;
-      const ox = u.x, oy = u.y; u.x = x; u.y = y;
-      const shut = boxed(L); u.x = ox; u.y = oy;
-      if (shut) offer(2600, { x, y, act: "wait" });
-    }
-    // lycéens far from anything worth taking ride the Metro
-    const st = propAt(x, y);
-    if (t.metro && isStation(st) && st.owner === s && goalDist(x, y) > 6 && freeStations(s).length > 1) offer(200 + (goalDist(x, y) - 6) * 40, { x, y, act: "metro" });
     for (const d of targetsFrom(u, x, y, moved)) {
       const dmg = calcDmg(u, d, d.x, d.y, 4), kill = dmg >= d.hp;
       let v = Math.min(dmg, d.hp) * U[d.type].cost / 100 + (kill ? U[d.type].cost * 0.4 : 0);
-      if (!kill && U[d.type].cls !== "arty" && dist(x, y, d.x, d.y) === 1) {
+      if (!kill && !t.push && U[d.type].r && U[d.type].cls !== "arty" && dist(x, y, d.x, d.y) === 1) {
         const c = calcDmg(d, u, x, y, 4, d.hp - dmg, u.hp);
         v -= Math.min(c, u.hp) * t.cost / 100 * 0.8;
       }
       if (d.capturing) v += 1500;
       v += defAt(x, y) * 30;
-      if (t.gas) for (const o of G.units) if (o !== d && Math.abs(o.x - d.x) <= 1 && Math.abs(o.y - d.y) <= 1 && !U[o.type].gasproof) v += o.side === s ? -300 : 250;
-      if (t.torch && "=b".includes(terr(d.x, d.y))) v += 150;
-      if (!best || v > best.v) best = { v, x, y, act: "fire", d };
-    }
-    if (!moved && t.torch) for (const [fx_, fy] of ringTiles(u, 2, 4, (a, b) => "=b".includes(terr(a, b)) && !unitAt(a, b) && !G.fire.has(key(a, b)))) {
-      const near = enemyWheels.some((o) => dist(o.x, o.y, fx_, fy) <= 2);
-      if (near) offer(320 + (terr(fx_, fy) === "b" ? 150 : 0), { x, y, act: "torch", tx: fx_, ty: fy });
+      if (t.splash) for (const o of G.units) if (o !== d && dist(o.x, o.y, d.x, d.y) === 1 && !U[o.type].gasproof) v += o.side === s ? -150 : 120;
+      if (t.burn && "=b".includes(terr(d.x, d.y))) v += 150;
+      if (t.push && !kill) {
+        const nx = d.x + Math.sign(d.x - x), ny = d.y + Math.sign(d.y - y);
+        if (inb(nx, ny) && terr(nx, ny) === "~") v += U[d.type].cost * 0.7;
+        if (d.capturing) v += 600;
+      }
+      offer(v, { x, y, act: "fire", d });
     }
     const p = t.cap && propAt(x, y);
-    if (p && p.owner !== s && !inGas(u, x, y)) {
+    if (p && p.owner !== s && !noCap) {
       let v = { hq: 99999, mark: 3200, base: 2600, shop: 2000 }[p.kind] + (p.owner === 1 - s ? 600 : 0);
       if (s === 0 && p.kind === "mark") v += 800; // lycéens need landmarks
-      v *= u.hp / 100;
-      if (!best || v > best.v) best = { v, x, y, act: "cap" };
+      offer(v * u.hp / 100, { x, y, act: "cap" });
     }
   }
   if (best && best.v > 150) {
@@ -1109,11 +1021,6 @@ async function aiUnit(u) {
     const b = best;
     if (b.act === "fire") { G.cur = { x: b.d.x, y: b.d.y }; await sleep(120); await attack(u, b.d); }
     else if (b.act === "cap") doCapture(u);
-    else if (b.act === "spray") await spray(u, b.dir);
-    else if (b.act === "clear") { G.bar.delete(key(b.tx, b.ty)); say("BARRICADE DRAGGED AWAY."); }
-    else if (b.act === "barricade") { G.bar.add(key(b.tx, b.ty)); say("BINS, BIKES AND A CONE. BARRICADE UP."); }
-    else if (b.act === "torch") { fireworkAt(u, b.tx, b.ty); setFire(b.tx, b.ty); say("FIREWORKS. THAT STREET IS ON FIRE NOW."); await sleep(300); }
-    else if (b.act === "metro") goUnder(u);
     else if (b.act === "board") board(u, b.van);
     return;
   }
@@ -1129,14 +1036,14 @@ async function aiUnit(u) {
   for (const [k] of R.d) {
     const [x, y] = unkey(k);
     if (unitAt(x, y) && unitAt(x, y) !== u) continue;
-    let sc = f[k] - defAt(x, y) * 0.1 + (inGas(u, x, y) ? 3 : 0);
+    let sc = f[k] - defAt(x, y) * 0.1;
     if (t.cls === "arty" && G.units.some((o) => o.side !== s && dist(x, y, o.x, o.y) <= 1)) sc += 5;
     const pp = propAt(x, y); if (pp && pp.owner === s && (pp.kind === "base" || pp.kind === "hq")) sc += 3;
     if (sc < bs) { bs = sc; bx = x; by = y; }
   }
   if (bx !== u.x || by !== u.y) { G.cur = { x: bx, y: by }; await moveUnit(u, pathTo(R, u.x, u.y, bx, by)); }
   const p = propAt(u.x, u.y);
-  if (t.cap && p && p.owner !== s) doCapture(u);
+  if (t.cap && p && p.owner !== s && !noCap) doCapture(u);
 }
 async function aiVan(u, R) {
   const s = u.side;
@@ -1187,6 +1094,7 @@ function act(a) {
   if (screen === "help") { screen = "title"; SFX.back(); return; }
   if (!G) return;
   if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
+  if (G.handover != null) { if (a === "ok") { G.handover = null; SFX.ok(); } return; }
   if (G.battle) { if (a === "ok" || a === "back") G.battle.skip = true; return; }
   if (G.banner) { if (a === "ok") G.banner.t = Math.min(G.banner.t, 8); return; }
   if (G.busy || !human()) return;
@@ -1203,8 +1111,7 @@ function act(a) {
   if (G.mode === "pick") {
     const P = G.pick;
     if (mv) {
-      let i = P.origin ? P.tiles.findIndex(([x, y]) => x === P.origin.x + mv[0] && y === P.origin.y + mv[1]) : -1;
-      if (i < 0) i = (P.i + (a === "left" || a === "up" ? P.tiles.length - 1 : 1)) % P.tiles.length;
+      const i = (P.i + (a === "left" || a === "up" ? P.tiles.length - 1 : 1)) % P.tiles.length;
       P.i = i; G.cur = { x: P.tiles[i][0], y: P.tiles[i][1] }; SFX.move();
     }
     if (a === "ok") { const [x, y] = P.tiles[P.i]; G.mode = "anim"; G.pick = null; SFX.ok(); P.fn(x, y); }
@@ -1248,38 +1155,21 @@ function okAt(x, y) {
   }
 }
 function actionMenu() {
-  const u = G.sel, moved = u.x !== G.from.x || u.y !== G.from.y;
+  const u = G.sel, moved = u.x !== G.from.x || u.y !== G.from.y, t = U[u.type];
   const items = [];
-  const t = U[u.type];
   const tg = targetsFrom(u, u.x, u.y, moved);
   if (tg.length) items.push({ label: "FIRE", fn: () => { G.menu = null; G.targets = tg; G.tsel = 0; G.cur = { x: tg[0].x, y: tg[0].y }; G.mode = "target"; } });
-  if (t.spray) {
-    const tiles = DIRS.filter((d) => sprayLine(u.x, u.y, d).length).map(([dx, dy]) => [u.x + dx, u.y + dy]);
-    if (tiles.length) items.push({ label: "SPRAY", fn: () => pickTiles(tiles, (x, y) => spray(u, [x - u.x, y - u.y]).then(() => G.units.includes(u) && finish(u)), (x, y) => sprayLine(u.x, u.y, [x - u.x, y - u.y]), u) });
-  }
-  if (t.torch && !moved) {
-    const tiles = ringTiles(u, 2, 4, (x, y) => terr(x, y) !== "~" && terr(x, y) !== "#" && !G.fire.has(key(x, y)));
-    if (tiles.length) items.push({ label: "TORCH", fn: () => pickTiles(tiles, (x, y) => { fireworkAt(u, x, y); setFire(x, y); say("FIREWORKS. THAT STREET IS ON FIRE NOW."); finish(u); }) });
-  }
-  if (t.gas && !moved) {
-    const tiles = ringTiles(u, 2, 3, () => true);
-    items.push({ label: "GAS", fn: () => pickTiles(tiles, (x, y) => { G.fx.push({ kind: "shot", sx: u.x, sy: u.y, x, y, t: 0, life: 22, look: "gas" }); if (!gasCloud(x, y, u.side)) say("TEAR GAS. MIND THE WIND."); finish(u); }, (x, y) => { const a = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (inb(x + dx, y + dy)) a.push([x + dx, y + dy]); return a; }) });
-  }
   const p = propAt(u.x, u.y);
-  if (t.cap && p && p.owner !== G.side) items.push({ label: inGas(u) ? "CAPTURE (GASSED)" : "CAPTURE", off: inGas(u), fn: () => { G.menu = null; doCapture(u); finish(u); } });
-  if (t.barricade && barricadeTiles(u).length) items.push({ label: "BARRICADE", fn: () => pickTiles(barricadeTiles(u), (x, y) => { G.bar.add(key(x, y)); say(pick(["BINS, BIKES AND A CONE. BARRICADE UP.", "BARRICADE UP. A VELIB WILL NEVER RIDE AGAIN."])); noise(0.2, 0.05); finish(u); }) });
-  const bars = DIRS.map(([dx, dy]) => [u.x + dx, u.y + dy]).filter(([x, y]) => inb(x, y) && G.bar.has(key(x, y)));
-  if (t.clear && bars.length) items.push({ label: "CLEAR", fn: () => pickTiles(bars, (x, y) => { G.bar.delete(key(x, y)); say("BARRICADE DRAGGED AWAY."); noise(0.2, 0.05); finish(u); }) });
-  if (t.metro && isStation(p) && p.owner === G.side) items.push({ label: "TAKE THE METRO", fn: () => { G.menu = null; goUnder(u); finish(u); } });
+  if (t.cap && p && p.owner !== G.side) items.push({ label: noCapture() ? "CAPTURE (CURFEW)" : "CAPTURE", off: noCapture(), fn: () => { G.menu = null; doCapture(u); finish(u); } });
   if (u.cargo?.length && unloadTiles(u).length) items.push({ label: `UNLOAD (${u.cargo.length})`, fn: () => unloadStep(u) });
   items.push({ label: "WAIT", fn: () => { G.menu = null; finish(u); } });
   G.menu = {
-    items, sel: 0, title: U[u.type].name, at: u,
-    back: () => { G.menu = null; if (moved && u.capturing === false) {} u.x = G.from.x; u.y = G.from.y; G.reach = reach(u); G.mode = "move"; G.cur = { x: u.x, y: u.y }; },
+    items, sel: 0, title: t.name, at: u,
+    back: () => { G.menu = null; u.x = G.from.x; u.y = G.from.y; G.reach = reach(u); G.mode = "move"; G.cur = { x: u.x, y: u.y }; },
   };
 }
-function pickTiles(tiles, fn, preview, origin) {
-  G.menu = null; G.mode = "pick"; G.pick = { tiles, fn, preview, origin, i: 0 };
+function pickTiles(tiles, fn) {
+  G.menu = null; G.mode = "pick"; G.pick = { tiles, fn, i: 0 };
   G.cur = { x: tiles[0][0], y: tiles[0][1] };
 }
 function unloadStep(v) {
@@ -1287,10 +1177,6 @@ function unloadStep(v) {
   if (!v.cargo.length || !tiles.length) return finish(v);
   pickTiles(tiles, (x, y) => { unload(v, x, y); unloadStep(v); });
   G.pick.back = () => { G.pick = null; finish(v); };
-}
-function fireworkAt(u, x, y) {
-  G.fx.push({ kind: "shot", sx: u.x, sy: u.y, x, y, t: 0, life: 22, look: "fireworks" });
-  G.fx.push({ kind: "fireworks", x, y, t: 0, life: 40, delay: 18 }); beep(1200, 0.2, "square", 0.03, -900);
 }
 async function fireAt(t) {
   const u = G.sel; G.mode = "anim"; G.targets = [];
@@ -1301,7 +1187,6 @@ async function fireAt(t) {
 function finish(u) {
   u.done = true; G.sel = null; G.mode = "idle"; G.reach = null; G.pick = null;
   if (G.over) return;
-  if (G.side === 1) { G.busy = true; kettleCheck().then(() => { G.busy = false; checkRout(); }); }
   if (!G.units.some((o) => o.side === G.side && !o.done) && !G.props.some((p) => p.owner === G.side && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y) && G.funds[G.side] >= 1000)) say("EVERYONE HAS MOVED. END TURN WHEN READY.");
 }
 function buyMenu(p) {
@@ -1315,6 +1200,7 @@ function mainMenu() {
   G.menu = {
     title: `SAT ${hour()}:00`, sel: 0,
     items: [
+      ...(G.power[G.side] >= POWER_FULL ? [{ label: `POWER: ${POWER[G.side].name}`, fn: () => usePower(G.side) }] : []),
       { label: "END TURN", fn: () => { G.menu = null; endTurn(); } },
       { label: `BATTLES: ${BATTLE_MODES[battleMode]}`, fn: () => { battleMode = (battleMode + 1) % 3; try { localStorage.setItem("pr-battles", battleMode); } catch {} mainMenu(); G.menu.sel = 1; } },
       { label: "RULES", fn: () => { G.menu = null; screen = "help"; } },
@@ -1344,7 +1230,10 @@ addEventListener("keydown", (e) => {
 // Pointer: hover moves the cursor, click acts on what is under it.
 function pt(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
 let lastTile = null;
+const mouse = { x: 0, y: 0, on: false };
+cv.addEventListener("pointerleave", () => { mouse.on = false; });
 cv.addEventListener("pointermove", (e) => {
+  if (e.pointerType === "mouse") { [mouse.x, mouse.y] = pt(e); mouse.on = true; if (IMG.ui) cv.style.cursor = "none"; }
   if (e.pointerType !== "mouse" || screen !== "game" || !G || G.busy || G.menu || !human()) return;
   const [px, py] = pt(e);
   if (py < TOP || py >= BOT) return;
@@ -1364,7 +1253,7 @@ cv.addEventListener("pointerdown", (e) => {
   }
   if (screen === "help") return act("ok");
   if (!G) return;
-  if (G.over || G.banner || G.battle) return act("ok");
+  if (G.over || G.banner || G.battle || G.handover != null) return act("ok");
   for (const b of G.buttons) if (px >= b.x && px < b.x + b.w && py >= b.y && py < b.y + b.h) return b.fn();
   if (G.menu) {
     const i = (G.menuRects || []).findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
@@ -1392,10 +1281,13 @@ let mapLayer = null;
 const rnd = (x, y, i = 0) => { let h = (x * 374761393 + y * 668265263 + i * 2147483647) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 const roadish = (x, y) => inb(x, y) && "=.bP".includes(terr(x, y));
 const IMG = {};
-const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes"].map((n) => new Promise((ok) => {
+const ASSETS = Promise.all(["paris", "props", "battle-cutins", "fx", "scenes", "title", "ui", "help", "victory_lyceens", "victory_crs", "font8", "commanders",
+  "bank/seine-rain", "bank/metro-last-train", "bank/students-afterglow-results", "bank/cafe-morning-after-results",
+  "news/republique", "news/capucines", "news/louvre", "news/velib"].map((n) => new Promise((ok) => {
   const i = new Image(); i.onload = () => { IMG[n] = i; ok(); }; i.onerror = () => ok(); i.src = `art/${n}.png`;
 }))).then(async () => {
-  for (const [k, f] of [["propsMeta", "props"], ["cutMeta", "battle-cutins"], ["fxMeta", "fx"], ["sceneMeta", "scenes"]]) {
+  for (const [k, f] of [["propsMeta", "props"], ["cutMeta", "battle-cutins"], ["fxMeta", "fx"], ["sceneMeta", "scenes"], ["uiMeta", "ui"], ["font8Meta", "font8"],
+    ["titleMeta", "title"], ["helpMeta", "help"], ["vicMeta0", "victory_lyceens"], ["vicMeta1", "victory_crs"], ["comMeta", "commanders"]]) {
     try { IMG[k] = await (await fetch(`art/${f}.json`)).json(); } catch {}
   }
   waterPixels();
@@ -1525,10 +1417,10 @@ function drawMap() {
     if ((h + ph) % 53 === 0) fill(k % (MW * TS), TOP + Math.floor(k / (MW * TS)), 2, 1, (h >> 3) % 3 ? 20 : 21);
   }
   // barricades and fires
-  for (const k of G.bar) drawBarricade(...unkey(k));
+  for (const [k] of G.bar) drawBarricade(...unkey(k));
   for (const [k] of G.fire) {
     const [x, y] = unkey(k), r = IMG.fxMeta && fxFrame("flame", (performance.now() + k * 97) % 440);
-    if (r) ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, x * TS, TOP + y * TS, 16, 16);
+    if (r && IMG.fx) ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, x * TS, TOP + y * TS, 16, 16);
     else { const fl = (frame >> 3) % 3; fill(x * TS + 4, TOP + y * TS + 6 - fl, 8, 9 + fl, 28); fill(x * TS + 6, TOP + y * TS + 9, 4, 6, 26); }
   }
   // looted shops smoulder
@@ -1545,16 +1437,6 @@ function drawBarricade(x, y) {
   fill(px + 8, py + 6, 3, 3, 0); fill(px + 12, py + 6, 3, 3, 0); fill(px + 9, py + 7, 1, 1, 6); fill(px + 13, py + 7, 1, 1, 6);
   fill(px + 10, py + 5, 3, 1, 16); fill(px + 11, py + 3, 1, 3, 6);
   fill(px + 11, py + 9, 3, 3, 28); fill(px + 12, py + 8, 1, 1, 28); fill(px + 11, py + 10, 3, 1, 7);
-}
-function drawGas() {
-  for (const [k, v] of G.gas) {
-    const [x, y] = unkey(k);
-    ctx.globalAlpha = v >= 3 ? 0.55 : 0.35;
-    checker(x, y, 31, (frame >> 4) % 2);
-    const r = IMG.fxMeta && fxFrame("teargas", (performance.now() + k * 131) % 400);
-    if (r) ctx.drawImage(IMG.fx, r.x, r.y, 16, 16, x * TS, TOP + y * TS, 16, 16);
-    ctx.globalAlpha = 1;
-  }
 }
 function checker(x, y, c, phase = 0) {
   ctx.fillStyle = PAL[c];
@@ -1622,21 +1504,60 @@ function drawFx() {
   }
   G.fx = G.fx.filter((e) => e.t < e.life + (e.delay || 0));
 }
-function box(x, y, w, h, border = 29) {
-  fill(x, y, w, h, 0); fill(x, y, w, 1, border); fill(x, y + h - 1, w, 1, border); fill(x, y, 1, h, border); fill(x + w - 1, y, 1, h, border);
-  fill(x + 1, y + 1, w - 2, 1, 2);
+// UI chrome from art/ui.png: black-and-brass nine-slice frame, buttons, banners, pointer.
+function uiDraw(name, x, y) {
+  const r = IMG.uiMeta?.frames[name];
+  if (!r || !IMG.ui) return false;
+  ctx.drawImage(IMG.ui, r.x, r.y, r.w, r.h, Math.round(x), Math.round(y), r.w, r.h);
+  return true;
 }
+function box(x, y, w, h, border = 29) {
+  const r = IMG.uiMeta?.frames.menu_frame;
+  if (!r || !IMG.ui) {
+    fill(x, y, w, h, 0); fill(x, y, w, 1, border); fill(x, y + h - 1, w, 1, border); fill(x, y, 1, h, border); fill(x + w - 1, y, 1, h, border);
+    return;
+  }
+  const c = r.slice.left, img = IMG.ui, m = r.w - 2 * c;
+  x = Math.round(x); y = Math.round(y);
+  const part = (sx, sy, sw, sh, dx, dy, dw, dh) => ctx.drawImage(img, r.x + sx, r.y + sy, sw, sh, dx, dy, dw, dh);
+  part(c, c, m, m, x + c, y + c, w - 2 * c, h - 2 * c);
+  part(c, 0, m, c, x + c, y, w - 2 * c, c); part(c, r.h - c, m, c, x + c, y + h - c, w - 2 * c, c);
+  part(0, c, c, m, x, y + c, c, h - 2 * c); part(r.w - c, c, c, m, x + w - c, y + c, c, h - 2 * c);
+  part(0, 0, c, c, x, y, c, c); part(r.w - c, 0, c, c, x + w - c, y, c, c);
+  part(0, r.h - c, c, c, x, y + h - c, c, c); part(r.w - c, r.h - c, c, c, x + w - c, y + h - c, c, c);
+}
+// 8x8 heading font (art/font8.png), tinted per palette colour on first use.
+const FONT8 = {};
+function text8(s, x, y, c = 7) {
+  const m = IMG.font8Meta;
+  if (!m || !IMG.font8) return text(s, x, y, c, 0);
+  if (!FONT8[c]) {
+    const cv2 = document.createElement("canvas"); cv2.width = IMG.font8.width; cv2.height = IMG.font8.height;
+    const g = cv2.getContext("2d"); g.drawImage(IMG.font8, 0, 0); g.globalCompositeOperation = "source-in"; g.fillStyle = PAL[c]; g.fillRect(0, 0, cv2.width, cv2.height);
+    FONT8[c] = cv2;
+  }
+  for (const ch of norm(s)) {
+    const r = m.glyphs[ch] || m.glyphs[" "];
+    if (r) ctx.drawImage(FONT8[c], r.x, r.y, r.w, r.h, Math.round(x), Math.round(y), r.w, r.h);
+    x += r?.advance || m.advance;
+  }
+}
+const tw8 = (s) => norm(s).length * 8;
+const text8C = (s, cx, y, c, sh) => { const x = Math.round(cx - tw8(s) / 2); if (sh != null) text8(s, x + 1, y + 1, sh); text8(s, x, y, c); };
 function drawTop() {
   fill(0, 0, W, TOP, 1); fill(0, TOP - 1, W, 1, 0);
   const s = G.side, sd = SIDES[s];
-  fill(4, 4, 8, 8, sd.col); fill(5, 5, 6, 2, sd.hi);
-  text(sd.name, 16, 5, 7);
-  text(`€${G.funds[s]}`, 16 + tw(sd.name) + 10, 5, 26);
-  const clock = `SAT ${hour()}:00`, cx = 16 + tw(sd.name) + 10 + tw(`€${G.funds[s]}`) + 12;
-  text(clock, cx, 5, 13);
-  text(`WIND ${WIND_NAME(G.wind)}`, cx + tw(clock) + 10, 5, 31);
-  const under = G.under.filter((u) => u.side === s).length;
-  const lm = (under ? `METRO ${under} - ` : "") + `LANDMARKS ${marksHeld(0)}/${LANDMARKS}`;
+  if (!uiDraw(s ? "emblem_crs" : "emblem_lyceens", 0, 0)) { fill(4, 4, 8, 8, sd.col); fill(5, 5, 6, 2, sd.hi); }
+  text(sd.name, 18, 5, 7);
+  let x = 18 + tw(sd.name) + 10;
+  text(`€${G.funds[s]}`, x, 5, 26); x += tw(`€${G.funds[s]}`) + 12;
+  const clock = `SAT ${hour()}:00`;
+  text(clock, x, 5, 13); x += tw(clock) + 12;
+  // power meter
+  const full = G.power[s] >= POWER_FULL, segs = Math.floor(G.power[s] / POWER_FULL * 8);
+  text("POWER", x, 5, full && (frame >> 4) % 2 ? 26 : 6); x += 32;
+  for (let i = 0; i < 8; i++) fill(x + i * 4, 5, 3, 7, i < segs ? (full ? 26 : sd.hi) : 2);
+  const lm = `LANDMARKS ${marksHeld(0)}/${LANDMARKS}`;
   text(lm, W - tw(lm) - 5, 5, marksHeld(0) >= NEED ? 30 : 6);
 }
 function drawBottom() {
@@ -1649,118 +1570,167 @@ function drawBottom() {
     const d = defAt(x, y);
     const tn = p ? p.name : TNAME[terr(x, y)];
     const k = key(x, y);
-    info = `${tn}${G.bar.has(k) ? " + BARRICADE" : ""}${G.fire.has(k) ? " + FIRE" : ""}${G.gas.has(k) ? " + GAS" : ""} ${"*".repeat(d)}`;
+    info = `${tn}${G.bar.has(k) ? " + BARRICADE" : ""}${G.fire.has(k) ? " + FIRE" : ""} ${"*".repeat(d)}`;
     if (p && p.cap < 20) info += ` CAP ${p.cap}`;
-    if (u) info = `${U[u.type].name} ${hpD(u)}/10 - ${info}`;
+    if (u) info = `${U[u.type].name} ${hpD(u)}/10${u.cargo?.length ? ` +${u.cargo.length} COPS` : ""} - ${info}`;
     if (G.mode === "target" && G.sel) { const t = G.targets[G.tsel]; if (t) info = `HIT ${U[t.type].name} FOR ~${calcDmg(G.sel, t, t.x, t.y, 4)}%`; }
   }
   text(info, 5, BOT + 5, G.msgT > 0 ? 26 : 7);
-  if (human() && !G.busy && !G.over) {
-    const btn = (label, fn, x) => { const w = tw(label) + 8; fill(x - w, BOT + 2, w, 12, 3); text(label, x - w + 4, BOT + 5, 13); G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn }); return x - w - 4; };
+  if (human() && !G.busy && !G.over && G.handover == null) {
+    const hover = (x, w) => mouse.on && mouse.x >= x && mouse.x < x + w && mouse.y >= BOT + 2 && mouse.y < BOT + 14;
+    const btn = (name, label, fn, x) => {
+      const w = 48;
+      if (!uiDraw(`${name}_${hover(x - w, w) ? "pressed" : "normal"}`, x - w, BOT + 2)) { fill(x - w, BOT + 2, w, 12, 3); textC(label, x - w / 2, BOT + 5, 13); }
+      G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn }); return x - w - 4;
+    };
     let x = W - 3;
-    if (G.mode === "idle" && !G.menu) x = btn("END TURN", () => { SFX.ok(); endTurn(); }, x);
-    if (G.mode !== "idle" || G.menu) btn("BACK", () => act("back"), x);
+    if (G.mode === "idle" && !G.menu) {
+      x = btn("end_turn", "END TURN", () => { SFX.ok(); endTurn(); }, x);
+      if (G.power[G.side] >= POWER_FULL) {
+        const w = 48; box(x - w, BOT + 2, w, 12); textC("POWER!", x - w / 2, BOT + 5, (frame >> 4) % 2 ? 26 : 29);
+        G.buttons.push({ x: x - w, y: BOT + 2, w, h: 12, fn: () => usePower(G.side) });
+      }
+    }
+    if (G.mode !== "idle" || G.menu) btn("back", "BACK", () => act("back"), x);
   }
 }
 function drawMenu() {
-  const m = G.menu;
-  const w = m.wide ? 190 : 96, lh = 12, h = 16 + m.items.length * lh + (m.wide ? 14 : 0);
+  const m = G.menu, pad = 8, lh = 12;
+  const w = m.wide ? 200 : Math.max(104, tw(m.title) + 2 * pad + 4), h = pad + 12 + m.items.length * lh + (m.wide ? 12 : 0) + pad - 2;
   const at = m.at;
   let x = at ? at.x * TS + 22 : G.cur.x * TS + 22, y = at ? TOP + at.y * TS - 6 : TOP + G.cur.y * TS - 6;
-  if (m.wide) { x = (W - w) / 2; y = TOP + 30; }
+  if (m.wide) { x = (W - w) / 2; y = TOP + 24; }
   if (x + w > W - 4) x = (at ? at.x : G.cur.x) * TS - w - 6;
   y = Math.max(TOP + 2, Math.min(BOT - h - 2, y));
   box(x, y, w, h);
-  text(m.title, x + 5, y + 4, 29);
+  text(m.title, x + pad, y + pad, 29);
   G.menuRects = [];
   m.items.forEach((it, i) => {
-    const iy = y + 14 + i * lh;
+    const iy = y + pad + 12 + i * lh;
     G.menuRects.push([x, iy - 2, w, lh]);
-    if (i === m.sel) { fill(x + 2, iy - 2, w - 4, lh, 3); text(">", x + 4, iy, 26); }
-    text(it.label, x + 12, iy, it.off ? 4 : i === m.sel ? 7 : 6);
-    if (it.right) text(it.right, x + w - tw(it.right) - 5, iy, it.off ? 4 : 26);
+    if (i === m.sel && !uiDraw("selection_marker", x + pad - 1, iy - 1)) text(">", x + pad, iy, 26);
+    text(it.label, x + pad + 10, iy, it.off ? 4 : i === m.sel ? 26 : 7);
+    if (it.right) text(it.right, x + w - tw(it.right) - pad, iy, it.off ? 4 : 29);
   });
-  if (m.wide) { const b = m.items[m.sel].blurb; if (b) text(b, x + 5, y + h - 11, 21); }
+  if (m.wide) { const b = m.items[m.sel].blurb; if (b) text(b, x + pad, y + h - pad - 7, 21); }
 }
 function drawBanner() {
   const b = G.banner;
   b.t--;
   if (window.__fast) b.t = 0;
+  if (b.news) {
+    // FLASH INFO: the painting full screen, the headline in a brass panel.
+    ctx.globalAlpha = Math.min(1, (220 - b.t) / 12, b.t / 12);
+    ctx.drawImage(IMG[b.news], 0, 0);
+    box(20, 168, W - 40, 56);
+    text8(`FLASH INFO - SAT ${hour()}:00`, 30, 177, 26);
+    wrap(b.sub, 55).slice(0, 2).forEach((l, i) => text(l, 30, 191 + i * 9, 7));
+    text(`${SIDES[b.side].short} TO MOVE`, W - 30 - tw(`${SIDES[b.side].short} TO MOVE`), 177, SIDES[b.side].hi);
+    ctx.globalAlpha = 1;
+    if (b.t <= 0) G.banner = null;
+    return;
+  }
   const k = b.t > 100 ? (110 - b.t) / 10 : b.t < 10 ? b.t / 10 : 1;
-  const h = 46, y = Math.round(H / 2 - h / 2);
-  fill(0, y, W * k, h, 0); fill(0, y, W * k, 2, b.col); fill(0, y + h - 2, W * k, 2, b.col);
-  if (k === 1) {
-    textC(b.title, W / 2, y + 9, 7, 2, 2);
-    const lines = wrap(b.sub, 60);
-    lines.forEach((l, i) => textC(l, W / 2, y + 28 + i * 9, 26));
+  const r = IMG.uiMeta?.frames[b.side ? "turn_crs" : "turn_lyceens"];
+  const y = Math.round(H / 2 - 23), ox = Math.round((1 - k) * (b.t > 100 ? -W : W));
+  if (r && IMG.ui) {
+    uiDraw(b.side ? "turn_crs" : "turn_lyceens", ox, y);
+    const tb = r.textBounds, c = r.textColor;
+    text8(b.title, ox + tb.x, y + tb.y, c);
+    wrap(b.sub, Math.floor((tb.w - (b.power ? 64 : 0)) / 6)).slice(0, 2).forEach((l, i) => text(l, ox + tb.x, y + tb.y + 11 + i * 8, c === 0 ? 3 : 25));
+    if (b.power && IMG.commanders && IMG.comMeta) {
+      const pr = IMG.comMeta.frames[POWER[b.side].portrait];
+      ctx.drawImage(IMG.commanders, pr.x, pr.y, 48, 48, ox + W - 60, y - 24, 48, 48);
+    }
+  } else {
+    fill(0, y, W * k, 46, 0); fill(0, y, W * k, 2, b.col); fill(0, y + 44, W * k, 2, b.col);
+    if (k === 1) { textC(b.title, W / 2, y + 9, 7, 2, 2); wrap(b.sub, 60).forEach((l, i) => textC(l, W / 2, y + 28 + i * 9, 26)); }
   }
   if (b.t <= 0) G.banner = null;
 }
+function drawHandover() {
+  const img = IMG[G.handover === 0 ? "bank/seine-rain" : "bank/metro-last-train"];
+  if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
+  box(40, 150, W - 80, 52);
+  text8C(`PASS IT TO THE ${SIDES[G.handover].short}`, W / 2, 162, 26);
+  textC(`SAT ${hour()}:00. NO PEEKING.`, W / 2, 176, 7);
+  if ((frame >> 5) % 2) textC("PRESS SPACE", W / 2, 188, 29);
+}
 function drawOver() {
-  const o = G.over;
-  fill(0, 0, W, H, 0); ctx.globalAlpha = 0.25; ctx.drawImage(mapLayer, 0, TOP); ctx.globalAlpha = 1;
-  const s = SIDES[o.winner];
-  box(24, 50, W - 48, 130, s.col);
-  textC(o.winner === 0 ? "THE STREETS WIN" : "ORDER RESTORED", W / 2, 66, s.col, 0, 2);
-  textC(`${s.name} WIN`, W / 2, 90, 7);
-  wrap(o.why, 50).forEach((l, i) => textC(l, W / 2, 108 + i * 10, 13));
-  textC(`SAT ${hour()}:00  -  LANDMARKS HELD BY LYCEENS ${marksHeld(0)}/${LANDMARKS}`, W / 2, 148, 6);
-  if ((frame >> 5) % 2) textC("PRESS SPACE", W / 2, 164, 26);
+  const o = G.over, s = SIDES[o.winner];
+  if (!o.bg) {
+    o.bg = pick(o.winner === 0 ? [["victory_lyceens", "vicMeta0"], ["bank/students-afterglow-results", null]] : [["victory_crs", "vicMeta1"], ["bank/cafe-morning-after-results", null]]);
+  }
+  const img = IMG[o.bg[0]], band = o.bg[1] && IMG[o.bg[1]] ? IMG[o.bg[1]].resultBand : { x: 12, y: 157, w: 360, h: 36 };
+  if (img) ctx.drawImage(img, 0, 0); else { fill(0, 0, W, H, 0); box(24, 140, W - 48, 70); }
+  const cx = band.x + band.w / 2, lines = wrap(o.why, Math.floor((band.w - 8) / 6)).slice(0, band.h > 40 ? 3 : 2);
+  text8C(o.winner === 0 ? "THE STREETS WIN" : "ORDER RESTORED", cx, band.y + 3, 26);
+  lines.forEach((l, i) => textC(l, cx, band.y + 14 + i * 9, 7));
+  const foot = `${s.name} WIN - LANDMARKS HELD BY LYCEENS ${marksHeld(0)}/${LANDMARKS}`;
+  fill(0, H - 14, W, 14, 0); textC(foot, W / 2, H - 11, 6);
+  if ((frame >> 5) % 2) text("SPACE", W - 34, H - 11, 26);
 }
 
 // ---------- title & help ----------
 let TITLE_RECTS = [];
-const titleBg = (() => { const s = { x: 0 }; return s; })();
 function drawTitle() {
+  TITLE_RECTS = [];
+  const tm = IMG.titleMeta;
+  if (IMG.title && tm) {
+    ctx.drawImage(IMG.title, 0, 0);
+    TITLE_ITEMS.forEach((it, i) => {
+      const y = tm.menuBaselines[i] - 2, sel = i === titleSel;
+      TITLE_RECTS.push([tm.menuBand.x, y - 4, tm.menuBand.w, 16]);
+      textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
+      if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
+    });
+    text("ARROWS + SPACE, OR CLICK", 6, H - 10, 6, 0);
+    text("17.10.2026", W - 66, H - 10, 6, 0);
+    return;
+  }
   if (!mapLayer) { G = { props: PROPS0.map((p) => ({ ...p })) }; buildMapLayer(); G = null; }
   ctx.drawImage(mapLayer, 0, TOP);
   ctx.globalAlpha = 0.72; fill(0, 0, W, H, 0); ctx.globalAlpha = 1;
-  // a few title-screen fires
-  for (const [x, y] of [[3, 5], [10, 1], [17, 7], [21, 3], [8, 11]]) {
-    const fl = (frame >> 3) % 3;
-    fill(x * TS + 4, TOP + y * TS + 6 - fl, 6, 6 + fl, 28); fill(x * TS + 5, TOP + y * TS + 8, 4, 4, 29); fill(x * TS + 6, TOP + y * TS + 10, 2, 2, 26);
-  }
   textC("PARIS RIOTS", W / 2, 20, 30, 0, 3);
   textC("- THE GAME -", W / 2, 47, 26, 0, 2);
-  textC("SATURDAY 17 OCTOBER 2026 - CURFEW 23:00", W / 2, 72, 13);
-  const spr = (t, f) => SHEET.frames?.has(t) ? SHEET.cache[`${t}/idle${(frame >> 5) % 2}${f}0`] : SPR[`${t}${f}0`];
-  ["torse", "lyceen", "panther", "kangoo"].forEach((t, i) => ctx.drawImage(spr(t, 1), 96 + i * 18, 84));
-  ["canon", "crs", "lbd", "lacrymo"].forEach((t, i) => ctx.drawImage(spr(t, 0), 222 + i * 18, 84));
-  textC("VS", W / 2 + 4, 89, 7, 0, 1);
-  TITLE_RECTS = [];
   TITLE_ITEMS.forEach((it, i) => {
     const y = 116 + i * 16, w = 190, x = (W - w) / 2;
     TITLE_RECTS.push([x, y - 4, w, 15]);
-    if (i === titleSel) { box(x, y - 4, w, 15, 26); }
+    if (i === titleSel) box(x, y - 4, w, 15, 26);
     textC(it.label, W / 2, y, i === titleSel ? 26 : 6);
   });
-  textC("ARROWS + SPACE. ESC = BACK. OR JUST CLICK.", W / 2, 186, 4);
-  textC("NOBODY DIED. THE LOUVRE SHUT. THE AIR MAX WENT ON VINTED.", W / 2, 222, 5);
 }
+const RULES = [
+  ["", "SATURDAY 17 OCTOBER, 12:00 TO THE 23:00 CURFEW."],
+  [30, "LYCEENS WIN WITH 4 OF 7 LANDMARKS AT CURFEW, OR BEAUVAU."],
+  [23, "CRS WIN OTHERWISE, OR BY RETAKING THE LYCEE."],
+  ["", "MOVE, THEN FIRE, CAPTURE OR WAIT. ONLY FOOT UNITS CAPTURE."],
+  ["", "SHOPS, LANDMARKS AND BASES PAY OUT. BUY UNITS AT BASES."],
+  ["", "BLOCKS GIVE *** COVER, PARKS **. VANS STICK TO ROADS."],
+  ["", "CADDIE AND LACRYMO FIRE 2-3 AWAY, BUT NOT AFTER MOVING."],
+  ["", "POWER FILLS AS YOU FIGHT. WHEN FULL, USE IT FROM THE MENU."],
+  [30, "LYCEENS"],
+  ["", "FIREWORKS LEAVE THE STREET ON FIRE. NOBODY CROSSES IT."],
+  ["", "TONTON IS GASPROOF. PINK PANTHER CAPTURES IN ONE GO."],
+  ["", "POWER, APPEL TIKTOK: BARRICADES UP, EVERYONE MOVES AGAIN."],
+  [23, "CRS"],
+  ["", "WATER CANNON HOSES THEM BACK A TILE. INTO THE SEINE = GONE."],
+  ["", "TEAR GAS HITS THE NEIGHBOURS TOO. FOURGON CARRIES 2 COPS."],
+  ["", "POWER, COUVRE-FEU: GAS ON EVERY LYCEEN, NO CAPTURES."],
+];
 function drawHelp() {
+  const hm = IMG.helpMeta;
+  if (IMG.help && hm) {
+    ctx.drawImage(IMG.help, 0, 0);
+    RULES.forEach(([c, l], i) => text(l, hm.textArea.x, hm.textArea.y + i * hm.lineHeight, c === "" ? hm.textColor : c));
+    if ((frame >> 5) % 2) text("SPACE: BACK", 200, 222, 0);
+    return;
+  }
   fill(0, 0, W, H, 0);
-  textC("HOW TO PLAY", W / 2, 10, 26, 0, 2);
-  const L = [
-    ["", "SATURDAY 17 OCTOBER. 12:00 TO THE 23:00 CURFEW."],
-    [30, "LYCEENS WIN WITH 4 OF 7 LANDMARKS AT CURFEW, OR BEAUVAU."],
-    [24, "CRS WIN OTHERWISE, OR BY RETAKING THE LYCEE."],
-    ["", "MOVE, THEN FIRE / CAPTURE / WAIT. BASES BUILD UNITS."],
-    [30, "LYCEENS"],
-    ["", "BARRICADE: BINS ON A STREET. VANS CAN'T PASS. COVER ***."],
-    ["", "METRO: GO DOWN AT A STATION YOU HOLD, COME UP AT ANOTHER."],
-    ["", "TORCH: CADDIE FIREWORKS SET A STREET ON FIRE FOR 2 HOURS."],
-    ["", "TONTON IS GASPROOF. PINK PANTHER CAPTURES IN ONE GO."],
-    [24, "CRS"],
-    ["", "SPRAY: WATER CANNON JET, 3 TILES. PUSHES. SEINE = GONE."],
-    ["", "GAS: 3X3 CLOUD FOR 2 HOURS. DRIFTS WITH THE WIND."],
-    ["", "FOURGON: DRIVE ONTO IT TO BOARD. UNLOAD NEXT TO IT."],
-    ["", "KETTLE: BOX A LYCEEN IN ON 4 SIDES, 2+ COPS = ARRESTED."],
-    ["", "CLEAR: A COP NEXT TO A BARRICADE DRAGS IT AWAY."],
-    ["", ""],
-    ["", "ARROWS, SPACE, ESC. E = END TURN. MOUSE OR TAP WORKS TOO."],
-  ];
-  L.forEach(([c, l], i) => text(l, 14, 34 + i * 10, c === "" ? 6 : c));
-  if ((frame >> 5) % 2) textC("PRESS SPACE", W / 2, 222, 26);
+  RULES.forEach(([c, l], i) => text(l, 14, 30 + i * 10, c === "" ? 6 : c));
+}
+function drawPointer() {
+  if (!mouse.on || !uiDraw("pointer", mouse.x - 1, mouse.y)) return;
 }
 
 // ---------- loop ----------
@@ -1773,20 +1743,14 @@ function loop() {
   else if (screen === "help") drawHelp();
   else if (G) {
     if (G.over) drawOver();
+    else if (G.handover != null) drawHandover();
     else {
       drawMap();
       if (G.reach) for (const [k] of G.reach.d) { const [x, y] = unkey(k); checker(x, y, 25, frame >> 5); }
       if (G.mode === "target") for (const t of G.targets) checker(t.x, t.y, 30);
-      if (G.mode === "pick" && G.pick) {
-        for (const [x, y] of G.pick.tiles) checker(x, y, 26);
-        const c = G.pick.tiles[G.pick.i];
-        if (G.pick.preview && c) for (const [x, y] of G.pick.preview(...c)) checker(x, y, 21, 1);
-      }
-      if (G.capturePreview) {}
+      if (G.mode === "pick" && G.pick) for (const [x, y] of G.pick.tiles) checker(x, y, 26);
       drawUnits();
-      drawGas();
       drawFx();
-      if (G.pendingSurface && !G.banner && !G.menu && !G.busy && human()) surfaceMenu();
       if (human() || G.busy) drawCursor();
       drawTop(); drawBottom();
       if (G.menu) drawMenu();
@@ -1794,6 +1758,7 @@ function loop() {
       if (G.banner) drawBanner();
     }
   }
+  drawPointer();
   requestAnimationFrame(loop);
 }
 let ready = false;

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "image": "help.png",
+  "palette": "palette.json",
+  "frames": {
+    "background": {
+      "x": 0,
+      "y": 0,
+      "w": 384,
+      "h": 240
+    }
+  },
+  "textArea": {
+    "x": 14,
+    "y": 30,
+    "w": 356,
+    "h": 170
+  },
+  "textRows": 16,
+  "lineHeight": 10,
+  "textColor": 0,
+  "notes": "Opaque ivory body area is intentionally flat for readable 5x7 text. Sixteen row origins: y=30+10*n. Coffee and seal below y=204."
+}
