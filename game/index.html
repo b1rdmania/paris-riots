@@ -1391,8 +1391,8 @@ const STORY = [
   },
 ];
 const EPILOGUE = "SUNDAY. MUM FOUND OUT. GROUNDED UNTIL 2027. ON THE NEWS THE MINISTER PROMISED A NEW CEILING FOR EVERY LYCEE IN FRANCE. WORTH IT.";
-let storyBest = 0;
-try { storyBest = Math.min(STORY.length - 1, Number(localStorage.getItem("pr-chapter")) || 0); } catch {}
+let storyBest = 0, storyDone = 0, chapSel = 0, CHAP_RECTS = [];
+try { storyBest = Math.min(STORY.length - 1, Number(localStorage.getItem("pr-chapter")) || 0); storyDone = Number(localStorage.getItem("pr-done")) || 0; } catch {}
 function emit(e, a, b) {
   if (!G?.story || G.over) return;
   const ch = STORY[G.story.i], st = ch.steps[G.story.step];
@@ -1409,8 +1409,38 @@ function checkStory() {
 function storyEnd(won) {
   const i = G.story.i;
   G.over = { story: true, winner: won ? 0 : 1, why: "" }; G.busy = false; G.battle = null; G.banner = null;
-  if (won) { storyBest = Math.max(storyBest, Math.min(STORY.length - 1, i + 1)); try { localStorage.setItem("pr-chapter", storyBest); } catch {} }
+  if (won) {
+    storyBest = Math.max(storyBest, Math.min(STORY.length - 1, i + 1)); storyDone |= 1 << i;
+    try { localStorage.setItem("pr-chapter", storyBest); localStorage.setItem("pr-done", storyDone); } catch {}
+  }
   openCard(won ? (i === STORY.length - 1 ? "end" : "won") : "lost", i);
+}
+// Chapter select: every chapter is open, so people can jump to the bit they want.
+function openChapters() { chapSel = storyBest; screen = "chapters"; music("gymnopedie"); }
+function chaptersInput(a) {
+  const n = STORY.length;
+  if (a === "up") { chapSel = (chapSel + n - 1) % n; SFX.move(); }
+  if (a === "down") { chapSel = (chapSel + 1) % n; SFX.move(); }
+  if (a === "ok") { SFX.ok(); openCard("intro", chapSel); }
+  if (a === "back") { SFX.back(); screen = "title"; }
+}
+function drawChapters() {
+  const ch = STORY[chapSel], img = IMG[ch.art];
+  if (img) ctx.drawImage(img, 0, 0); else fill(0, 0, W, H, 0);
+  const y = 112;
+  box(12, y, W - 24, H - y - 8);
+  text8("CHOOSE A CHAPTER", 24, y + 10, 26);
+  text("ALL OPEN. PLAY IN ANY ORDER.", W - 24 - tw("ALL OPEN. PLAY IN ANY ORDER."), y + 11, 5);
+  CHAP_RECTS = [];
+  STORY.forEach((c, i) => {
+    const ry = y + 26 + i * 12, sel = i === chapSel;
+    CHAP_RECTS.push([12, ry - 3, W - 24, 12]);
+    if (sel) uiDraw("selection_marker", 22, ry - 1);
+    text(`${i + 1}. ${c.time.replace("SAMEDI ", "")}  ${c.title}`, 34, ry, sel ? 26 : 7);
+    if (storyDone & (1 << i)) text("DONE", W - 24 - tw("DONE"), ry, 17);
+  });
+  text(`GOAL: ${ch.goal}`, 24, H - 24, 21);
+  if ((frame >> 5) % 2) text("SPACE: PLAY  ESC: BACK", W - 24 - tw("SPACE: PLAY  ESC: BACK"), H - 24, 29);
 }
 let CARD = null;
 function openCard(kind, i) {
@@ -1425,13 +1455,13 @@ function cardInput(a) {
   const full = cardText().length;
   if (a === "ok" && CARD.t < full) { CARD.t = full; return; }
   SFX.ok();
-  if (a === "back") { screen = "title"; CARD = null; G = null; return; }
+  if (a === "back") { CARD = null; G = null; openChapters(); return; }
   if (a !== "ok") return;
   const i = CARD.i;
   if (CARD.kind === "intro") { CARD = null; newGame([true, false], STORY[i]); }
   else if (CARD.kind === "won") openCard("intro", i + 1);
   else if (CARD.kind === "lost") openCard("intro", i);
-  else { screen = "title"; CARD = null; G = null; }
+  else { CARD = null; G = null; openChapters(); }
 }
 function drawCard() {
   const ch = STORY[CARD.i], k = CARD.kind;
@@ -1450,7 +1480,7 @@ function drawCard() {
   wrap(body, 55).slice(0, 6).forEach((l, i) => text(l, 24, y + 40 + i * 10, 12));
   const foot = k === "intro" ? `GOAL: ${ch.goal}` : "";
   if (foot && CARD.t >= cardText().length) text(foot, 24, H - 26, 26);
-  const go = { intro: "SPACE: PLAY", won: "SPACE: NEXT CHAPTER", lost: "SPACE: TRY AGAIN   ESC: TITLE", end: "SPACE: TITLE. FREE PLAY IS ON THE TITLE SCREEN." }[k];
+  const go = { intro: "SPACE: PLAY   ESC: CHAPTERS", won: "SPACE: NEXT CHAPTER   ESC: CHAPTERS", lost: "SPACE: TRY AGAIN   ESC: CHAPTERS", end: "SPACE: BACK TO THE CHAPTERS" }[k];
   if ((frame >> 5) % 2 || CARD.t < cardText().length) text(go, W - 24 - tw(go), H - 26 + (foot ? 0 : 0), 29);
 }
 // The coach: Inès's portrait, the current step typed out, and an arrow at the thing to click.
@@ -1486,6 +1516,7 @@ function drawCoach() {
 function act(a) {
   if (screen === "title") return titleInput(a);
   if (screen === "card") return cardInput(a);
+  if (screen === "chapters") return chaptersInput(a);
   if (screen === "help") { screen = helpBack; helpBack = "title"; SFX.back(); return; }
   if (!G) return;
   if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
@@ -1621,7 +1652,7 @@ function titleInput(a) {
   if (a === "ok") { SFX.ok(); TITLE_ITEMS[titleSel].fn(); }
 }
 const TITLE_ITEMS = [
-  { get label() { return storyBest ? `STORY: CHAPTER ${storyBest + 1}` : "STORY MODE - START HERE"; }, fn: () => openCard("intro", storyBest) },
+  { get label() { return storyDone ? "STORY MODE - PICK A CHAPTER" : "STORY MODE - START HERE"; }, fn: () => openChapters() },
   { label: "FREE PLAY: LYCEENS", fn: () => newGame([true, false]) },
   { label: "FREE PLAY: CRS", fn: () => newGame([false, true]) },
   { label: "TWO PLAYERS, ONE SCREEN", fn: () => newGame([true, true]) },
@@ -1660,6 +1691,12 @@ cv.addEventListener("pointerdown", (e) => {
   if (screen === "title") {
     const i = TITLE_RECTS.findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
     if (i >= 0) { titleSel = i; act("ok"); }
+    return;
+  }
+  if (screen === "chapters") {
+    const i = CHAP_RECTS.findIndex((r) => py >= r[1] && py < r[1] + r[3] && px >= r[0] && px < r[0] + r[2]);
+    if (i < 0) return;
+    if (i === chapSel) act("ok"); else { chapSel = i; SFX.move(); }
     return;
   }
   if (screen === "help" || screen === "card") return act("ok");
@@ -2207,6 +2244,7 @@ function loop() {
   else if (screen === "title") drawTitle();
   else if (screen === "help") drawHelp();
   else if (screen === "card" && CARD) drawCard();
+  else if (screen === "chapters") drawChapters();
   else if (G) {
     if (G.over) drawOver();
     else if (G.handover != null) drawHandover();
@@ -2232,7 +2270,7 @@ function loop() {
 let ready = false;
 ASSETS.then(() => { mapLayer = null; G = null; ready = true; });
 // Test hook: lets a headless run inspect and drive the game.
-window.__cf = { get G() { return G; }, act, newGame, endTurn, attack, openCard, STORY, get CARD() { return CARD; }, get screen() { return screen; } };
+window.__cf = { get G() { return G; }, act, newGame, endTurn, attack, openCard, openChapters, STORY, get CARD() { return CARD; }, get screen() { return screen; } };
 loop();
 </script>
 </body>
