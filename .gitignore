@@ -12,3 +12,6 @@ data/grid.json
 art/*-review.*
 art/validation*.json
 art/units-validation.json
+
+# notes for Codex, not part of the game
+HANDOFF-*.txt
