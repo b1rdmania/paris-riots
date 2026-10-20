@@ -1,0 +1,15 @@
+Built-in image_gen. Reference: art/victory_crs.png (style only).
+
+Use case: stylized-concept. Create one full-bleed landscape 8:5 painted pixel-art background for Paris Riots, an Amiga/LucasArts 1991-style satirical adventure game. Match the reference image's beautiful hand-painted low-resolution pixel clusters, strong perspective, limited palette, warm brass and orange accents, blue-purple shadows. Reference is STYLE ONLY: do not copy its scene or black text box. No text, logos, frames, lettering, watermarks, dithering, gradients or blur. Image must be a single complete painting, not a collage. Designed to downsample to 384x240. Keep lower middle area visually calm for a future overlay. Slapstick atmosphere, nobody hurt. 
+
+seine-rain
+Rainy midnight on a stone Seine quay: ornate lamppost and warm reflections at left, distant Notre-Dame silhouette beyond a bridge, deep blue sky, a tipped empty café chair at right, luminous wet cobbles and open calm dark water across center. Cinematic, quiet intermission backdrop.
+
+metro-last-train
+A quiet Paris boulevard after the demonstration at blue hour, ornate green Art Nouveau métro entrance at left, mustard autumn trees and Haussmann buildings, scattered blank placards leaned against railings, tiny late commuter in far distance. Warm kiosk light at right and empty broad dark pavement through middle. No fires, no readable signs. Pause/menu backdrop.
+
+students-afterglow
+Warm triumphant night at Place de la République, Marianne statue in a hi-vis yellow vest high at left, a small celebratory student group waving blank cardboard placards around the plinth, fireworks clustered high in violet sky, a ridiculous mountain of bicycles at right. Broad calm dark foreground. Joyful comic endgame painting without violence.
+
+cafe-morning-after
+Golden dawn on a Paris café terrace after a chaotic night: elderly couple calmly drinking espresso at left, exhausted street sweeper leaning on broom at right, empty plastic riot shield repurposed as a breakfast tray beside them, Haussmann street recedes behind. Scattered autumn leaves, upturned café chair, warm amber sky, quiet open cobbles across lower middle. Wry humane endgame painting.
