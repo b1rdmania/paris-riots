@@ -376,7 +376,7 @@ for (const k in ART) for (const f of [0, 1]) for (const d of [0, 1]) SPR[`${k}${
 // ---------- rules data ----------
 const SIDES = [
   { name: "GENERATION 6-7", short: "LYCEENS", col: 30, hi: 26, flag: 30 },
-  { name: "LA PREFECTURE", short: "CRS", col: 24, hi: 25, flag: 24 },
+  { name: "LA PREFECTURE", short: "POLICE", col: 24, hi: 25, flag: 24 },
 ];
 const U = {
   lyceen: { side: 0, name: "LYCEEN", cls: "inf", cost: 750, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. FILMS EVERYTHING." },
@@ -385,7 +385,7 @@ const U = {
   panther: { side: 0, name: "PINK PANTHER", cls: "inf", cost: 5000, move: 6, mt: "scoot", cap: true, capAll: true, r: null, one: true, blurb: "JEWEL THIEF. CAPTURES IN ONE TURN. ONLY ONE." },
   caddie: { side: 0, name: "CADDIE MORTIER", cls: "arty", cost: 6000, move: 4, mt: "wheels", r: [2, 3], blurb: "FIREWORKS IN A TROLLEY. RANGE 2-3." },
   kangoo: { side: 0, name: "GILETS JAUNES", cls: "tank", cost: 7000, move: 5, mt: "wheels", r: [1, 1], blurb: "A KANGOO OF UNCLES. NOBODY INVITED THEM." },
-  crs: { side: 1, name: "CRS", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. HAS A SHIELD." },
+  crs: { side: 1, name: "RIOT POLICE", cls: "inf", cost: 1000, move: 3, mt: "foot", cap: true, r: [1, 1], blurb: "CAPTURES. HAS A SHIELD." },
   bravm: { side: 1, name: "BRAV-M", cls: "recon", cost: 4000, move: 7, mt: "wheels", r: [1, 1], blurb: "TWO MEN, ONE MOTORBIKE." },
   lbd: { side: 1, name: "LBD", cls: "lbd", dfn: "inf", cost: 4500, move: 3, mt: "foot", r: [1, 2], blurb: "RUBBER BULLETS. RANGE 1-2, CAN MOVE AND FIRE." },
   lacrymo: { side: 1, name: "LACRYMO", cls: "arty", cost: 6000, move: 3, mt: "foot", r: [2, 3], splash: true, blurb: "TEAR GAS, RANGE 2-3. GASSES THE NEIGHBOURS TOO." },
@@ -1244,7 +1244,7 @@ const STORY = [
     title: "RENDEZ-VOUS A REPUBLIQUE", tune: "cancan", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true,
     diary: "11:58. THE CEILING IN B12 FELL IN AGAIN. ON MADAME DUVAL THIS TIME. SHE'S FINE. THE CEILING ISN'T. EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
     goal: "LOOT THE MONOPRIX",
-    beats: [{ on: "turn", test: (s) => s === 1, say: "THE CRS ARE JUST WATCHING. FOR NOW." }],
+    beats: [{ on: "turn", test: (s) => s === 1, say: "THE POLICE ARE JUST WATCHING. FOR NOW." }],
     setup(put) { put("lyceen", 21, 1); put("lyceen", 23, 3); put("crs", 16, 2); },
     win: () => propNamed("MONOPRIX").owner === 0,
     steps: [
@@ -1252,14 +1252,14 @@ const STORY = [
       { say: "BLUE SQUARES ARE WHERE SHE CAN WALK. CLICK THE MONOPRIX.", at: () => [20, 3], done: (e, u) => e === "moved" && u.x === 20 && u.y === 3 },
       { say: "NOW CHOOSE CAPTURE.", menu: "CAPTURE", done: (e) => e === "capture" },
       { say: "LOOTING TAKES TWO GOES. CLICK END TURN.", ui: "end_turn", done: (e) => e === "endturn" },
-      { say: "THE CRS JUST WATCHED. CLICK HER AGAIN, CLICK HER OWN SQUARE, THEN CAPTURE.", at: () => [20, 3], done: () => false },
+      { say: "THE POLICE JUST WATCHED. CLICK HER AGAIN, CLICK HER OWN SQUARE, THEN CAPTURE.", at: () => [20, 3], done: () => false },
     ],
     won: "MONOPRIX LOOTED. THE AIR MAX ARE ON VINTED BY 12:47.",
     lost: "SOMEHOW YOU GOT ARRESTED IN A MONOPRIX.",
   },
   {
     title: "LE MUR DE BOUCLIERS", tune: "voyage", time: "SAMEDI 14:00", art: "news/capucines", round: 2,
-    diary: "BOULEVARD DES CAPUCINES. SOMEBODY BROUGHT A PLACARD. SOMEBODY ELSE BROUGHT A BLACK BLOC. TWO CRS ARE STANDING BETWEEN US AND THE OPERA LIKE THEY OWN IT.",
+    diary: "BOULEVARD DES CAPUCINES. SOMEBODY BROUGHT A PLACARD. SOMEBODY ELSE BROUGHT A BLACK BLOC. TWO RIOT COPS ARE STANDING BETWEEN US AND THE OPERA LIKE THEY OWN IT.",
     goal: "KNOCK OUT BOTH COPS BEFORE 18:00",
     beats: [
       { on: "ko", test: (u) => u.side === 1, say: "ONE DOWN. HE'S SITTING ON THE KERB RUBBING HIS BACK." },
@@ -1321,7 +1321,7 @@ const STORY = [
       { say: "THE WATER CANNON PUSHES YOU BACK A SQUARE. ON A BRIDGE THAT MEANS THE SEINE. GET OFF THE BRIDGE.", at: () => [16, 7], done: (e) => e === "endturn" },
     ],
     won: "19:00. THE HOTEL DE VILLE IS STILL OURS. SOMEONE ORDERED PIZZA.",
-    lost: "THE CRS TOOK THE HOTEL DE VILLE. YOUR SHOES ARE STILL WET.",
+    lost: "THE POLICE TOOK THE HOTEL DE VILLE. YOUR SHOES ARE STILL WET.",
   },
   {
     title: "COUVRE-FEU", tune: "aroundtheworld", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000],
@@ -1352,7 +1352,52 @@ const BEATS_ALL = [
   { on: "seine", say: "SOMEONE WENT IN THE SEINE. THE BATEAU MOUCHE PASSENGERS ARE CLAPPING." },
   { on: "power", test: (s) => s === 1, say: "THE PREFET JUST GASSED EVERYONE. MY EYES." },
 ];
-const EPILOGUE = "SUNDAY. MUM FOUND OUT. GROUNDED UNTIL 2027. ON THE NEWS THE MINISTER PROMISED A NEW CEILING FOR EVERY LYCEE IN FRANCE. WORTH IT.";
+// Inès's running commentary once the lesson is over: a line per event, never the same line twice in a game.
+const HOURLY = {
+  13: ["13:00. KARIM IS EATING A JAMBON-BEURRE ON A BIN. MORALE IS HIGH."],
+  14: ["14:00. SOMEONE IS SELLING CHURROS FROM A TROLLEY. CAPITALISM NEVER SLEEPS."],
+  15: ["15:00. MY PHONE IS ON 31%. I HAVE TO CHOOSE BETWEEN TIKTOK AND MAPS."],
+  16: ["16:00. A MAN IN A BERET IS EXPLAINING 1968 TO US. NOBODY ASKED."],
+  17: ["17:00. MUM TEXTED: THE LIBRARY SHUTS AT 18. SHE KNOWS."],
+  18: ["18:00. THE SUN IS GOING DOWN. EVERYTHING LOOKS LIKE A FILM NOW."],
+  19: ["19:00. SOMEONE HAS A SPEAKER. IT'S DAFT PUNK. EVEN A COP IS NODDING."],
+  20: ["20:00. MUM HAS CALLED FOUR TIMES. I'M AT THE LIBRARY. A VERY LOUD LIBRARY."],
+  21: ["21:00. MY TRAINERS ARE RUINED. THEY WERE FROM VINTED ANYWAY."],
+};
+const REACT = {
+  crsTurn: ["THE POLICE ARE MOVING. WATCH THEM.", "THEIR TURN. EVERYONE PRETEND TO BE A TOURIST.", "THE POLICE ARE HUDDLED ROUND A RADIO. SOMETHING IS COMING.",
+    "THEIR TURN. KARIM IS HIDING BEHIND A VELIB. IT'S NOT WORKING.", "THEIR TURN. SOMEONE IS FILMING THEM FILMING US.", "THE POLICE ARE COMING. MUM WOULD SAY THIS IS MY FAULT."],
+  hit: {
+    lyceen: ["A PAVING STONE. VERY 1968. MY GRANDAD WOULD CRY.", "KARIM THREW HIS SHOE. NOW HE WANTS IT BACK."],
+    bloc: ["THE BLACK BLOC DON'T TALK. THEY JUST DO THAT.", "NOBODY KNOWS WHO'S UNDER THE HOOD. I THINK IT'S MY MATHS TEACHER."],
+    torse: ["TONTON TOOK HIS SHIRT OFF AGAIN. THE POLICE LOOK SCARED.", "TONTON IS IMMUNE TO TEAR GAS. AND TO SHAME."],
+    panther: ["THE PANTHER DIDN'T EVEN RUN. SHE STROLLED."],
+    caddie: ["FIREWORKS FROM A SHOPPING TROLLEY. LIDL WILL WANT THAT BACK.", "A ROCKET WENT SIDEWAYS. A PIGEON WILL NEVER BE THE SAME."],
+    kangoo: ["THE KANGOO HONKED THE MARSEILLAISE. I'M NOT SURE THAT HELPED."],
+  },
+  hurt: {
+    crs: ["THEY HIT KARIM WITH A SHIELD. HE SAYS IT DIDN'T HURT. IT HURT."],
+    lbd: ["RUBBER BULLETS. THEY BOUNCE. EVERYONE IS SCREAMING.", "SOMEONE GOT HIT IN THE BAG. HIS LUNCH DIDN'T MAKE IT."],
+    lacrymo: ["TEAR GAS. MY EYES. MY MASCARA. MY EVERYTHING.", "I CAN'T SEE. SOMEONE HANDED ME A LEMON. WHY A LEMON."],
+    canon: ["THE WATER CANNON GOT US. MY PHONE IS GOING IN A BAG OF RICE."],
+    bravm: ["THE MOTORBIKE COPS. THEY DID A WHEELIE. SHOW-OFFS."],
+  },
+  koThem: ["ANOTHER COP ON THE KERB. SOMEONE OFFERED HIM A CREPE.", "HE'S DOWN. HE SAYS HE'S ONLY HERE FOR THE PENSION.", "COP DOWN. HE'S CALLING HIS MUM. SAME."],
+  koUs: ["THEY GOT ONE OF US. SHE GAVE ME HER PHONE FIRST.", "ANOTHER ONE IN THE VAN. THEY'LL BE OUT BY DINNER.", "WE LOST ONE. HE'S ALREADY LIVE ON TIKTOK FROM THE VAN."],
+  took: ["OURS. KARIM PUT A FLAG ON IT. THE FLAG IS A TOWEL.", "WE TOOK IT. SOMEONE IS ALREADY SELLING THE STOCK ON VINTED.", "TAKEN. NOBODY KNOWS WHAT WE DO WITH IT NOW."],
+  lost: ["THEY TOOK IT BACK. RUDE.", "THE POLICE HAVE IT NOW. THEY'RE TAKING SELFIES."],
+};
+function react(e, a) {
+  const S = G.story;
+  const pool = e === "turn" ? (a === 1 ? REACT.crsTurn : HOURLY[hour()])
+    : e === "attack" ? (a.side === 0 ? REACT.hit : REACT.hurt)[a.type]
+    : e === "ko" ? (a.side === 1 ? REACT.koThem : REACT.koUs)
+    : e === "captured" ? (a.side === 0 ? REACT.took : REACT.lost) : null;
+  const left = pool?.filter((l) => !S.used.has(l));
+  if (!left?.length) return null;
+  const l = pick(left); S.used.add(l); return l;
+}
+const EPILOGUE ="SUNDAY. MUM FOUND OUT. GROUNDED UNTIL 2027. ON THE NEWS THE MINISTER PROMISED A NEW CEILING FOR EVERY LYCEE IN FRANCE. WORTH IT.";
 let storyBest = 0, storyDone = 0, chapSel = 0, CHAP_RECTS = [];
 try { storyBest = Math.min(STORY.length - 1, Number(localStorage.getItem("pr-chapter")) || 0); storyDone = Number(localStorage.getItem("pr-done")) || 0; } catch {}
 function emit(e, a, b) {
@@ -1360,11 +1405,18 @@ function emit(e, a, b) {
   const S = G.story, ch = STORY[S.i], st = ch.steps[S.step];
   if (human() && st && st.done(e, a, b)) S.step++;
   S.used ||= new Set();
+  const chime = () => { beep(988, 0.03); setTimeout(() => beep(1318, 0.05), 60); };
   for (const bt of [...(ch.beats || []), ...BEATS_ALL]) {
     if (bt.on !== e || S.used.has(bt) || (bt.test && !bt.test(a, b))) continue;
-    S.used.add(bt); S.beat = { say: typeof bt.say === "function" ? bt.say(a, b) : bt.say, f: 300 }; beep(988, 0.03); setTimeout(() => beep(1318, 0.05), 60);
-    break;
+    S.used.add(bt); S.beat = { say: typeof bt.say === "function" ? bt.say(a, b) : bt.say, f: 300 }; chime();
+    return;
   }
+  // the CRS turn gets its own line; other commentary waits until she's done teaching,
+  // and an attack doesn't talk over the arrest it just caused
+  if (e === "turn" && a === 1) { S.crsSay = react(e, a) || S.crsSay; return; }
+  if (ch.passive || S.step < ch.steps.length - 1 || (e === "attack" && S.beat?.f > 0)) return;
+  const l = react(e, a);
+  if (l) { S.beat = { say: l, f: 260 }; chime(); }
 }
 const storyStatus = () => {
   const ch = STORY[G.story.i];
@@ -1522,7 +1574,7 @@ function drawCoach() {
   if (S.beat && S.beat.f > 0) S.beat.f--;
   const beat = S.beat && S.beat.f > 0 ? S.beat.say : null;
   const st = beat || !human() ? null : ch.steps[S.step];
-  const msg = tapWord(beat || (!human() ? "THE CRS ARE MOVING. WATCH THEM." : st ? st.say : `GOAL: ${ch.goal} - ${storyStatus()}`));
+  const msg = tapWord(beat || (!human() ? S.crsSay || "THE POLICE ARE MOVING. WATCH THEM." : st ? st.say : `GOAL: ${ch.goal} - ${storyStatus()}`));
   if (G.story.said !== msg) { G.story.said = msg; G.story.typed = 0; if (st) beep(988, 0.03); }
   G.story.typed = Math.min(msg.length, G.story.typed + 1.5);
   const tgt = coachTarget(st);
@@ -2217,7 +2269,7 @@ const PLAYLIST = [
   ["vieenrose", "LA VIE EN ROSE", "EDITH PIAF", "CHAPTER 3"],
   ["jetaime", "JE T'AIME... MOI NON PLUS", "GAINSBOURG", "CHAPTER 4"],
   ["aroundtheworld", "AROUND THE WORLD", "DAFT PUNK", "CHAPTER 5"],
-  ["marseillaise", "LA MARSEILLAISE", "ROUGET DE LISLE", "CRS TURNS"],
+  ["marseillaise", "LA MARSEILLAISE", "ROUGET DE LISLE", "POLICE TURNS"],
   ["gymnopedie", "GYMNOPEDIE NO.1", "SATIE", "DIARY CARDS"],
   ["onemoretime", "ONE MORE TIME", "DAFT PUNK", "CHAPTER DONE"],
   ["piaf", "NON, JE NE REGRETTE RIEN", "EDITH PIAF", "ARRESTED"],
