@@ -8,9 +8,9 @@
     "height": 64
   },
   "sheet": {
-    "width": 480,
+    "width": 672,
     "height": 832,
-    "columns": 5,
+    "columns": 7,
     "rows": 13
   },
   "frames": {
@@ -48,6 +48,22 @@
     },
     "lyceen/attack3": {
       "x": 384,
+      "y": 0,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lyceen/hurt": {
+      "x": 480,
+      "y": 0,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lyceen/down": {
+      "x": 576,
       "y": 0,
       "w": 96,
       "h": 64,
@@ -94,6 +110,22 @@
       "width": 96,
       "height": 64
     },
+    "bloc/hurt": {
+      "x": 480,
+      "y": 64,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bloc/down": {
+      "x": 576,
+      "y": 64,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
     "trott/idle": {
       "x": 0,
       "y": 128,
@@ -128,6 +160,22 @@
     },
     "trott/attack3": {
       "x": 384,
+      "y": 128,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "trott/hurt": {
+      "x": 480,
+      "y": 128,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "trott/down": {
+      "x": 576,
       "y": 128,
       "w": 96,
       "h": 64,
@@ -174,6 +222,22 @@
       "width": 96,
       "height": 64
     },
+    "torse/hurt": {
+      "x": 480,
+      "y": 192,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "torse/down": {
+      "x": 576,
+      "y": 192,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
     "panther/idle": {
       "x": 0,
       "y": 256,
@@ -208,6 +272,22 @@
     },
     "panther/attack3": {
       "x": 384,
+      "y": 256,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "panther/hurt": {
+      "x": 480,
+      "y": 256,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "panther/down": {
+      "x": 576,
       "y": 256,
       "w": 96,
       "h": 64,
@@ -254,6 +334,22 @@
       "width": 96,
       "height": 64
     },
+    "caddie/hurt": {
+      "x": 480,
+      "y": 320,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "caddie/down": {
+      "x": 576,
+      "y": 320,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
     "kangoo/idle": {
       "x": 0,
       "y": 384,
@@ -288,6 +384,22 @@
     },
     "kangoo/attack3": {
       "x": 384,
+      "y": 384,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "kangoo/hurt": {
+      "x": 480,
+      "y": 384,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "kangoo/down": {
+      "x": 576,
       "y": 384,
       "w": 96,
       "h": 64,
@@ -334,6 +446,22 @@
       "width": 96,
       "height": 64
     },
+    "crs/hurt": {
+      "x": 480,
+      "y": 448,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "crs/down": {
+      "x": 576,
+      "y": 448,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
     "gm/idle": {
       "x": 0,
       "y": 512,
@@ -368,6 +496,22 @@
     },
     "gm/attack3": {
       "x": 384,
+      "y": 512,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "gm/hurt": {
+      "x": 480,
+      "y": 512,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "gm/down": {
+      "x": 576,
       "y": 512,
       "w": 96,
       "h": 64,
@@ -414,6 +558,22 @@
       "width": 96,
       "height": 64
     },
+    "bravm/hurt": {
+      "x": 480,
+      "y": 576,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "bravm/down": {
+      "x": 576,
+      "y": 576,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
     "lbd/idle": {
       "x": 0,
       "y": 640,
@@ -448,6 +608,22 @@
     },
     "lbd/attack3": {
       "x": 384,
+      "y": 640,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lbd/hurt": {
+      "x": 480,
+      "y": 640,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lbd/down": {
+      "x": 576,
       "y": 640,
       "w": 96,
       "h": 64,
@@ -494,6 +670,22 @@
       "width": 96,
       "height": 64
     },
+    "lacrymo/hurt": {
+      "x": 480,
+      "y": 704,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "lacrymo/down": {
+      "x": 576,
+      "y": 704,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
     "canon/idle": {
       "x": 0,
       "y": 768,
@@ -533,6 +725,22 @@
       "h": 64,
       "width": 96,
       "height": 64
+    },
+    "canon/hurt": {
+      "x": 480,
+      "y": 768,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
+    },
+    "canon/down": {
+      "x": 576,
+      "y": 768,
+      "w": 96,
+      "h": 64,
+      "width": 96,
+      "height": 64
     }
   },
   "frameOrder": [
@@ -540,7 +748,9 @@
     "attack0",
     "attack1",
     "attack2",
-    "attack3"
+    "attack3",
+    "hurt",
+    "down"
   ],
   "animations": {
     "lyceen/attack": {
@@ -739,5 +949,5 @@
       "loop": false
     }
   },
-  "notes": "Optional transparent side-on panels. Face right; mirror defender. Three-member squads; water cannon panel includes three slapstick targets. Ground baseline y=60. Vehicle panels deliberately retain the map sprite shapes at 2x."
+  "notes": "Optional transparent side-on panels. Face right; mirror defender. Three-member squads; water cannon panel includes three slapstick targets. Ground baseline y=60. Vehicle attack panels deliberately retain the map sprite shapes at 2x. Hurt/down squad members stay inside separate 32px slices, baseline y=60; vehicles react as one panel."
 }

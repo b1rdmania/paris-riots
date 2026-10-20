@@ -152,5 +152,5 @@ async function buildUnits(first){const ids=first?['lyceen','torse','panther','cr
  await save('units',sheet,m);let review=new Pixel(128,ids.length*16);ids.forEach((id,r)=>POSES.forEach((_,f)=>review.stamp(unit(id,f),f*16,r*16)));await sharp(review.rgba(),{raw:{width:review.w,height:review.h,channels:4}}).resize(review.w*6,review.h*6,{kernel:'nearest'}).png().toFile(path.join(ROOT,'units-review.png'));
  return sheet;
 }
-async function main(){const first=process.argv[2]==='first-five';await buildUnits(first);if(!first){await require('./world-art.cjs')({Pixel,save,metadata,ROOT,sharp});await require('./cutins.cjs')({Pixel,save,metadata,ROOT,sharp,unit,IDS});}}
+async function main(){if(process.argv[2]==='cutins'){await require('./cutins.cjs')({Pixel,save,metadata,ROOT,sharp,unit,IDS});return}const first=process.argv[2]==='first-five';await buildUnits(first);if(!first){await require('./world-art.cjs')({Pixel,save,metadata,ROOT,sharp});await require('./cutins.cjs')({Pixel,save,metadata,ROOT,sharp,unit,IDS});}}
 main().catch(e=>{console.error(e);process.exit(1)});

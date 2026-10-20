@@ -53,8 +53,9 @@ module.exports=async function({Pixel,save,metadata,ROOT,sharp,unit,IDS}){
   }
   return p;
  }
- const bs=new Pixel(480,832),bm=metadata('battle-cutins.png',480,832,5,13,96,64);bm.frameOrder=['idle','attack0','attack1','attack2','attack3'];bm.animations={};bm.notes='Optional transparent side-on panels. Face right; mirror defender. Three-member squads; water cannon panel includes three slapstick targets. Ground baseline y=60. Vehicle panels deliberately retain the map sprite shapes at 2x.';
- IDS.forEach((id,r)=>{for(let f=0;f<5;f++){bs.stamp(panel(id,f),f*96,r*64);set(bm,id+'/'+bm.frameOrder[f],f*96,r*64,96,64)}bm.animations[id+'/attack']={frames:[0,1,2,3].map(f=>id+'/attack'+f),durationsMs:[150,120,120,240],loop:false}});await save('battle-cutins',bs,bm);
+ const reaction=require('./reactions.cjs')({Pixel,unit});
+ const bs=new Pixel(672,832),bm=metadata('battle-cutins.png',672,832,7,13,96,64);bm.frameOrder=['idle','attack0','attack1','attack2','attack3','hurt','down'];bm.animations={};bm.notes='Optional transparent side-on panels. Face right; mirror defender. Three-member squads; water cannon panel includes three slapstick targets. Ground baseline y=60. Vehicle attack panels deliberately retain the map sprite shapes at 2x. Hurt/down squad members stay inside separate 32px slices, baseline y=60; vehicles react as one panel.';
+ IDS.forEach((id,r)=>{for(let f=0;f<7;f++){bs.stamp(f<5?panel(id,f):reaction(id,bm.frameOrder[f]),f*96,r*64);set(bm,id+'/'+bm.frameOrder[f],f*96,r*64,96,64)}bm.animations[id+'/attack']={frames:[0,1,2,3].map(f=>id+'/attack'+f),durationsMs:[150,120,120,240],loop:false}});await save('battle-cutins',bs,bm);
  function portrait(id){const p=new Pixel(48,48);p.rect(1,1,46,46,22).rect(3,3,42,42,18);p.rect(3,3,42,2,24);
   if(id==='la_deleguee'){
    // Fictional teenage class representative, cropped at the shoulders.
@@ -72,5 +73,6 @@ module.exports=async function({Pixel,save,metadata,ROOT,sharp,unit,IDS}){
  }
  const pp=new Pixel(96,48),pm=metadata('commanders.png',96,48,2,1,48,48);['la_deleguee','le_prefet'].forEach((id,i)=>{pp.stamp(portrait(id),i*48,0);set(pm,id,i*48,0,48,48)});pm.notes='Fictional faces. La deleguee has megaphone; placard text delivered as metadata for readable UI typography at 48px.';pm.placardText='GÉNÉRATION 6-7 REFAIT MAI 68';await save('commanders',pp,pm);
  await sharp(pp.rgba(),{raw:{width:96,height:48,channels:4}}).resize(576,288,{kernel:'nearest'}).png().toFile(require('node:path').join(ROOT,'commanders-review.png'));
+ const reactions=new Pixel(192,832);IDS.forEach((id,r)=>{reactions.stamp(reaction(id,'hurt'),0,r*64).stamp(reaction(id,'down'),96,r*64)});await sharp(reactions.rgba(),{raw:{width:192,height:832,channels:4}}).resize(384,1664,{kernel:'nearest'}).png().toFile(require('node:path').join(ROOT,'reactions-review.png'));
  const preview=new Pixel(480,192);['torse','panther','canon'].forEach((id,r)=>{for(let f=0;f<5;f++)preview.stamp(panel(id,f),f*96,r*64)});await sharp(preview.rgba(),{raw:{width:480,height:192,channels:4}}).resize(960,384,{kernel:'nearest'}).png().toFile(require('node:path').join(ROOT,'battle-cutins-review.png'));
 };
