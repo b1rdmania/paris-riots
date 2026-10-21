@@ -1216,7 +1216,7 @@ async function aiUnit(u) {
 }
 function aiBuild() {
   const s = G.side;
-  const bases = G.props.filter((p) => p.owner === s && (p.kind === "base" || p.kind === "hq") && !unitAt(p.x, p.y));
+  const bases = G.props.filter((p) => p.owner === s && (p.kind === "base" || p.kind === "hq") && inArena(p.x, p.y) && !unitAt(p.x, p.y));
   bases.sort(() => Math.random() - 0.5);
   const [inf, mech, recon, arty, tank] = s === 0 ? ["lyceen", "bloc", "torse", "caddie", "kangoo"] : ["crs", "lbd", "bravm", "lacrymo", "canon"];
   for (const p of bases) {
@@ -1297,7 +1297,7 @@ const STORY = [
     turns: 4,
     steps: [
       { say: "FIREWORKS FIRST. THE CADDIE FIRES 2-3 SQUARES AWAY, BUT NOT AFTER MOVING. CLICK IT.", at: () => posOf(unitOf("caddie")), done: (e, u) => e === "select" && u.type === "caddie" },
-      { say: "DON'T MOVE IT. CLICK ITS OWN SQUARE, THEN FIRE AT A COP.", at: () => posOf(unitOf("caddie")), done: (e, a) => e === "attack" && a.type === "caddie" },
+      { say: "DON'T MOVE IT. CLICK IT AGAIN, THEN FIRE AT A COP.", at: () => posOf(unitOf("caddie")), done: (e, a) => e === "attack" && a.type === "caddie" },
       { say: "NOW THE PINK PANTHER. SHE TAKES ANY BUILDING IN ONE GO. WALK HER INTO THE LOUVRE.", at: () => [13, 5], done: () => false },
     ],
     won: "SEVEN MINUTES. THE CROWN JEWELS ARE GONE. AGAIN. THE LOUVRE IS SHUT UNTIL FURTHER NOTICE.",
@@ -1330,8 +1330,8 @@ const STORY = [
     lost: "THE POLICE TOOK THE HOTEL DE VILLE. YOUR SHOES ARE STILL WET.",
   },
   {
-    title: "COUVRE-FEU", tune: "aroundtheworld", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000], power: true,
-    goals: () => G.props.filter((p) => p.kind === "mark").map((p) => [p.x, p.y, p.owner === 0 ? "HELD" : "TAKE"]),
+    title: "COUVRE-FEU", tune: "aroundtheworld", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000], power: true, area: [8, 0, 23, 12],
+    goals: () => G.props.filter((p) => p.kind === "mark" && inArena(p.x, p.y)).map((p) => [p.x, p.y, p.owner === 0 ? "HELD" : "TAKE"]),
     diary: "THE PREFET SAYS CURFEW AT 23:00. THREE HOURS. IF WE HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES, THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
     goal: "HOLD 4 LANDMARKS AT THE 23:00 CURFEW",
     beats: [
