@@ -593,7 +593,8 @@ function pathTo(R, sx, sy, x, y) {
 function targetsFrom(u, x, y, moved) {
   const t = U[u.type];
   if (!t.r || (t.cls === "arty" && moved)) return [];
-  return G.units.filter((o) => o.side !== u.side && dist(x, y, o.x, o.y) >= t.r[0] && dist(x, y, o.x, o.y) <= t.r[1]);
+  // tear gas can't target the topless uncle: it does nothing to him
+  return G.units.filter((o) => o.side !== u.side && !(t.splash && U[o.type].gasproof) && dist(x, y, o.x, o.y) >= t.r[0] && dist(x, y, o.x, o.y) <= t.r[1]);
 }
 function calcDmg(a, d, dx, dy, luck, ahp = a.hp, dhp = d.hp) {
   const base = DMG[U[a.type].cls][U[d.type].dfn || U[d.type].cls];
