@@ -543,7 +543,7 @@ function newGame(humans, ch) {
     power: [0, 0], noCap: -1,
   };
   const put = (t, x, y) => { const u = { id: G.nextId++, type: t, side: U[t].side, x, y, hp: 100, done: false, capturing: false }; G.units.push(u); return u; };
-  G.story = { i: STORY.indexOf(ch), step: 0, typed: 0, said: "" };
+  G.story = { i: STORY.indexOf(ch), step: 0, typed: 0, said: "", talk: 0 };
   G.round = ch.round; G.funds = ch.funds || [0, 0]; G.noBuy = !ch.buy;
   const own = (name, side) => { G.props.find((p) => p.name === name).owner = side; };
   ch.setup(put, own);
@@ -1247,14 +1247,21 @@ const STORY = [
     goals: () => [[20, 3, "LOOT"]],
     diary: "EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
     goal: "LOOT THE MONOPRIX",
+    talk: [
+      { say: "HI. I'M INES, 16. TODAY THE LYCEES TAKE OVER PARIS." },
+      { say: "IT GOES IN TURNS, LIKE CHESS. WE MOVE, THEN THE POLICE MOVE." },
+      { say: "THIS IS YOU. A LYCEEN. THE RED ONES ARE OURS.", at: () => [21, 1] },
+      { say: "THE BLUE ONES ARE POLICE. THIS ONE IS JUST WATCHING. FOR NOW.", at: () => [16, 2] },
+      { say: "AND THAT'S THE MONOPRIX. LOOT IT AND YOU WIN.", at: () => [20, 3] },
+    ],
     beats: [{ on: "turn", test: (s) => s === 1, say: "THE POLICE ARE JUST WATCHING. FOR NOW." }],
     setup(put) { put("lyceen", 21, 1); put("lyceen", 23, 3); put("crs", 16, 2); },
     win: () => propNamed("MONOPRIX").owner === 0,
     steps: [
-      { say: "THAT'S YOU. CLICK YOUR LYCEEN TO PICK HER UP.", at: () => [21, 1], done: (e) => e === "select" },
-      { say: "BLUE SQUARES ARE WHERE SHE CAN WALK. CLICK THE MONOPRIX.", at: () => [20, 3], done: (e, u) => e === "moved" && u.x === 20 && u.y === 3 },
-      { say: "NOW CHOOSE CAPTURE.", menu: "CAPTURE", done: (e) => e === "capture" },
-      { say: "LOOTING TAKES TWO GOES. CLICK END TURN.", ui: "end_turn", done: (e) => e === "endturn" },
+      { say: "CLICK YOUR LYCEEN TO PICK HER UP.", at: () => [21, 1], done: (e) => e === "select" },
+      { say: "THE BLUE SQUARES ARE WHERE SHE CAN WALK. CLICK THE MONOPRIX.", at: () => [20, 3], done: (e, u) => e === "moved" && u.x === 20 && u.y === 3 },
+      { say: "NOW PICK CAPTURE FROM THE LIST.", menu: "CAPTURE", done: (e) => e === "capture" },
+      { say: "LOOTING TAKES TWO TURNS. CLICK END TURN. THEN THE POLICE GO.", ui: "end_turn", done: (e) => e === "endturn" },
       { say: "THE POLICE JUST WATCHED. CLICK HER TWICE, THEN CAPTURE AGAIN.", at: () => [20, 3], done: () => false },
     ],
     won: "MONOPRIX LOOTED. THE AIR MAX ARE ON VINTED BY 12:47.",
@@ -1265,6 +1272,13 @@ const STORY = [
     goals: () => G.units.filter((u) => u.side === 1).map((u) => [u.x, u.y, "KO"]),
     diary: "TWO RIOT COPS ARE BLOCKING THE OPERA LIKE THEY OWN IT. SOMEBODY BROUGHT A BLACK BLOC.",
     goal: "KNOCK OUT BOTH COPS BEFORE 18:00",
+    talk: [
+      { say: "NEW TODAY: FIGHTING. AND WE'VE GOT BACKUP." },
+      { meet: "bloc" },
+      { say: "TWO RIOT COPS. KNOCK THEM BOTH OUT.", at: () => [12, 1] },
+      { say: "WHEN YOU HIT SOMEONE, THEY HIT BACK. SO GANG UP ON ONE COP AT A TIME." },
+      { say: "TIP: POINT AT A COP. THE RED SQUARES ARE WHERE HE CAN HIT YOU." },
+    ],
     beats: [
       { on: "ko", test: (u) => u.side === 1, say: "ONE DOWN. HE'S SITTING ON THE KERB RUBBING HIS BACK." },
       { on: "ko", test: (u) => u.side === 0, say: "THEY GOT KARIM. HIS MUM IS GOING TO KILL HIM." },
@@ -1287,6 +1301,13 @@ const STORY = [
     goals: () => [[13, 5, "TAKE"]],
     diary: "A GIRL IN A PINK CATSUIT JUST ASKED WHERE THE CROWN JEWELS ARE. NOBODY ASKED WHY.",
     goal: "TAKE THE LOUVRE BEFORE 19:00",
+    talk: [
+      { say: "THAT'S THE LOUVRE. WE'RE TAKING IT.", at: () => [13, 5] },
+      { say: "TWO COPS ARE GUARDING THE DOOR. SO I CALLED IN SOME FRIENDS." },
+      { meet: "caddie" },
+      { say: "AND ONE VERY SPECIAL GUEST..." },
+      { meet: "panther" },
+    ],
     beats: [
       { on: "attack", test: (a) => a.type === "caddie", say: "THAT WAS LOUDER THAN I EXPECTED. A TOURIST IS FILMING IT." },
       { on: "captured", test: (u) => u.side === 1, say: "A COP IS STANDING IN THE LOUVRE. HE LOOKS LOST." },
@@ -1308,6 +1329,13 @@ const STORY = [
     goals: () => [[17, 6, "HOLD"]],
     diary: "WE'VE GOT THE HOTEL DE VILLE. SOMEONE SET FIRE TO THE VELIBS. THEN THE WATER CANNON TURNED UP.",
     goal: "HOLD THE HOTEL DE VILLE UNTIL 19:00",
+    talk: [
+      { say: "WE'VE GOT THE HOTEL DE VILLE. KEEP IT UNTIL 19:00.", at: () => [17, 6] },
+      { meet: "torse" },
+      { say: "BAD NEWS. THE POLICE BROUGHT SOMETHING BIG." },
+      { meet: "canon" },
+      { say: "NEW: POWER. EVERY FIGHT FILLS THE BAR AT THE TOP. FULL BAR = A SUPER MOVE." },
+    ],
     beats: [
       { on: "seine", say: "SOMEONE JUST WENT IN THE SEINE. A BATEAU MOUCHE IS TURNING ROUND." },
       { on: "power", test: (s) => s === 0, say: "IT WENT VIRAL. HALF OF PARIS IS ON ITS WAY." },
@@ -1334,6 +1362,12 @@ const STORY = [
     goals: () => G.props.filter((p) => p.kind === "mark" && inArena(p.x, p.y)).map((p) => [p.x, p.y, p.owner === 0 ? "HELD" : "TAKE"]),
     diary: "CURFEW AT 23:00. HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES AND THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
     goal: "HOLD 4 LANDMARKS AT THE 23:00 CURFEW",
+    talk: [
+      { say: "THE BIG ONE. CURFEW IS AT 23:00." },
+      { say: "HOLD 4 LANDMARKS WHEN THE CLOCK STRIKES AND WE WIN. GREEN MEANS OURS." },
+      { say: "NEW: MONEY. EVERY BUILDING WE HOLD PAYS US AT THE START OF EACH TURN." },
+      { meet: "kangoo" },
+    ],
     beats: [
       { on: "turn", test: (s) => s === 0 && G.round === 10, say: () => `22:00. ONE HOUR LEFT. WE HOLD ${marksHeld(0)} OF 4.` },
       { on: "captured", test: (u, p) => u.side === 0 && p.name === "NOTRE-DAME", say: "NOTRE-DAME IS OURS. QUASIMODO WOULD BE PROUD." },
@@ -1568,6 +1602,55 @@ function drawCard() {
     });
   }
 }
+// The briefing at the start of a chapter, one line per click.
+const talkLine = () => G?.story && STORY[G.story.i].talk?.[G.story.talk];
+const talking = () => !!talkLine() && human() && !G.busy && !G.banner && !G.battle;
+// NEW UNIT! cards, the way Advance Wars introduces a unit: a band slides in, the unit poses, two lines on what it does.
+const MEET = {
+  bloc: ["HITS HARDER THAN ANYONE.", "SLOW: MOVES 2 SQUARES. CAN CAPTURE."],
+  caddie: ["FIREWORKS FROM 2-3 SQUARES AWAY.", "CAN'T MOVE AND FIRE IN THE SAME TURN."],
+  panther: ["SUPERPOWER: TAKES ANY BUILDING IN ONE GO.", "ZOOMS 6 SQUARES ON A SCOOTER. CAN'T FIGHT."],
+  torse: ["TEAR GAS DOES NOTHING TO HIM.", "AS TOUGH AS A TANK. NOBODY KNOWS WHY."],
+  canon: ["HOSES YOU BACK ONE SQUARE.", "ON A BRIDGE, THAT MEANS INTO THE SEINE."],
+  kangoo: ["A VAN FULL OF UNCLES.", "FAST AND TOUGH. NOBODY INVITED THEM."],
+};
+function meetSting(t) {
+  if (t === "panther") [[311, 0], [330, 170], [370, 520], [392, 690]].forEach(([f, d]) => setTimeout(() => beep(f, 0.16, "triangle", 0.07), d));
+  else if (U[t].side === 1) [[392, 0], [311, 160], [262, 320]].forEach(([f, d]) => setTimeout(() => beep(f, 0.14, "sawtooth", 0.04), d));
+  else [[523, 0], [659, 90], [784, 180], [1047, 270]].forEach(([f, d]) => setTimeout(() => beep(f, 0.1), d));
+}
+function drawMeet(t) {
+  if (!G.meet) { G.meet = { f: 0 }; meetSting(t); }
+  const f = ++G.meet.f, u = U[t], cop = u.side === 1, star = t === "panther";
+  const e = 1 - Math.pow(1 - Math.min(1, f / 14), 3), band = star ? 8 : cop ? 23 : 30;
+  ctx.globalAlpha = 0.65 * e; fill(-PAD, 0, W + 2 * PAD, H, 0); ctx.globalAlpha = 1;
+  const by = 62, bh = 116, bx = Math.round(-W * (1 - e));
+  fill(bx, by, W, bh, band); fill(bx, by - 3, W, 3, 26); fill(bx, by + bh, W, 3, 26);
+  // speed lines across the band
+  for (let i = 0; i < 6; i++) { const ly = by + 10 + i * 17, lx = ((f * 9 + i * 97) % (W + 80)) - 40; ctx.globalAlpha = 0.25; fill(lx, ly, 40 + i * 6, 1, 7); ctx.globalAlpha = 1; }
+  // the unit: one squad member at 3x, or a whole vehicle at 2x, cycling through its attack
+  const m = IMG.cutMeta, k = Math.floor(f / 8) % 6, pose = k < 2 ? "idle" : `attack${Math.min(3, k - 2)}`, r = m?.frames[`${t}/${pose}`] || m?.frames[`${t}/idle`];
+  const car = u.cls === "tank" || u.cls === "arty";
+  if (r && IMG["battle-cutins"]) {
+    const sw = car ? 96 : 32, sc = car ? 1.5 : 3, dx = bx + 18 + (car ? 0 : 24), dy = by + bh + 4 - 64 * sc;
+    if (star) { ctx.globalAlpha = 0.35; for (let i = 0; i < 5; i++) fill(dx + 6 - i * 6, by, sw * sc - 12 + i * 12, bh, 7); ctx.globalAlpha = 1; }
+    ctx.drawImage(IMG["battle-cutins"], r.x, r.y, sw, 64, dx, dy, sw * sc, 64 * sc);
+  }
+  if (star) for (let i = 0; i < 7; i++) {
+    const h = (i * 2654435761) >>> 0, sx = bx + 10 + (h % 150), sy = by - 20 + ((h >> 8) % 130), on = (f + i * 5) % 20 < 10;
+    if (on) { fill(sx, sy - 3, 1, 7, 7); fill(sx - 3, sy, 7, 1, 7); fill(sx - 1, sy - 1, 3, 3, 26); }
+  }
+  // the words
+  const tx = bx + 172, head = cop ? "NEW POLICE UNIT!" : star ? "SUPERSTAR!" : "NEW UNIT!";
+  if (f > 10) {
+    if ((f >> 3) % 4) text8(head, tx, by + 12, 26);
+    const names = wrap(u.name, Math.floor((W - tx - 4) / 16));
+    names.forEach((n, j) => { ctx.save(); ctx.translate(tx, by + 28 + j * 18); ctx.scale(2, 2); text8(n, 1, 1, 0); text8(n, 0, 0, 7); ctx.restore(); });
+    const lines = MEET[t].flatMap((l) => wrap(l, 33)), ly = by + 34 + names.length * 18;
+    lines.forEach((l, i) => text(l, tx, ly + i * 11, i < wrap(MEET[t][0], 33).length && star ? 26 : 7, 0));
+  }
+  if (f > 24 && (frame >> 5) % 2) textC(TOUCH ? "TAP TO CARRY ON" : "CLICK OR SPACE TO CARRY ON", W / 2, by + bh + 14, 7, 0);
+}
 // The coach: Inès's portrait, the current step typed out, and an arrow at the thing to click.
 function coachTarget(st) {
   if (!st) return null;
@@ -1577,11 +1660,12 @@ function coachTarget(st) {
   return null;
 }
 function drawCoach() {
-  const S = G.story, ch = STORY[S.i];
+  const S = G.story, ch = STORY[S.i], tl = talking() && talkLine();
+  if (tl?.meet) return drawMeet(tl.meet);
   if (S.beat && S.beat.f > 0) S.beat.f--;
-  const beat = S.beat && S.beat.f > 0 ? S.beat.say : null;
-  const st = beat || !human() ? null : ch.steps[S.step];
-  const msg = tapWord(beat || (!human() ? S.crsSay || "THE POLICE ARE MOVING. WATCH THEM." : st ? st.say : `GOAL: ${ch.goal} - ${storyStatus()}`));
+  const beat = !tl && S.beat && S.beat.f > 0 ? S.beat.say : null;
+  const st = tl || (beat || !human() ? null : ch.steps[S.step]);
+  const msg = tapWord(tl ? tl.say : beat || (!human() ? S.crsSay || "THE POLICE ARE MOVING. WATCH THEM." : st ? st.say : `GOAL: ${ch.goal} - ${storyStatus()}`));
   if (G.story.said !== msg) { G.story.said = msg; G.story.typed = 0; if (st) beep(988, 0.03); }
   G.story.typed = Math.min(msg.length, G.story.typed + 1.5);
   const tgt = coachTarget(st);
@@ -1592,6 +1676,8 @@ function drawCoach() {
   if (pr && IMG.commanders) { fill(4, by - 14, 46, 44, 0); ctx.drawImage(IMG.commanders, pr.x + 1, pr.y + 1, 46, 46, 4, by - 15, 46, 46); }
   text("INES", bx + 8, by + 6, 30);
   wrap(msg.slice(0, Math.floor(G.story.typed)), 46).slice(0, 2).forEach((l, i) => text(l, bx + 36, by + 6 + i * 10, 7));
+  // a briefing line waits for a click: the classic bouncing arrow in the corner
+  if (tl && G.story.typed >= msg.length) { const b = (frame >> 4) % 2; for (let i = 0; i < 4; i++) fill(bx + w - 14 + i, by + 19 + b + i, 7 - 2 * i, 1, 26); }
   if (tgt) {
     // bouncing arrow
     const b = Math.round(Math.sin(frame / 6) * 3);
@@ -1613,6 +1699,12 @@ function act(a) {
   if (G.over) { if (a === "ok") { screen = "title"; G = null; SFX.ok(); } return; }
   if (G.battle) { if (a === "ok" || a === "back") G.battle.skip = true; return; }
   if (G.banner) { if (a === "ok") G.banner.t = Math.min(G.banner.t, 8); return; }
+  if (talking()) {
+    if (G.meet && G.meet.f < 24) return;
+    if (a === "ok") { G.story.talk++; G.meet = null; SFX.ok(); }
+    if (a === "back" || a === "menu") { G.story.talk = 1e9; G.meet = null; SFX.back(); }
+    return;
+  }
   if (G.busy || !human()) return;
   const c = G.cur;
   const mv = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[a];
@@ -1702,12 +1794,10 @@ function mainMenu() {
   G.menu = {
     title: `MENU - SAT ${hour()}:00`, sel: 0, wide: true,
     items: [
-      ...(G.power[G.side] >= POWER_FULL ? [{ label: `POWER: ${POWER[G.side].name}`, fn: () => usePower(G.side) }] : []),
-      { label: `BATTLE SCENES: ${BATTLE_MODES[battleMode]}`, blurb: "THE ZOOMED-IN FIGHTS. TURN OFF TO PLAY FASTER.", fn: () => { const i = G.menu.sel; battleMode = 1 - battleMode; try { localStorage.setItem("pr-battles", battleMode ? "off" : "on"); } catch {} mainMenu(); G.menu.sel = i; } },
-      { label: "MUSIC", get blurb() { return TOUCH ? "EVERY TRACK IN THE GAME." : "EVERY TRACK IN THE GAME. M TURNS IT ON OR OFF."; }, fn: () => { G.menu = null; openPlaylist("game"); } },
-      { label: "HOW TO PLAY", fn: () => { G.menu = null; helpBack = "game"; screen = "help"; } },
-      { label: "QUIT TO TITLE", fn: () => { G = null; screen = "title"; } },
       { label: "BACK TO THE GAME", fn: () => { G.menu = null; } },
+      { label: `BATTLE SCENES: ${BATTLE_MODES[battleMode]}`, blurb: "THE ZOOMED-IN FIGHTS. TURN OFF TO PLAY FASTER.", fn: () => { const i = G.menu.sel; battleMode = 1 - battleMode; try { localStorage.setItem("pr-battles", battleMode ? "off" : "on"); } catch {} mainMenu(); G.menu.sel = i; } },
+      { label: `MUSIC: ${MUS.on ? "ON" : "OFF"}`, blurb: "M TURNS IT ON OR OFF TOO.", fn: () => { const i = G.menu.sel; toggleMusic(); mainMenu(); G.menu.sel = i; } },
+      { label: "QUIT TO TITLE", fn: () => { G = null; screen = "title"; } },
     ],
   };
 }
@@ -1718,8 +1808,8 @@ function titleInput(a) {
   if (a === "ok") { SFX.ok(); TITLE_ITEMS[titleSel].fn(); }
 }
 const TITLE_ITEMS = [
-  { label: "PLAY", fn: () => fadeTo(() => (storyDone ? openChapters() : openCard("intro", 0))) },
-  { label: "HOW TO PLAY", fn: () => { screen = "help"; } },
+  { label: "PLAY", fn: () => fadeTo(() => openCard("intro", storyBest)) },
+  { label: "CHAPTERS", fn: () => fadeTo(openChapters) },
   { label: "MUSIC", fn: () => openPlaylist("title") },
 ];
 
@@ -1786,7 +1876,7 @@ cv.addEventListener("pointerdown", (e) => {
   if (screen === "card") { const r = CARD_RECTS.find((q) => px >= q[0] && px < q[0] + q[2] && py >= q[1] && py < q[1] + q[3]); return act(r ? r[4] : "ok"); }
   if (screen === "help") return act("ok");
   if (!G) return;
-  if (G.ending || G.over || G.banner || G.battle) return act("ok");
+  if (G.ending || G.over || G.banner || G.battle || talking()) return act("ok");
   const pad = e.pointerType === "mouse" ? 0 : 3;
   for (const b of G.buttons) if (px >= b.x - pad && px < b.x + b.w + pad && py >= b.y - pad && py < b.y + b.h + pad) return b.fn();
   if (G.menu) {
