@@ -55,17 +55,17 @@ const cv = document.getElementById("c"), ctx = cv.getContext("2d");
 cv.width = W; cv.height = H; ctx.imageSmoothingEnabled = false;
 // Phones: touch wording, bigger rows, and a canvas widened to fill the screen.
 // PAD is extra scenery on each side of the 384-wide game; all game drawing happens at x 0..W.
-let TOUCH = matchMedia("(pointer: coarse)").matches, PAD = 0;
+let TOUCH = matchMedia("(pointer: coarse)").matches, PAD = 0, R = 1;
 const tapWord = (s) => (TOUCH ? s.replace(/\bCLICK\b/g, "TAP") : s);
 function fit() {
   // fit inside the body's padded box, so the canvas stays clear of the notch
   const cs = getComputedStyle(document.body), b = document.body;
   const aw = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  const pad = 0;
-  if (pad !== PAD || cv.width !== W + 2 * pad) { PAD = pad; cv.width = W + 2 * PAD; cv.height = H; ctx.imageSmoothingEnabled = false; }
-  const CW = W + 2 * PAD, s = Math.min(aw / CW, ah / H);
-  const k = s >= 2 && !TOUCH ? Math.floor(s) : s;
-  cv.style.width = CW * k + "px"; cv.style.height = H * k + "px";
+  const CW = W, s = Math.min(aw / CW, ah / H), dpr = devicePixelRatio || 1;
+  // R whole device pixels per game pixel: the canvas is drawn at screen resolution, so every pixel is the same size
+  const k = s >= 2 && !TOUCH ? Math.floor(s) : s, r = Math.max(1, Math.floor(k * dpr));
+  if (r !== R || cv.width !== CW * r) { R = r; cv.width = CW * R; cv.height = H * R; ctx.imageSmoothingEnabled = false; }
+  cv.style.width = CW * R / dpr + "px"; cv.style.height = H * R / dpr + "px";
 }
 // a painting scaled to cover the whole canvas, side scenery included
 function cover(img, panX = 0.5, panY = 0.5) {
@@ -1245,7 +1245,7 @@ const STORY = [
   {
     title: "RENDEZ-VOUS A REPUBLIQUE", tune: "cancan", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true, area: [15, 0, 23, 6],
     goals: () => [[20, 3, "LOOT"]],
-    diary: "11:58. THE CEILING IN B12 FELL IN AGAIN. ON MADAME DUVAL THIS TIME. SHE'S FINE. THE CEILING ISN'T. EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
+    diary: "EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
     goal: "LOOT THE MONOPRIX",
     beats: [{ on: "turn", test: (s) => s === 1, say: "THE POLICE ARE JUST WATCHING. FOR NOW." }],
     setup(put) { put("lyceen", 21, 1); put("lyceen", 23, 3); put("crs", 16, 2); },
@@ -1263,7 +1263,7 @@ const STORY = [
   {
     title: "LE MUR DE BOUCLIERS", tune: "voyage", time: "SAMEDI 14:00", art: "news/capucines", round: 2, area: [7, 0, 17, 5],
     goals: () => G.units.filter((u) => u.side === 1).map((u) => [u.x, u.y, "KO"]),
-    diary: "BOULEVARD DES CAPUCINES. SOMEBODY BROUGHT A PLACARD. SOMEBODY ELSE BROUGHT A BLACK BLOC. TWO RIOT COPS ARE STANDING BETWEEN US AND THE OPERA LIKE THEY OWN IT.",
+    diary: "TWO RIOT COPS ARE BLOCKING THE OPERA LIKE THEY OWN IT. SOMEBODY BROUGHT A BLACK BLOC.",
     goal: "KNOCK OUT BOTH COPS BEFORE 18:00",
     beats: [
       { on: "ko", test: (u) => u.side === 1, say: "ONE DOWN. HE'S SITTING ON THE KERB RUBBING HIS BACK." },
@@ -1285,7 +1285,7 @@ const STORY = [
   {
     title: "LA PYRAMIDE", tune: "vieenrose", time: "SAMEDI 15:00", art: "news/louvre", round: 3, area: [9, 1, 18, 7],
     goals: () => [[13, 5, "TAKE"]],
-    diary: "THE ECOLE DU LOUVRE KIDS BARRICADED THE PYRAMID. THEN A GIRL IN A PINK CATSUIT WALKED UP AND ASKED WHERE THE CROWN JEWELS WERE. NOBODY ASKED WHY.",
+    diary: "A GIRL IN A PINK CATSUIT JUST ASKED WHERE THE CROWN JEWELS ARE. NOBODY ASKED WHY.",
     goal: "TAKE THE LOUVRE BEFORE 19:00",
     beats: [
       { on: "attack", test: (a) => a.type === "caddie", say: "THAT WAS LOUDER THAN I EXPECTED. A TOURIST IS FILMING IT." },
@@ -1306,7 +1306,7 @@ const STORY = [
   {
     title: "LES VELIBS BRULENT", tune: "jetaime", time: "SAMEDI 17:00", art: "news/velib", round: 5, area: [13, 2, 23, 10], power: true,
     goals: () => [[17, 6, "HOLD"]],
-    diary: "WE'VE GOT THE HOTEL DE VILLE. SOMEONE SET FIRE TO THE VELIBS. THEN THE WATER CANNON TURNED UP AND EVERYONE WENT VERY QUIET.",
+    diary: "WE'VE GOT THE HOTEL DE VILLE. SOMEONE SET FIRE TO THE VELIBS. THEN THE WATER CANNON TURNED UP.",
     goal: "HOLD THE HOTEL DE VILLE UNTIL 19:00",
     beats: [
       { on: "seine", say: "SOMEONE JUST WENT IN THE SEINE. A BATEAU MOUCHE IS TURNING ROUND." },
@@ -1332,7 +1332,7 @@ const STORY = [
   {
     title: "COUVRE-FEU", tune: "aroundtheworld", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000], power: true, area: [8, 0, 23, 12],
     goals: () => G.props.filter((p) => p.kind === "mark" && inArena(p.x, p.y)).map((p) => [p.x, p.y, p.owner === 0 ? "HELD" : "TAKE"]),
-    diary: "THE PREFET SAYS CURFEW AT 23:00. THREE HOURS. IF WE HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES, THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
+    diary: "CURFEW AT 23:00. HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES AND THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
     goal: "HOLD 4 LANDMARKS AT THE 23:00 CURFEW",
     beats: [
       { on: "turn", test: (s) => s === 0 && G.round === 10, say: () => `22:00. ONE HOUR LEFT. WE HOLD ${marksHeld(0)} OF 4.` },
@@ -1540,7 +1540,7 @@ function drawCard() {
   }
   // the diary slides up and types
   CARD.t = Math.min(cardText().length, CARD.t + 1.2);
-  const nLines = Math.min(6, wrap(cardText(), 55).length) + ({ won: 3, lost: 1, end: 1, intro: 2 }[k] || 0), h = 62 + nLines * 10;
+  const nLines = Math.min(6, wrap(cardText(), 55).length) + ({ won: 3, lost: 1, end: 1, intro: 3 }[k] || 0), h = 62 + nLines * 10;
   const slide = k === "intro" ? Math.max(0, 1 - CARD.f / 14) : 0, y = H - 8 - h + Math.round(slide * (h + 10));
   box(12, y, W - 24, h);
   const head = k === "intro" ? `CHAPITRE ${CARD.i + 1} / ${STORY.length}` : k === "won" ? `CHAPITRE ${CARD.i + 1} - DONE` : k === "lost" ? "ARRESTED" : "THE END";
@@ -1551,7 +1551,7 @@ function drawCard() {
   const done = CARD.t >= cardText().length;
   wrap(cardText().slice(0, Math.floor(CARD.t)), 55).slice(0, 6).forEach((l, j) => text(l, 24, y + 40 + j * 10, 12));
   if (done && k === "won") { const n = STORY[CARD.i + 1]; text(`NEXT: ${n.time.replace("SAMEDI ", "")} - ${n.title}`, 24, H - 44, 21); }
-  if (done && k === "intro") text(`GOAL: ${ch.goal}`, 24, H - 42, 26);
+  if (done && k === "intro") { text("YOUR JOB", 24, H - 52, 5); text8(ch.goal, 24, H - 42, 26); }
   if (done && k === "end") text("MAP: OPENSTREETMAP CONTRIBUTORS.", 24, H - 24, 5);
   // two choices: carry on, or back to the chapter list
   CARD_RECTS = [];
@@ -1573,7 +1573,7 @@ function coachTarget(st) {
   if (!st) return null;
   if (st.menu && G.menu) { const i = G.menu.items.findIndex((it) => it.label.startsWith(st.menu)); const r = G.menuRects?.[i]; if (r) return { x: r[0] - 6, y: r[1] + 5, side: true }; }
   if (st.ui) { const b = G.buttons.find((o) => o.name === st.ui); if (b) return { x: b.x + b.w / 2, y: b.y - 2 }; }
-  if (st.at && !G.menu) { const t = st.at(); if (t) return { x: t[0] * TS + 8, y: TOP + t[1] * TS - 1 }; }
+  if (st.at && !G.menu) { const t = st.at(); if (t) { const [x, y] = scr(t[0] * TS + 8, TOP + t[1] * TS - 1); return { x, y }; } }
   return null;
 }
 function drawCoach() {
@@ -1718,7 +1718,7 @@ function titleInput(a) {
   if (a === "ok") { SFX.ok(); TITLE_ITEMS[titleSel].fn(); }
 }
 const TITLE_ITEMS = [
-  { label: "PLAY", fn: () => fadeTo(openChapters) },
+  { label: "PLAY", fn: () => fadeTo(() => (storyDone ? openChapters() : openCard("intro", 0))) },
   { label: "HOW TO PLAY", fn: () => { screen = "help"; } },
   { label: "MUSIC", fn: () => openPlaylist("title") },
 ];
@@ -1744,7 +1744,7 @@ cv.addEventListener("pointermove", (e) => {
   if (e.pointerType !== "mouse" || screen !== "game" || !G || G.busy || G.menu || !human()) return;
   const [px, py] = pt(e);
   if (py < TOP || py >= BOT) return;
-  const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
+  const [tx, ty] = tileAt(px, py);
   if (G.mode === "target" || !inArena(tx, ty)) return;
   if (lastTile !== key(tx, ty)) { lastTile = key(tx, ty); G.cur = { x: tx, y: ty }; }
 });
@@ -1795,7 +1795,7 @@ cv.addEventListener("pointerdown", (e) => {
     return;
   }
   if (py < TOP || py >= BOT || G.busy || !human()) return;
-  const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
+  const [tx, ty] = tileAt(px, py);
   if (G.mode === "target") {
     const i = G.targets.findIndex((t) => t.x === tx && t.y === ty);
     if (i >= 0) { G.tsel = i; fireAt(G.targets[i]); } else { act("back"); }
@@ -1842,7 +1842,7 @@ function buildMapLayer() {
   if (!IMG.paris) { for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(f, x, y); return; }
   g.drawImage(IMG.paris, 0, 0);
   // Haussmann blocks sink back, so the streets, squares and parks read as the board
-  g.globalAlpha = 0.42;
+  g.globalAlpha = 0.55;
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (terr(x, y) === "#") f(x * TS, y * TS, TS, TS, 0);
   g.globalAlpha = 1;
   // tile corners, so the grid can be read without drawing lines over the city
@@ -1949,6 +1949,16 @@ function drawProp(f, p, px, py) {
   if (p.owner === -1 || p.owner == null) f(px + 11, py + 1, 1, 1, 0);
 }
 
+// The camera. In a chapter it zooms so the chapter's patch of Paris fills the board, like an Advance Wars map.
+let CAM = { s: 1, x: 0, y: 0 };
+function camera() {
+  const [a, b, c, d] = arena(), aw = (c - a + 1) * TS, ah = (d - b + 1) * TS, s = Math.min(3, W / aw, (BOT - TOP) / ah);
+  CAM = { s, x: (W - aw * s) / 2 - a * TS * s, y: TOP + (BOT - TOP - ah * s) / 2 - (TOP + b * TS) * s };
+}
+const scr = (x, y) => [x * CAM.s + CAM.x, y * CAM.s + CAM.y];
+const tileAt = (px, py) => [Math.floor((px - CAM.x) / CAM.s / TS), Math.floor(((py - CAM.y) / CAM.s - TOP) / TS)];
+function world(f) { ctx.save(); ctx.transform(CAM.s, 0, 0, CAM.s, CAM.x, CAM.y); f(); ctx.restore(); }
+
 // ---------- drawing ----------
 function drawMap() {
   ctx.drawImage(mapLayer, 0, TOP);
@@ -1972,9 +1982,10 @@ function drawGoals() {
   const on = (frame >> 4) % 2, st = human() && !G.story.beat?.f ? ch.steps[G.story.step] : null, arrow = st?.at && st.at();
   for (const [x, y, label] of ch.goals()) {
     const px = x * TS, py = TOP + y * TS, c = label === "HELD" ? 17 : 26;
-    fill(px - 1, py - 1, 18, 1, c); fill(px - 1, py + 16, 18, 1, c); fill(px - 1, py - 1, 1, 18, c); fill(px + 16, py - 1, 1, 18, c);
+    world(() => { fill(px - 1, py - 1, 18, 1, c); fill(px - 1, py + 16, 18, 1, c); fill(px - 1, py - 1, 1, 18, c); fill(px + 16, py - 1, 1, 18, c); });
     if (label === "HELD" || (arrow && arrow[0] === x && arrow[1] === y)) continue;
-    const w = tw(label) + 4, tx = Math.max(1, Math.min(W - w - 1, px + 8 - w / 2)), ty = y === 0 ? py + 17 : Math.max(TOP + 1, py - 18 + on);
+    const [sx, sy] = scr(px, py), k = TS * CAM.s;
+    const w = tw(label) + 4, tx = Math.round(Math.max(1, Math.min(W - w - 1, sx + k / 2 - w / 2))), ty = Math.round(sy - 11 < TOP + 1 ? sy + k + 1 : sy - 11 + on);
     fill(tx, ty, w, 9, 0); text(label, tx + 2, ty + 1, c);
   }
 }
@@ -1982,7 +1993,8 @@ function drawGoals() {
 function drawPropTag() {
   const { x, y } = G.cur, p = propAt(x, y);
   if (!p || G.menu || G.info || unitAt(x, y) && G.mode !== "idle") return;
-  const w = tw(p.name) + 6, px = x * TS + 8, tx = Math.max(1, Math.min(W - w - 1, px - w / 2)), ty = y === 0 ? TOP + 17 : TOP + y * TS - 19;
+  const [sx, sy] = scr(x * TS, TOP + y * TS), k = TS * CAM.s;
+  const w = tw(p.name) + 6, tx = Math.round(Math.max(1, Math.min(W - w - 1, sx + k / 2 - w / 2))), ty = Math.round(sy - 12 < TOP + 1 ? sy + k + 2 : sy - 12);
   fill(tx, ty, w, 10, 0); fill(tx, ty + 9, w, 1, p.owner < 0 || p.owner == null ? 6 : SIDES[p.owner].col); text(p.name, tx + 3, ty + 1, 7);
 }
 // Hover an enemy to see every square it can hit next turn.
@@ -2096,20 +2108,13 @@ function box(x, y, w, h, border = 29) {
   part(0, 0, c, c, x, y, c, c); part(r.w - c, 0, c, c, x + w - c, y, c, c);
   part(0, r.h - c, c, c, x, y + h - c, c, c); part(r.w - c, r.h - c, c, c, x + w - c, y + h - c, c, c);
 }
-// 8x8 heading font (art/font8.png), tinted per palette colour on first use.
-const FONT8 = {};
+// Heading font: the 5x7 font drawn bold, on an 8-pixel grid.
 function text8(s, x, y, c = 7) {
-  const m = IMG.font8Meta;
-  if (!m || !IMG.font8) return text(s, x, y, c, 0);
-  if (!FONT8[c]) {
-    const cv2 = document.createElement("canvas"); cv2.width = IMG.font8.width; cv2.height = IMG.font8.height;
-    const g = cv2.getContext("2d"); g.drawImage(IMG.font8, 0, 0); g.globalCompositeOperation = "source-in"; g.fillStyle = PAL[c]; g.fillRect(0, 0, cv2.width, cv2.height);
-    FONT8[c] = cv2;
-  }
+  x = Math.round(x); y = Math.round(y); ctx.fillStyle = PAL[c];
   for (const ch of norm(s)) {
-    const r = m.glyphs[ch] || m.glyphs[" "];
-    if (r) ctx.drawImage(FONT8[c], r.x, r.y, r.w, r.h, Math.round(x), Math.round(y), r.w, r.h);
-    x += r?.advance || m.advance;
+    const g = GL[ch] || GL["?"];
+    for (let r = 0; r < g.length; r++) for (let i = 0; i < 5; i++) if (g[r] & (16 >> i)) ctx.fillRect(x + i, y + r, 2, 1);
+    x += 8;
   }
 }
 const tw8 = (s) => norm(s).length * 8;
@@ -2183,10 +2188,10 @@ function drawBottom() {
 function drawMenu() {
   const m = G.menu, pad = 8, lh = TOUCH ? 16 : 12;
   const w = m.wide ? 200 : Math.max(104, tw(m.title) + 2 * pad + 4), h = pad + 12 + m.items.length * lh + (m.wide ? 12 : 0) + pad - 2;
-  const at = m.at;
-  let x = at ? at.x * TS + 22 : G.cur.x * TS + 22, y = at ? TOP + at.y * TS - 6 : TOP + G.cur.y * TS - 6;
+  const at = m.at || G.cur, [ux, uy] = scr(at.x * TS, TOP + at.y * TS);
+  let x = ux + TS * CAM.s + 6, y = uy - 6;
   if (m.wide) { x = (W - w) / 2; y = TOP + 24; }
-  if (x + w > W - 4) x = (at ? at.x : G.cur.x) * TS - w - 6;
+  if (x + w > W - 4) x = ux - w - 6;
   y = Math.max(TOP + 2, Math.min(BOT - h - 2, y));
   box(x, y, w, h);
   text(m.title, x + pad, y + pad, 29);
@@ -2267,12 +2272,12 @@ function drawInfo() {
   const { x, y } = G.info, I = infoFor(x, y), w = 196, cols = 30;
   const lines = I.lines.flatMap(([l, c]) => (l ? wrap(l, cols).map((t) => [t, c]) : [["", 0]]));
   const h = 8 + 12 + lines.length * 9 + 6;
-  const bx = x * TS + 8 < W / 2 ? W - w - 6 : 6, by = Math.max(TOP + 4, Math.min(BOT - h - 4, TOP + y * TS - h / 2));
+  const [sx, sy] = scr(x * TS + 8, TOP + y * TS + 8), bx = sx < W / 2 ? W - w - 6 : 6, by = Math.max(TOP + 4, Math.min(BOT - h - 4, sy - h / 2));
   box(bx, by, w, h);
   text8(I.title, bx + 8, by + 8, I.tc);
   lines.forEach(([l, c], i) => text(l, bx + 8, by + 22 + i * 9, c));
   // tie the card to its square
-  fill(x * TS, TOP + y * TS, 16, 1, 26); fill(x * TS, TOP + y * TS + 15, 16, 1, 26); fill(x * TS, TOP + y * TS, 1, 16, 26); fill(x * TS + 15, TOP + y * TS, 1, 16, 26);
+  world(() => { fill(x * TS, TOP + y * TS, 16, 1, 26); fill(x * TS, TOP + y * TS + 15, 16, 1, 26); fill(x * TS, TOP + y * TS, 1, 16, 26); fill(x * TS + 15, TOP + y * TS, 1, 16, 26); });
 }
 
 // ---------- title & help ----------
@@ -2284,11 +2289,12 @@ function drawTitle() {
   if (IMG.title && tm) {
     ctx.drawImage(IMG.title, 0, 0);
     TITLE_ITEMS.forEach((it, i) => {
-      const gap = TITLE_ITEMS.length > 3 ? 15 : 18, y = tm.menuBand.y + 38 - Math.round((TITLE_ITEMS.length - 1) * gap / 2) + i * gap, sel = i === titleSel;
+      const gap = TITLE_ITEMS.length > 3 ? 15 : 18, y = tm.menuBand.y + 44 - Math.round((TITLE_ITEMS.length - 1) * gap / 2) + i * gap, sel = i === titleSel;
       TITLE_RECTS.push([tm.menuBand.x, y - 4, tm.menuBand.w, gap]);
       textC(it.label, W / 2, y, sel ? tm.selectedTextColor : tm.textColor);
       if (sel) uiDraw("selection_marker", W / 2 - tw(it.label) / 2 - 14, y - 1);
     });
+    textC("A TURN-BASED STRATEGY GAME, LIKE ADVANCE WARS", W / 2, tm.menuBand.y + 8, 29);
     text(TOUCH ? "" : "ARROWS + SPACE, OR CLICK", 6, H - 10, 6, 0);
     { const hot = mouse.on && mouse.x > W - 46 && mouse.y > H - 14; fill(W - 44, H - 13, 40, 12, 29); fill(W - 43, H - 12, 38, 10, 0); textC("INFO", W - 24, H - 10, hot ? 26 : 7); }
     return;
@@ -2441,7 +2447,7 @@ function drawSorry() {
 // ---------- loop ----------
 function loop() {
   frame++;
-  ctx.setTransform(1, 0, 0, 1, PAD, 0);
+  ctx.setTransform(R, 0, 0, R, PAD * R, 0);
   fill(-PAD, 0, W + 2 * PAD, H, 0);
   if (!ready) textC("LOADING PARIS...", W / 2, H / 2, 6);
   else if (PHONE) drawSorry();
@@ -2452,19 +2458,22 @@ function loop() {
   else if (screen === "about") drawAbout();
   else if (screen === "playlist") drawPlaylist();
   else if (G) {
-    if (G.ending) { drawMap(); drawUnits(); drawFx(); drawTop(); drawBottom(); drawEnding(); }
+    camera();
+    if (G.ending) { world(() => { drawMap(); drawUnits(); drawFx(); }); drawTop(); drawBottom(); drawEnding(); }
     else if (G.over) {}
     else {
+      world(() => {
       drawMap();
       if (G.reach) for (const [k] of G.reach.d) { const [x, y] = unkey(k); checker(x, y, 25, frame >> 5); }
       if (G.mode === "target") for (const t of G.targets) checker(t.x, t.y, 30);
       const foe = G.mode === "idle" && !G.menu && !G.busy && human() && unitAt(G.cur.x, G.cur.y);
       if (foe && foe.side !== G.side) for (const k of dangerOf(foe)) { const [x, y] = unkey(k); checker(x, y, 30, frame >> 5); }
       drawUnits();
-      if (G.story) drawGoals();
-      if (human() && !G.busy) drawPropTag();
       drawFx();
       if (human() || G.busy) drawCursor();
+      });
+      if (G.story) drawGoals();
+      if (human() && !G.busy) drawPropTag();
       drawTop(); drawBottom();
       if (G.story && !G.banner && !G.battle) drawCoach();
       if (G.info && !G.menu) drawInfo();
@@ -2480,7 +2489,7 @@ function loop() {
 let ready = false;
 ASSETS.then(() => { mapLayer = null; G = null; ready = true; });
 // Test hook: lets a headless run inspect and drive the game.
-window.__cf = { get G() { return G; }, act, newGame, endTurn, attack, openCard, openChapters, STORY, get CARD() { return CARD; }, get screen() { return screen; } };
+window.__cf = { get G() { return G; }, get CAM() { return CAM; }, act, newGame, endTurn, attack, openCard, openChapters, STORY, get CARD() { return CARD; }, get screen() { return screen; } };
 loop();
 </script>
 </body>
