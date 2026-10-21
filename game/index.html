@@ -559,6 +559,9 @@ const cost = (mt, x, y) => COST[mt][terr(x, y)];
 const hpD = (u) => Math.ceil(u.hp / 10);
 const human = () => G.humans[G.side];
 const hour = () => START_HOUR + G.round;
+// Each chapter plays on its own patch of Paris; the rest of the city is dimmed and out of bounds.
+const arena = () => (G?.story && STORY[G.story.i].area) || [0, 0, MW - 1, MH - 1];
+const inArena = (x, y) => { const [a, b, c, d] = arena(); return x >= a && y >= b && x <= c && y <= d; };
 const marksHeld = (s) => G.props.filter((p) => p.kind === "mark" && p.owner === s).length;
 function say(m, t = 150) { if (!G) return; G.msg = norm(m); G.msgT = t; }
 
@@ -570,7 +573,7 @@ function reach(u) {
     if (c > d.get(key(x, y))) continue;
     for (const [dx, dy] of DIRS) {
       const nx = x + dx, ny = y + dy;
-      if (!inb(nx, ny)) continue;
+      if (!inb(nx, ny) || !inArena(nx, ny)) continue;
       const k = cost(mt, nx, ny); if (!k) continue;
       const o = unitAt(nx, ny); if (o && o.side !== u.side) continue;
       const nc = c + k; if (nc > mv) continue;
@@ -749,7 +752,7 @@ async function push(a, d) {
     d.x = nx; d.y = ny; await sleep(150);
     return ko(d, true, pick([`${U[d.type].name} SWEPT INTO THE SEINE. FISHED OUT AT CHATELET.`, `${U[d.type].name} IN THE SEINE. A BATEAU MOUCHE PICKS THEM UP.`]));
   }
-  if (!inb(nx, ny) || !cost(U[d.type].mt, nx, ny) || unitAt(nx, ny)) {
+  if (!inb(nx, ny) || !inArena(nx, ny) || !cost(U[d.type].mt, nx, ny) || unitAt(nx, ny)) {
     d.hp -= 10; pop(d.x, d.y, 10); say("SPLAT. PINNED TO THE WALL.");
     if (d.hp <= 0) await ko(d, true);
     return;
@@ -762,7 +765,7 @@ const POWER = [
   { name: "COUVRE-FEU ANTICIPE", who: "LE PREFET", portrait: "le_prefet", line: "GAS ON EVERY LYCEEN. NO CAPTURES NEXT TURN." },
 ];
 const POWER_FULL = 300;
-const charge = (s, n) => { G.power[s] = Math.min(POWER_FULL, G.power[s] + n); };
+const charge = (s, n) => { if (G.story && !STORY[G.story.i].power) return; G.power[s] = Math.min(POWER_FULL, G.power[s] + n); };
 async function usePower(s) {
   const was = G.busy;
   G.power[s] = 0; G.busy = true; G.menu = null;
@@ -1109,7 +1112,7 @@ function field(mt, goals) {
     const [c, x, y] = q.shift();
     if (c > d[key(x, y)]) continue;
     for (const [dx, dy] of DIRS) {
-      const nx = x + dx, ny = y + dy; if (!inb(nx, ny)) continue;
+      const nx = x + dx, ny = y + dy; if (!inb(nx, ny) || !inArena(nx, ny)) continue;
       const k = cost(mt, x, y) || 99; // cost of leaving toward goal uses this tile
       const nc = c + k;
       if (nc < d[key(nx, ny)] && cost(mt, nx, ny)) { d[key(nx, ny)] = nc; q.push([nc, nx, ny]); }
@@ -1152,7 +1155,6 @@ async function aiUnit(u) {
   const noCap = s === 0 && G.noCap === G.round;
   const here = propAt(u.x, u.y);
   if (t.cap && here && here.owner !== s && u.capturing && !noCap) { G.cur = { x: u.x, y: u.y }; await sleep(150); doCapture(u); return; }
-  const goalDist = (x, y) => Math.min(99, ...G.props.filter((p) => p.owner !== s).map((p) => dist(x, y, p.x, p.y)));
   let best = null;
   const offer = (v, o) => { if (!best || v > best.v) best = { v, ...o }; };
   for (const [k] of R.d) {
@@ -1193,9 +1195,9 @@ async function aiUnit(u) {
   }
   // Walk toward the nearest useful thing.
   let goals;
-  if (t.cap) goals = G.props.filter((p) => p.owner !== s).sort((a, b) => dist(u.x, u.y, a.x, a.y) - dist(u.x, u.y, b.x, b.y)).slice(0, 3).map((p) => [p.x, p.y]);
+  if (t.cap) goals = G.props.filter((p) => p.owner !== s && inArena(p.x, p.y)).sort((a, b) => dist(u.x, u.y, a.x, a.y) - dist(u.x, u.y, b.x, b.y)).slice(0, 3).map((p) => [p.x, p.y]);
   else goals = G.units.filter((o) => o.side !== s).map((o) => [o.x, o.y]);
-  if (!goals.length) goals = G.props.filter((p) => p.owner !== s).map((p) => [p.x, p.y]);
+  if (!goals.length) goals = G.props.filter((p) => p.owner !== s && inArena(p.x, p.y)).map((p) => [p.x, p.y]);
   if (!goals.length) return;
   const f = field(t.mt, goals);
   const hp0 = propAt(u.x, u.y);
@@ -1241,7 +1243,8 @@ const propNamed = (name) => G.props.find((p) => p.name === name);
 const posOf = (u) => (u ? [u.x, u.y] : null);
 const STORY = [
   {
-    title: "RENDEZ-VOUS A REPUBLIQUE", tune: "cancan", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true,
+    title: "RENDEZ-VOUS A REPUBLIQUE", tune: "cancan", time: "SAMEDI 12:00", art: "news/republique", round: 0, passive: true, area: [15, 0, 23, 6],
+    goals: () => [[20, 3, "LOOT"]],
     diary: "11:58. THE CEILING IN B12 FELL IN AGAIN. ON MADAME DUVAL THIS TIME. SHE'S FINE. THE CEILING ISN'T. EVERYONE IS MEETING AT REPUBLIQUE. MUM THINKS I'M AT THE LIBRARY.",
     goal: "LOOT THE MONOPRIX",
     beats: [{ on: "turn", test: (s) => s === 1, say: "THE POLICE ARE JUST WATCHING. FOR NOW." }],
@@ -1252,13 +1255,14 @@ const STORY = [
       { say: "BLUE SQUARES ARE WHERE SHE CAN WALK. CLICK THE MONOPRIX.", at: () => [20, 3], done: (e, u) => e === "moved" && u.x === 20 && u.y === 3 },
       { say: "NOW CHOOSE CAPTURE.", menu: "CAPTURE", done: (e) => e === "capture" },
       { say: "LOOTING TAKES TWO GOES. CLICK END TURN.", ui: "end_turn", done: (e) => e === "endturn" },
-      { say: "THE POLICE JUST WATCHED. CLICK HER AGAIN, CLICK HER OWN SQUARE, THEN CAPTURE.", at: () => [20, 3], done: () => false },
+      { say: "THE POLICE JUST WATCHED. CLICK HER TWICE, THEN CAPTURE AGAIN.", at: () => [20, 3], done: () => false },
     ],
     won: "MONOPRIX LOOTED. THE AIR MAX ARE ON VINTED BY 12:47.",
     lost: "SOMEHOW YOU GOT ARRESTED IN A MONOPRIX.",
   },
   {
-    title: "LE MUR DE BOUCLIERS", tune: "voyage", time: "SAMEDI 14:00", art: "news/capucines", round: 2,
+    title: "LE MUR DE BOUCLIERS", tune: "voyage", time: "SAMEDI 14:00", art: "news/capucines", round: 2, area: [7, 0, 17, 5],
+    goals: () => G.units.filter((u) => u.side === 1).map((u) => [u.x, u.y, "KO"]),
     diary: "BOULEVARD DES CAPUCINES. SOMEBODY BROUGHT A PLACARD. SOMEBODY ELSE BROUGHT A BLACK BLOC. TWO RIOT COPS ARE STANDING BETWEEN US AND THE OPERA LIKE THEY OWN IT.",
     goal: "KNOCK OUT BOTH COPS BEFORE 18:00",
     beats: [
@@ -1279,7 +1283,8 @@ const STORY = [
     lost: "EVERYONE ARRESTED. MUM HAS TO COLLECT YOU FROM THE COMMISSARIAT.",
   },
   {
-    title: "LA PYRAMIDE", tune: "vieenrose", time: "SAMEDI 15:00", art: "news/louvre", round: 3,
+    title: "LA PYRAMIDE", tune: "vieenrose", time: "SAMEDI 15:00", art: "news/louvre", round: 3, area: [9, 1, 18, 7],
+    goals: () => [[13, 5, "TAKE"]],
     diary: "THE ECOLE DU LOUVRE KIDS BARRICADED THE PYRAMID. THEN A GIRL IN A PINK CATSUIT WALKED UP AND ASKED WHERE THE CROWN JEWELS WERE. NOBODY ASKED WHY.",
     goal: "TAKE THE LOUVRE BEFORE 19:00",
     beats: [
@@ -1299,7 +1304,8 @@ const STORY = [
     lost: "THE PANTHER GOT AWAY. YOU DIDN'T.",
   },
   {
-    title: "LES VELIBS BRULENT", tune: "jetaime", time: "SAMEDI 17:00", art: "news/velib", round: 5,
+    title: "LES VELIBS BRULENT", tune: "jetaime", time: "SAMEDI 17:00", art: "news/velib", round: 5, area: [13, 2, 23, 10], power: true,
+    goals: () => [[17, 6, "HOLD"]],
     diary: "WE'VE GOT THE HOTEL DE VILLE. SOMEONE SET FIRE TO THE VELIBS. THEN THE WATER CANNON TURNED UP AND EVERYONE WENT VERY QUIET.",
     goal: "HOLD THE HOTEL DE VILLE UNTIL 19:00",
     beats: [
@@ -1324,7 +1330,8 @@ const STORY = [
     lost: "THE POLICE TOOK THE HOTEL DE VILLE. YOUR SHOES ARE STILL WET.",
   },
   {
-    title: "COUVRE-FEU", tune: "aroundtheworld", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000],
+    title: "COUVRE-FEU", tune: "aroundtheworld", time: "SAMEDI 20:00", art: "bank/seine-rain", round: 8, buy: true, funds: [3000, 3000], power: true,
+    goals: () => G.props.filter((p) => p.kind === "mark").map((p) => [p.x, p.y, p.owner === 0 ? "HELD" : "TAKE"]),
     diary: "THE PREFET SAYS CURFEW AT 23:00. THREE HOURS. IF WE HOLD FOUR LANDMARKS WHEN THE CLOCK STRIKES, THE WHOLE COUNTRY SEES IT. MUM HAS CALLED ELEVEN TIMES.",
     goal: "HOLD 4 LANDMARKS AT THE 23:00 CURFEW",
     beats: [
@@ -1579,7 +1586,7 @@ function drawCoach() {
   G.story.typed = Math.min(msg.length, G.story.typed + 1.5);
   const tgt = coachTarget(st);
   const top = tgt ? tgt.y > TOP + 120 : false;
-  const by = top ? TOP + 4 : BOT - 34, bx = 54, w = W - bx - 4;
+  const by = top ? TOP + 16 : BOT - 34, bx = 54, w = W - bx - 4;
   box(bx, by, w, 30);
   const pr = IMG.comMeta?.frames.la_deleguee;
   if (pr && IMG.commanders) { fill(4, by - 14, 46, 44, 0); ctx.drawImage(IMG.commanders, pr.x + 1, pr.y + 1, 46, 46, 4, by - 15, 46, 46); }
@@ -1623,7 +1630,7 @@ function act(a) {
     if (a === "back") { SFX.back(); G.mode = "moved"; actionMenu(); }
     return;
   }
-  if (mv) { G.info = null; c.x = Math.max(0, Math.min(MW - 1, c.x + mv[0])); c.y = Math.max(0, Math.min(MH - 1, c.y + mv[1])); SFX.move(); return; }
+  if (mv) { const [a0, b0, a1, b1] = arena(); G.info = null; c.x = Math.max(a0, Math.min(a1, c.x + mv[0])); c.y = Math.max(b0, Math.min(b1, c.y + mv[1])); SFX.move(); return; }
   if (a === "ok") return okAt(c.x, c.y);
   if (a === "back") {
     if (G.mode === "move") { G.mode = "idle"; G.sel = null; G.reach = null; SFX.back(); }
@@ -1738,7 +1745,7 @@ cv.addEventListener("pointermove", (e) => {
   const [px, py] = pt(e);
   if (py < TOP || py >= BOT) return;
   const tx = Math.floor(px / TS), ty = Math.floor((py - TOP) / TS);
-  if (G.mode === "target") return;
+  if (G.mode === "target" || !inArena(tx, ty)) return;
   if (lastTile !== key(tx, ty)) { lastTile = key(tx, ty); G.cur = { x: tx, y: ty }; }
 });
 cv.addEventListener("contextmenu", (e) => { e.preventDefault(); act("back"); });
@@ -1794,6 +1801,7 @@ cv.addEventListener("pointerdown", (e) => {
     if (i >= 0) { G.tsel = i; fireAt(G.targets[i]); } else { act("back"); }
     return;
   }
+  if (!inArena(tx, ty)) { if (G.mode === "move" || G.info) act("back"); return; }
   G.cur = { x: tx, y: ty };
   okAt(tx, ty);
 });
@@ -1833,6 +1841,10 @@ function buildMapLayer() {
   const f = (x, y, w, h, c) => { g.fillStyle = PAL[c]; g.fillRect(x, y, w, h); };
   if (!IMG.paris) { for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(f, x, y); return; }
   g.drawImage(IMG.paris, 0, 0);
+  // Haussmann blocks sink back, so the streets, squares and parks read as the board
+  g.globalAlpha = 0.42;
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (terr(x, y) === "#") f(x * TS, y * TS, TS, TS, 0);
+  g.globalAlpha = 1;
   // tile corners, so the grid can be read without drawing lines over the city
   for (let y = 1; y < MH; y++) for (let x = 1; x < MW; x++) f(x * TS, y * TS, 1, 1, 0);
   const props = (G?.props || PROPS0).slice().sort((a, b) => a.y - b.y);
@@ -1847,6 +1859,12 @@ function buildMapLayer() {
     f(px + 15, py - 8, 1, 6, 0); f(px + 12, py - 8, 3, 3, own);
     if (p.owner < 0) f(px + 13, py - 7, 1, 1, 0);
   }
+  // outside this chapter's patch of Paris: dark, scenery only
+  g.globalAlpha = 0.66;
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (!inArena(x, y)) f(x * TS, y * TS, TS, TS, 0);
+  g.globalAlpha = 1;
+  const [a0, b0, a1, b1] = arena();
+  if (a1 - a0 < MW - 1) { g.strokeStyle = PAL[29]; g.lineWidth = 1; g.strokeRect(a0 * TS + 0.5, b0 * TS + 0.5, (a1 - a0 + 1) * TS - 1, (b1 - b0 + 1) * TS - 1); }
 }
 function drawTile(f, x, y) {
   const px = x * TS, py = y * TS, t = terr(x, y);
@@ -1947,6 +1965,45 @@ function drawMap() {
     fill(p.x * TS + 4, TOP + p.y * TS + 2 - fl, 2, 2, 3);
   }
 }
+// The chapter's goal, marked on the map: a pulsing square and a tag above it.
+function drawGoals() {
+  const ch = STORY[G.story.i];
+  if (!ch.goals || G.mode === "target") return;
+  const on = (frame >> 4) % 2, st = human() && !G.story.beat?.f ? ch.steps[G.story.step] : null, arrow = st?.at && st.at();
+  for (const [x, y, label] of ch.goals()) {
+    const px = x * TS, py = TOP + y * TS, c = label === "HELD" ? 17 : 26;
+    fill(px - 1, py - 1, 18, 1, c); fill(px - 1, py + 16, 18, 1, c); fill(px - 1, py - 1, 1, 18, c); fill(px + 16, py - 1, 1, 18, c);
+    if (label === "HELD" || (arrow && arrow[0] === x && arrow[1] === y)) continue;
+    const w = tw(label) + 4, tx = Math.max(1, Math.min(W - w - 1, px + 8 - w / 2)), ty = y === 0 ? py + 17 : Math.max(TOP + 1, py - 18 + on);
+    fill(tx, ty, w, 9, 0); text(label, tx + 2, ty + 1, c);
+  }
+}
+// The name of the building under the cursor, so you can tell the Louvre from a Zara.
+function drawPropTag() {
+  const { x, y } = G.cur, p = propAt(x, y);
+  if (!p || G.menu || G.info || unitAt(x, y) && G.mode !== "idle") return;
+  const w = tw(p.name) + 6, px = x * TS + 8, tx = Math.max(1, Math.min(W - w - 1, px - w / 2)), ty = y === 0 ? TOP + 17 : TOP + y * TS - 19;
+  fill(tx, ty, w, 10, 0); fill(tx, ty + 9, w, 1, p.owner < 0 || p.owner == null ? 6 : SIDES[p.owner].col); text(p.name, tx + 3, ty + 1, 7);
+}
+// Hover an enemy to see every square it can hit next turn.
+let DANGER = { k: null, tiles: null };
+function dangerOf(u) {
+  const k = `${u.id},${u.x},${u.y},${G.units.length},${G.round}`;
+  if (DANGER.k === k) return DANGER.tiles;
+  const t = U[u.type], out = new Set();
+  if (t.r) {
+    const from = t.cls === "arty" ? [key(u.x, u.y)] : [...reach(u).d.keys()];
+    for (const f of from) {
+      const [fx, fy] = unkey(f);
+      for (let y = fy - t.r[1]; y <= fy + t.r[1]; y++) for (let x = fx - t.r[1]; x <= fx + t.r[1]; x++) {
+        const d = dist(fx, fy, x, y);
+        if (inb(x, y) && inArena(x, y) && d >= t.r[0] && d <= t.r[1]) out.add(key(x, y));
+      }
+    }
+  }
+  DANGER = { k, tiles: out };
+  return out;
+}
 function checker(x, y, c, phase = 0) {
   ctx.fillStyle = PAL[c];
   const px = x * TS, py = TOP + y * TS;
@@ -1958,12 +2015,13 @@ function drawUnits() {
     const dim = u.done && u.side === G.side && !G.over;
     const fl = u.side === 0 ? 1 : 0;
     const hop = u.pose?.name === "walk" && performance.now() < u.pose.t0 + u.pose.dur && (frame >> 2) % 2 ? -2 : 0;
+    // a team-coloured patch under every unit: red is us, blue is them
+    ctx.globalAlpha = dim ? 0.25 : 0.5; fill(px + 1, py + 11, 14, 5, SIDES[u.side].col); ctx.globalAlpha = 1;
     if (SHEET.frames?.has(u.type)) ctx.drawImage(SHEET.cache[`${u.type}/${poseOf(u)}${fl}${dim ? 1 : 0}`], px, py + hop);
     else {
       const bob = !dim && u.side === G.side && (frame >> 4) % 2 ? -1 : 0;
       ctx.drawImage(SPR[`${u.type}${fl}${dim ? 1 : 0}`], px, py + bob);
     }
-    fill(px, py + 15, 4, 1, SIDES[u.side].col);
     const h = hpD(u);
     if (h < 10) { fill(px + 10, py + 8, 6, 8, 0); text(String(h), px + 11, py + 9, 7); }
     if (u.capturing) { fill(px, py + 8, 6, 8, 0); text("C", px + 1, py + 9, 26); }
@@ -2065,7 +2123,8 @@ function drawTop() {
   if (!G.noBuy) { text(`€${G.funds[s]}`, x, 5, 26); x += tw(`€${G.funds[s]}`) + 12; }
   const clock = `SAT ${hour()}:00`;
   text(clock, x, 5, 13); x += tw(clock) + 12;
-  // power meter
+  // power meter, from the chapter that teaches it
+  if (G.story && !STORY[G.story.i].power) { const lm = storyStatus(); text(lm, W - tw(lm) - 5, 5, 26); return; }
   const full = G.power[s] >= POWER_FULL, segs = Math.floor(G.power[s] / POWER_FULL * 8);
   text("POWER", x, 5, full && (frame >> 4) % 2 ? 26 : 6); x += 32;
   for (let i = 0; i < 8; i++) fill(x + i * 4, 5, 3, 7, i < segs ? (full ? 26 : sd.hi) : 2);
@@ -2084,10 +2143,18 @@ function drawBottom() {
     const d = defAt(x, y);
     const tn = p ? p.name : TNAME[terr(x, y)];
     const k = key(x, y);
-    info = `${tn} ${"*".repeat(d)}`;
+    info = d ? `${tn} - COVER ${"*".repeat(d)}` : tn;
     if (p && p.cap < 20) info += ` CAP ${p.cap}`;
     if (u) info = `${U[u.type].name} ${hpD(u)}/10 - ${info}`;
-    if (G.mode === "target" && G.sel) { const t = G.targets[G.tsel]; if (t) info = `HIT ${U[t.type].name} FOR ~${calcDmg(G.sel, t, t.x, t.y, 4)}%`; }
+    if (u && u.side !== G.side && G.mode === "idle" && U[u.type].r) info = `${U[u.type].name} ${hpD(u)}/10 - RED: IT CAN HIT THERE`;
+    if (G.mode === "target" && G.sel) {
+      const t = G.targets[G.tsel];
+      if (t) {
+        const dmg = calcDmg(G.sel, t, t.x, t.y, 4), left = t.hp - dmg;
+        const back = left > 0 && canCounter(t, G.sel) && !U[G.sel.type].push ? calcDmg(t, G.sel, G.sel.x, G.sel.y, 4, left, G.sel.hp) : 0;
+        info = left <= 0 ? `HIT ${U[t.type].name}: KNOCKS THEM OUT` : `HIT ${U[t.type].name} FOR ${Math.min(100, dmg)}%` + (back ? `, THEY HIT BACK ${back}%` : ", NO HIT BACK");
+      }
+    }
   }
   text(info, 5, BOT + 5, G.msgT > 0 ? 26 : 7);
   if (human() && !G.busy && !G.over) {
@@ -2099,6 +2166,8 @@ function drawBottom() {
     };
     let x = W - 3;
     if (G.mode === "idle" && !G.menu) {
+      const allDone = !G.units.some((o) => o.side === G.side && !o.done);
+      if (allDone && (frame >> 4) % 2) fill(x - 50, BOT + 1, 52, 14, 26);
       x = btn("end_turn", "END TURN", () => { SFX.ok(); G.info = null; endTurn(); }, x);
       { const w = 40, bx = x - w; flatBtn(bx, w); textC("MENU", bx + w / 2, BOT + 5, mouse.on && mouse.x >= bx && mouse.x < x && mouse.y > BOT ? 26 : 13);
         G.buttons.push({ x: bx, y: BOT + 2, w, h: 12, fn: () => { SFX.ok(); mainMenu(); } }); x = bx - 4; }
@@ -2389,7 +2458,11 @@ function loop() {
       drawMap();
       if (G.reach) for (const [k] of G.reach.d) { const [x, y] = unkey(k); checker(x, y, 25, frame >> 5); }
       if (G.mode === "target") for (const t of G.targets) checker(t.x, t.y, 30);
+      const foe = G.mode === "idle" && !G.menu && !G.busy && human() && unitAt(G.cur.x, G.cur.y);
+      if (foe && foe.side !== G.side) for (const k of dangerOf(foe)) { const [x, y] = unkey(k); checker(x, y, 30, frame >> 5); }
       drawUnits();
+      if (G.story) drawGoals();
+      if (human() && !G.busy) drawPropTag();
       drawFx();
       if (human() || G.busy) drawCursor();
       drawTop(); drawBottom();

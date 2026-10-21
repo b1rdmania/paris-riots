@@ -11,7 +11,7 @@ Play: https://couvre-feu.pages.dev (desktop browser)
 | Part | Source |
 | --- | --- |
 | Map | OpenStreetMap streets, water and parks for central Paris, drawn as pixel art. The game grid comes from the same drawing, so the rules match the picture. |
-| Rules | Advance Wars: move a unit, then fire, capture or wait. Each chapter has one goal. |
+| Rules | Advance Wars: move a unit, then fire, capture or wait. Each chapter plays on its own patch of Paris, with its goal marked on the map. Point at a police unit to see where it can hit next turn. |
 | Story | Five chapters, each with a diary card. Inès, a lycéenne, coaches you through each step. |
 | Art | Painted with Codex in a fixed 32-colour palette. |
 | Music | Ten French songs from BitMidi, played on a four-channel Game Boy-style synth from [Wario Synth](https://wario.style). |
